@@ -59,7 +59,7 @@ export const GlifRunSchema = z.object({
   outputImageHeight: z.number().nullable(),
   deletionReason: z.string().nullable(),
   deleted: z.boolean(),
-  totalSellingPriceCredits: z.string(),
+  totalSellingPriceCredits: z.string().nullable(),
   likeCount: z.number(),
   commentCount: z.number(),
   visibility: z.string(),

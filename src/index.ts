@@ -34,7 +34,7 @@ const axiosInstance = axios.create({
 
 async function runGlif(id: string, inputs: string[]): Promise<GlifRunResponse> {
   // console.log(`Running glif ${id} with inputs:`, inputs);
-  const start = performance.now();
+  // const start = performance.now();
 
   try {
     const response = await axiosInstance.post("https://simple-api.glif.app", {
@@ -42,7 +42,7 @@ async function runGlif(id: string, inputs: string[]): Promise<GlifRunResponse> {
       inputs,
     });
 
-    const end = performance.now();
+    // const end = performance.now();
     // console.log(`Glif run completed in ${(end - start).toFixed(2)}ms`);
 
     return GlifRunResponseSchema.parse(response.data);
@@ -56,7 +56,7 @@ async function searchGlifs(
   params: z.infer<typeof SearchParamsSchema>
 ): Promise<Glif[]> {
   // console.log("Searching glifs with params:", params);
-  const start = performance.now();
+  // const start = performance.now();
 
   try {
     const queryParams = new URLSearchParams();
@@ -69,7 +69,7 @@ async function searchGlifs(
     }`;
     const response = await axios.get(url);
 
-    const end = performance.now();
+    // const end = performance.now();
     // console.log(`Glif search completed in ${(end - start).toFixed(2)}ms`);
 
     return z.array(GlifSchema).parse(response.data);
@@ -84,7 +84,7 @@ async function getGlifDetails(id: string): Promise<{
   recentRuns: GlifRun[];
 }> {
   // console.log(`Getting details for glif ${id}`);
-  const start = performance.now();
+  // const start = performance.now();
 
   try {
     const [glifResponse, runsResponse] = await Promise.all([
@@ -98,12 +98,14 @@ async function getGlifDetails(id: string): Promise<{
       .parse(runsResponse.data)
       .slice(0, 3);
 
-    const end = performance.now();
+    // const end = performance.now();
     // console.log(`Glif details fetched in ${(end - start).toFixed(2)}ms`);
-
     return { glif, recentRuns };
   } catch (error) {
-    console.error("Error fetching glif details:", error);
+    console.error(
+      "Error fetching glif details:",
+      JSON.stringify(error, null, 2)
+    );
     throw error;
   }
 }

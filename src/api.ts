@@ -1,4 +1,6 @@
-import axios from "axios";
+import wretch from "wretch";
+import QueryStringAddon from "wretch/addons/queryString";
+import type { WretchError } from "wretch";
 import { z } from "zod";
 import {
   GlifRunResponseSchema,
@@ -15,24 +17,31 @@ if (!API_TOKEN) {
   throw new Error("GLIF_API_TOKEN environment variable is required");
 }
 
-const axiosInstance = axios.create({
-  headers: {
+export const api = wretch()
+  .addon(QueryStringAddon)
+  .headers({
     Authorization: `Bearer ${API_TOKEN}`,
     "Content-Type": "application/json",
-  },
-});
+  })
+  .errorType("json");
+
+const simpleApi = api.url("https://simple-api.glif.app");
+const glifApi = api.url("https://glif.app/api");
 
 export async function runGlif(
   id: string,
   inputs: string[]
 ): Promise<GlifRunResponse> {
   try {
-    const response = await axiosInstance.post("https://simple-api.glif.app", {
-      id,
-      inputs,
-    });
+    const data = await simpleApi
+      .post({ id, inputs })
+      .unauthorized((err: WretchError) => {
+        console.error("Unauthorized request:", err);
+        throw err;
+      })
+      .json();
 
-    return GlifRunResponseSchema.parse(response.data);
+    return GlifRunResponseSchema.parse(data);
   } catch (error) {
     console.error("Error running glif:", error);
     throw error;
@@ -43,17 +52,22 @@ export async function searchGlifs(
   params: z.infer<typeof SearchParamsSchema>
 ): Promise<Glif[]> {
   try {
-    const queryParams = new URLSearchParams();
-    if (params.q) queryParams.set("q", params.q);
-    if (params.featured) queryParams.set("featured", "1");
-    if (params.id) queryParams.set("id", params.id);
+    const queryParams: Record<string, string> = {};
+    if (params.q) queryParams.q = params.q;
+    if (params.featured) queryParams.featured = "1";
+    if (params.id) queryParams.id = params.id;
 
-    const url = `https://glif.app/api/glifs${
-      queryParams.toString() ? "?" + queryParams.toString() : ""
-    }`;
-    const response = await axios.get(url);
+    const data = await glifApi
+      .url("/glifs")
+      .query(queryParams)
+      .get()
+      .unauthorized((err: WretchError) => {
+        console.error("Unauthorized request:", err);
+        throw err;
+      })
+      .json();
 
-    return z.array(GlifSchema).parse(response.data);
+    return z.array(GlifSchema).parse(data);
   } catch (error) {
     console.error("Error searching glifs:", error);
     throw error;
@@ -65,16 +79,29 @@ export async function getGlifDetails(id: string): Promise<{
   recentRuns: GlifRun[];
 }> {
   try {
-    const [glifResponse, runsResponse] = await Promise.all([
-      axios.get(`https://glif.app/api/glifs?id=${id}`),
-      axios.get(`https://glif.app/api/runs?glifId=${id}`),
+    const [glifData, runsData] = await Promise.all([
+      glifApi
+        .url("/glifs")
+        .query({ id })
+        .get()
+        .unauthorized((err: WretchError) => {
+          console.error("Unauthorized request:", err);
+          throw err;
+        })
+        .json(),
+      glifApi
+        .url("/runs")
+        .query({ glifId: id })
+        .get()
+        .unauthorized((err: WretchError) => {
+          console.error("Unauthorized request:", err);
+          throw err;
+        })
+        .json(),
     ]);
 
-    const glif = z.array(GlifSchema).parse(glifResponse.data)[0];
-    const recentRuns = z
-      .array(GlifRunSchema)
-      .parse(runsResponse.data)
-      .slice(0, 3);
+    const glif = z.array(GlifSchema).parse(glifData)[0];
+    const recentRuns = z.array(GlifRunSchema).parse(runsData).slice(0, 3);
 
     return { glif, recentRuns };
   } catch (error) {

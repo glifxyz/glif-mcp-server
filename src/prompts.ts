@@ -5,7 +5,7 @@ import {
   McpError,
 } from "@modelcontextprotocol/sdk/types.js";
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
-import axios from "axios";
+import type { WretchError } from "wretch";
 import { formatOutput, getGlifDetails, runGlif, searchGlifs } from "./api.js";
 
 export function setupPromptHandlers(server: Server) {
@@ -111,13 +111,13 @@ export function setupPromptHandlers(server: Server) {
         messages,
       };
     } catch (error: unknown) {
-      if (axios.isAxiosError(error)) {
-        throw new McpError(
-          ErrorCode.InternalError,
-          `API error: ${error.response?.data?.message ?? error.message}`
-        );
+      if (error instanceof McpError) {
+        throw error;
       }
-      throw error;
+      throw new McpError(
+        ErrorCode.InternalError,
+        `API error: ${error instanceof Error ? error.message : String(error)}`
+      );
     }
   });
 }

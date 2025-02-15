@@ -21,7 +21,7 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "0.6.0",
-    "axios": "^1.7.9",
+    "wretch": "^2.11.0",
     "zod": "^3.24.1"
   },
   "devDependencies": {

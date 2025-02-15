@@ -5,9 +5,11 @@ import {
   ReadResourceRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
-import axios from "axios";
+import type { WretchError } from "wretch";
 import { GlifRunSchema, GlifSchema, UserSchema } from "./types.js";
-import { getGlifDetails } from "./api.js";
+import { api, getGlifDetails } from "./api.js";
+
+const glifApi = api.url("https://glif.app/api");
 
 export function setupResourceHandlers(server: Server) {
   server.setRequestHandler(ListResourcesRequestSchema, async () => ({
@@ -51,10 +53,19 @@ export function setupResourceHandlers(server: Server) {
           };
         }
         case "glifRun:": {
-          const response = await axios.get(
-            `https://glif.app/api/runs?id=${id}`
-          );
-          const run = GlifRunSchema.parse(response.data[0]);
+          const data = await glifApi
+            .url("/runs")
+            .query({ id })
+            .get()
+            .unauthorized((err: WretchError) => {
+              console.error("Unauthorized request:", err);
+              throw new McpError(
+                ErrorCode.InternalError,
+                `Unauthorized: ${err.message}`
+              );
+            })
+            .json<unknown[]>();
+          const run = GlifRunSchema.parse(data[0]);
           return {
             contents: [
               {
@@ -65,8 +76,18 @@ export function setupResourceHandlers(server: Server) {
           };
         }
         case "glifUser:": {
-          const response = await axios.get(`https://glif.app/api/users/${id}`);
-          const user = UserSchema.parse(response.data);
+          const data = await glifApi
+            .url(`/users/${id}`)
+            .get()
+            .unauthorized((err: WretchError) => {
+              console.error("Unauthorized request:", err);
+              throw new McpError(
+                ErrorCode.InternalError,
+                `Unauthorized: ${err.message}`
+              );
+            })
+            .json<unknown>();
+          const user = UserSchema.parse(data);
           return {
             contents: [
               {
@@ -83,13 +104,13 @@ export function setupResourceHandlers(server: Server) {
           );
       }
     } catch (error) {
-      if (axios.isAxiosError(error)) {
-        throw new McpError(
-          ErrorCode.InternalError,
-          `API error: ${error.response?.data?.message ?? error.message}`
-        );
+      if (error instanceof McpError) {
+        throw error;
       }
-      throw error;
+      throw new McpError(
+        ErrorCode.InternalError,
+        `API error: ${error instanceof Error ? error.message : String(error)}`
+      );
     }
   });
 }

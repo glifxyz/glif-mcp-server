@@ -79,6 +79,18 @@ For development with auto-rebuild:
 npm run watch
 ```
 
+To run the test suite (not quite working):
+
+```sh
+npm run test
+```
+
+And to continuously run tests on changes:
+
+```sh
+npm run test:watch
+```
+
 ### Debugging
 
 Since MCP servers communicate over stdio, debugging can be challenging. We recommend using the [MCP Inspector](https://github.com/modelcontextprotocol/inspector):
@@ -88,3 +100,5 @@ npm run inspector
 ```
 
 The Inspector will provide a URL to access debugging tools in your browser.
+
+You can also look at the glif-mcp logs inside the Claude logs directy if you're using Claude Desktop.

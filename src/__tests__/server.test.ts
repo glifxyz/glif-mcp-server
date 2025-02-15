@@ -90,7 +90,30 @@ describe("Glif MCP Server", () => {
           },
         },
         {
-          name: "get_glif_info",
+          name: "list_featured_glifs",
+          description: "Get a curated list of featured glifs",
+          inputSchema: {
+            type: "object",
+            properties: {},
+            required: [],
+          },
+        },
+        {
+          name: "search_glifs",
+          description: "Search for glifs by query string",
+          inputSchema: {
+            type: "object",
+            properties: {
+              query: {
+                type: "string",
+                description: "Search query string",
+              },
+            },
+            required: ["query"],
+          },
+        },
+        {
+          name: "glif_info",
           description:
             "Get detailed information about a glif including input fields",
           inputSchema: {
@@ -129,15 +152,50 @@ describe("Glif MCP Server", () => {
             ],
           };
         }
-        case "get_glif_info":
+        case "list_featured_glifs": {
           return {
             content: [
               {
                 type: "text",
-                text: "Test response",
+                text: "Test featured glifs response",
               },
             ],
           };
+        }
+        case "search_glifs": {
+          const args = request.params.arguments as { query?: string };
+          if (!args?.query) {
+            throw new McpError(
+              ErrorCode.InvalidParams,
+              "Missing required field: query"
+            );
+          }
+          return {
+            content: [
+              {
+                type: "text",
+                text: "Test search results",
+              },
+            ],
+          };
+        }
+        case "glif_info": {
+          const args = request.params.arguments as { id?: string };
+          if (!args?.id) {
+            throw new McpError(
+              ErrorCode.InvalidParams,
+              "Missing required field: id"
+            );
+          }
+          return {
+            content: [
+              {
+                type: "text",
+                text: "Test glif info response",
+              },
+            ],
+          };
+        }
         default:
           throw new McpError(
             ErrorCode.MethodNotFound,
@@ -152,9 +210,11 @@ describe("Glif MCP Server", () => {
 
   it("should list available tools", async () => {
     const response = await transport.request("listTools");
-    expect(response.tools).toHaveLength(2);
+    expect(response.tools).toHaveLength(4);
     expect(response.tools[0].name).toBe("run_glif");
-    expect(response.tools[1].name).toBe("get_glif_info");
+    expect(response.tools[1].name).toBe("list_featured_glifs");
+    expect(response.tools[2].name).toBe("search_glifs");
+    expect(response.tools[3].name).toBe("glif_info");
   });
 
   it("should validate run_glif tool input schema", async () => {
@@ -185,9 +245,9 @@ describe("Glif MCP Server", () => {
     ).rejects.toThrow();
   });
 
-  it("should validate get_glif_info tool input schema", async () => {
+  it("should validate glif_info tool input schema", async () => {
     const validParams = {
-      name: "get_glif_info",
+      name: "glif_info",
       arguments: {
         id: "test-id",
       },
@@ -207,6 +267,42 @@ describe("Glif MCP Server", () => {
     await expect(
       transport.request("callTool", invalidParams)
     ).rejects.toThrow();
+  });
+
+  it("should validate search_glifs tool input schema", async () => {
+    const validParams = {
+      name: "search_glifs",
+      arguments: {
+        query: "test query",
+      },
+    };
+
+    const invalidParams = {
+      name: "search_glifs",
+      arguments: {
+        // Missing required 'query' field
+      },
+    };
+
+    // Valid request should not throw
+    await expect(
+      transport.request("callTool", validParams)
+    ).resolves.toBeDefined();
+
+    // Invalid request should throw
+    await expect(
+      transport.request("callTool", invalidParams)
+    ).rejects.toThrow();
+  });
+
+  it("should handle list_featured_glifs tool", async () => {
+    const params = {
+      name: "list_featured_glifs",
+      arguments: {},
+    };
+
+    // Should not throw since list_featured_glifs takes no arguments
+    await expect(transport.request("callTool", params)).resolves.toBeDefined();
   });
 
   it("should reject unknown tool requests", async () => {

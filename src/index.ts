@@ -265,54 +265,6 @@ async function main() {
     }
   });
 
-  // Prompt handlers
-  server.setRequestHandler(ListPromptsRequestSchema, async () => ({
-    prompts: [
-      {
-        name: "list_featured_glifs",
-        description: "Get a curated list of featured glifs",
-      },
-    ],
-  }));
-
-  server.setRequestHandler(GetPromptRequestSchema, async (request) => {
-    if (request.params.name !== "list_featured_glifs") {
-      throw new McpError(ErrorCode.InvalidRequest, "Unknown prompt");
-    }
-
-    try {
-      const response = await axios.get("https://glif.app/api/glifs?featured=1");
-      const glifs = z.array(GlifSchema).parse(response.data);
-      const formattedGlifs = glifs
-        .map(
-          (glif) =>
-            `${glif.name} (${glif.id})\n${glif.description}\nBy: ${glif.user.name}\nRuns: ${glif.completedSpellRunCount}\n`
-        )
-        .join("\n");
-
-      return {
-        description: "Featured glifs that showcase interesting workflows",
-        messages: [
-          {
-            role: "user",
-            content: {
-              type: "text",
-              text: `Here are some featured glifs you might find useful:\n\n${formattedGlifs}`,
-            },
-          },
-        ],
-      };
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        throw new McpError(
-          ErrorCode.InternalError,
-          `API error: ${error.response?.data?.message ?? error.message}`
-        );
-      }
-      throw error;
-    }
-  });
-
   // Tool handlers
   server.setRequestHandler(ListToolsRequestSchema, async () => ({
     tools: [
@@ -338,7 +290,30 @@ async function main() {
         },
       },
       {
-        name: "get_glif_info",
+        name: "list_featured_glifs",
+        description: "Get a curated list of featured glifs",
+        inputSchema: {
+          type: "object",
+          properties: {},
+          required: [],
+        },
+      },
+      {
+        name: "search_glifs",
+        description: "Search for glifs by query string",
+        inputSchema: {
+          type: "object",
+          properties: {
+            query: {
+              type: "string",
+              description: "Search query string",
+            },
+          },
+          required: ["query"],
+        },
+      },
+      {
+        name: "glif_info",
         description:
           "Get detailed information about a glif including input fields",
         inputSchema: {
@@ -383,18 +358,66 @@ async function main() {
         };
       }
 
-      case "get_glif_info": {
+      case "list_featured_glifs": {
+        const response = await axios.get(
+          "https://glif.app/api/glifs?featured=1"
+        );
+        const glifs = z.array(GlifSchema).parse(response.data);
+        const formattedGlifs = glifs
+          .map(
+            (glif) =>
+              `${glif.name} (${glif.id})\n${glif.description}\nBy: ${glif.user.name}\nRuns: ${glif.completedSpellRunCount}\n`
+          )
+          .join("\n");
+
+        return {
+          content: [
+            {
+              type: "text",
+              text: `Featured glifs:\n\n${formattedGlifs}`,
+            },
+          ],
+        };
+      }
+
+      case "search_glifs": {
+        const args = z
+          .object({ query: z.string() })
+          .parse(request.params.arguments);
+        const response = await axios.get(
+          `https://glif.app/api/glifs?q=${encodeURIComponent(args.query)}`
+        );
+        const glifs = z.array(GlifSchema).parse(response.data);
+        const formattedGlifs = glifs
+          .map(
+            (glif) =>
+              `${glif.name} (${glif.id})\n${glif.description}\nBy: ${glif.user.name}\nRuns: ${glif.completedSpellRunCount}\n`
+          )
+          .join("\n");
+
+        return {
+          content: [
+            {
+              type: "text",
+              text: `Search results for "${args.query}":\n\n${formattedGlifs}`,
+            },
+          ],
+        };
+      }
+
+      case "glif_info": {
         const args = ShowGlifArgsSchema.parse(request.params.arguments);
         const { glif, recentRuns } = await getGlifDetails(args.id);
 
         // Extract input field names from glif data
-        const inputFields = glif.data.nodes
-          .filter((node) => node.type.includes("input"))
-          .map((node) => ({
-            name: node.name,
-            type: node.type,
-            params: node.params,
-          }));
+        const inputFields =
+          glif.data?.nodes
+            ?.filter((node) => node.type.includes("input"))
+            .map((node) => ({
+              name: node.name,
+              type: node.type,
+              params: node.params,
+            })) ?? [];
 
         const details = [
           `Name: ${glif.name}`,

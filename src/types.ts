@@ -92,7 +92,11 @@ export const GlifRunResponseSchema = z.object({
   id: z.string(),
   inputs: z.record(z.string()),
   output: z.string(),
-  outputFull: z.record(z.unknown()),
+  outputFull: z
+    .object({
+      type: z.string(),
+    })
+    .and(z.record(z.unknown())),
 });
 
 // Export types

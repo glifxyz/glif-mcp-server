@@ -7,9 +7,11 @@ import {
   GlifSchema,
   GlifRunSchema,
   SearchParamsSchema,
+  UserSchema,
   type Glif,
   type GlifRun,
   type GlifRunResponse,
+  type User,
 } from "./types.js";
 
 const API_TOKEN = process.env.GLIF_API_TOKEN;
@@ -113,8 +115,51 @@ export async function getGlifDetails(id: string): Promise<{
   }
 }
 
-export async function getMyGlifs(userId: string): Promise<Glif[]> {
+let cachedUserId: string | null = null;
+
+export async function getMyUserInfo() {
   try {
+    const data = await glifApi
+      .url("/me")
+      .get()
+      .unauthorized((err: WretchError) => {
+        console.error("Unauthorized request:", err);
+        throw err;
+      })
+      .json();
+
+    const user = UserSchema.parse(data);
+    cachedUserId = user.id;
+    return user;
+  } catch (error) {
+    console.error("Error fetching user info:", error);
+    throw error;
+  }
+}
+
+export async function getMyRecentRuns(): Promise<GlifRun[]> {
+  try {
+    const userId = cachedUserId ?? (await getMyUserInfo()).id;
+    const data = await glifApi
+      .url("/runs")
+      .query({ userId })
+      .get()
+      .unauthorized((err: WretchError) => {
+        console.error("Unauthorized request:", err);
+        throw err;
+      })
+      .json();
+
+    return z.array(GlifRunSchema).parse(data);
+  } catch (error) {
+    console.error("Error fetching user's recent runs:", error);
+    throw error;
+  }
+}
+
+export async function getMyGlifs(): Promise<Glif[]> {
+  try {
+    const userId = cachedUserId ?? (await getMyUserInfo()).id;
     const data = await glifApi
       .url("/glifs")
       .query({ userId })

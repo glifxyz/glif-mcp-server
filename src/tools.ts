@@ -12,6 +12,8 @@ import {
   searchGlifs,
   getMyGlifs,
   createGlif,
+  getMyUserInfo,
+  getMyRecentRuns,
 } from "./api.js";
 import { SearchParamsSchema } from "./types.js";
 
@@ -22,10 +24,6 @@ const RunGlifArgsSchema = z.object({
 
 const ShowGlifArgsSchema = z.object({
   id: z.string(),
-});
-
-const GetMyGlifsArgsSchema = z.object({
-  userId: z.string(),
 });
 
 const CreateGlifArgsSchema = z.object({
@@ -141,8 +139,7 @@ export function setupToolHandlers(server: Server) {
       }
 
       case "my_glifs": {
-        const args = GetMyGlifsArgsSchema.parse(request.params.arguments);
-        const glifs = await getMyGlifs(args.userId);
+        const glifs = await getMyGlifs();
         const formattedGlifs = glifs
           .map(
             (glif) =>
@@ -159,6 +156,58 @@ export function setupToolHandlers(server: Server) {
             {
               type: "text",
               text: `Your glifs:\n\n${formattedGlifs}`,
+            },
+          ],
+        };
+      }
+
+      case "debug_me": {
+        const [user, glifs, recentRuns] = await Promise.all([
+          getMyUserInfo(),
+          getMyGlifs(),
+          getMyRecentRuns(),
+        ]);
+
+        const details = [
+          "User Information:",
+          `ID: ${user.id}`,
+          `Name: ${user.name}`,
+          `Username: ${user.username}`,
+          `Image: ${user.image}`,
+          user.bio ? `Bio: ${user.bio}` : null,
+          user.website ? `Website: ${user.website}` : null,
+          user.location ? `Location: ${user.location}` : null,
+          `Staff: ${user.staff ? "Yes" : "No"}`,
+          `Subscriber: ${user.isSubscriber ? "Yes" : "No"}`,
+          "",
+          "Your Recent Glifs:",
+          ...glifs
+            .slice(0, 5)
+            .map(
+              (glif) =>
+                `- ${glif.name} (${glif.id})\n  Created: ${new Date(
+                  glif.createdAt
+                ).toLocaleString()}\n  Runs: ${glif.completedSpellRunCount}`
+            ),
+          "",
+          "Your Recent Runs:",
+          ...recentRuns
+            .slice(0, 5)
+            .map(
+              (run) =>
+                `- ${run.spell.name}\n  Time: ${new Date(
+                  run.createdAt
+                ).toLocaleString()}\n  Duration: ${
+                  run.totalDuration
+                }ms\n  Output: ${formatOutput(run.outputType, run.output)}`
+            ),
+        ].filter(Boolean);
+
+        return {
+          content: [
+            {
+              type: "text",
+              text: details.join("\n"),
             },
           ],
         };
@@ -258,16 +307,21 @@ export const toolDefinitions = [
   },
   {
     name: "my_glifs",
-    description: "Get a list of glifs created by a specific user",
+    description: "Get a list of your glifs",
     inputSchema: {
       type: "object",
-      properties: {
-        userId: {
-          type: "string",
-          description: "The ID of the user whose glifs to fetch",
-        },
-      },
-      required: ["userId"],
+      properties: {},
+      required: [],
+    },
+  },
+  {
+    name: "debug_me",
+    description:
+      "Get detailed information about your user account, recent glifs, and recent runs",
+    inputSchema: {
+      type: "object",
+      properties: {},
+      required: [],
     },
   },
   // TODO: Endpoint not yet available

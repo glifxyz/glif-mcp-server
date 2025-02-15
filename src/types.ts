@@ -43,7 +43,11 @@ export const GlifSchema = z.object({
         z.object({
           name: z.string(),
           type: z.string(),
-          params: z.record(z.unknown()),
+          params: z
+            .object({
+              label: z.string().optional(),
+            })
+            .and(z.record(z.unknown())),
         })
       ),
     })

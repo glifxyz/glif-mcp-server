@@ -113,6 +113,53 @@ export async function getGlifDetails(id: string): Promise<{
   }
 }
 
+export async function getMyGlifs(userId: string): Promise<Glif[]> {
+  try {
+    const data = await glifApi
+      .url("/glifs")
+      .query({ userId })
+      .get()
+      .unauthorized((err: WretchError) => {
+        console.error("Unauthorized request:", err);
+        throw err;
+      })
+      .json();
+
+    return z.array(GlifSchema).parse(data);
+  } catch (error) {
+    console.error("Error fetching user's glifs:", error);
+    throw error;
+  }
+}
+
+// TODO: Endpoint not yet available
+// export async function getMyLikedGlifs(userId: string): Promise<Glif[]> {
+//   try {
+//     const data = await glifApi
+//       .url("/glifs/liked")
+//       .query({ userId })
+//       .get()
+//       .unauthorized((err: WretchError) => {
+//         console.error("Unauthorized request:", err);
+//         throw err;
+//       })
+//       .json();
+//
+//     return z.array(GlifSchema).parse(data);
+//   } catch (error) {
+//     console.error("Error fetching user's liked glifs:", error);
+//     throw error;
+//   }
+// }
+
+export async function createGlif(
+  name: string,
+  description: string
+): Promise<Glif> {
+  // TODO: Coming soon!
+  throw new Error("Create glif functionality coming soon!");
+}
+
 export function formatOutput(type: string, output: string): string {
   switch (type) {
     case "IMAGE":

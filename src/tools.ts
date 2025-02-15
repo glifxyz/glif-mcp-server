@@ -5,7 +5,14 @@ import {
   McpError,
 } from "@modelcontextprotocol/sdk/types.js";
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
-import { formatOutput, getGlifDetails, runGlif, searchGlifs } from "./api.js";
+import {
+  formatOutput,
+  getGlifDetails,
+  runGlif,
+  searchGlifs,
+  getMyGlifs,
+  createGlif,
+} from "./api.js";
 import { SearchParamsSchema } from "./types.js";
 
 const RunGlifArgsSchema = z.object({
@@ -15,6 +22,15 @@ const RunGlifArgsSchema = z.object({
 
 const ShowGlifArgsSchema = z.object({
   id: z.string(),
+});
+
+const GetMyGlifsArgsSchema = z.object({
+  userId: z.string(),
+});
+
+const CreateGlifArgsSchema = z.object({
+  name: z.string(),
+  description: z.string(),
 });
 
 export function setupToolHandlers(server: Server) {
@@ -124,6 +140,54 @@ export function setupToolHandlers(server: Server) {
         };
       }
 
+      case "my_glifs": {
+        const args = GetMyGlifsArgsSchema.parse(request.params.arguments);
+        const glifs = await getMyGlifs(args.userId);
+        const formattedGlifs = glifs
+          .map(
+            (glif) =>
+              `${glif.name} (${glif.id})\n${
+                glif.description
+              }\nCreated: ${new Date(glif.createdAt).toLocaleString()}\nRuns: ${
+                glif.completedSpellRunCount
+              }\n`
+          )
+          .join("\n");
+
+        return {
+          content: [
+            {
+              type: "text",
+              text: `Your glifs:\n\n${formattedGlifs}`,
+            },
+          ],
+        };
+      }
+
+      case "create_glif": {
+        const args = CreateGlifArgsSchema.parse(request.params.arguments);
+        try {
+          await createGlif(args.name, args.description);
+          return {
+            content: [
+              {
+                type: "text",
+                text: "Coming soon!",
+              },
+            ],
+          };
+        } catch (error) {
+          return {
+            content: [
+              {
+                type: "text",
+                text: "Create glif functionality coming soon!",
+              },
+            ],
+          };
+        }
+      }
+
       default:
         throw new McpError(
           ErrorCode.MethodNotFound,
@@ -190,6 +254,53 @@ export const toolDefinitions = [
         },
       },
       required: ["id"],
+    },
+  },
+  {
+    name: "my_glifs",
+    description: "Get a list of glifs created by a specific user",
+    inputSchema: {
+      type: "object",
+      properties: {
+        userId: {
+          type: "string",
+          description: "The ID of the user whose glifs to fetch",
+        },
+      },
+      required: ["userId"],
+    },
+  },
+  // TODO: Endpoint not yet available
+  // {
+  //   name: "my_liked_glifs",
+  //   description: "Get a list of glifs liked by a specific user",
+  //   inputSchema: {
+  //     type: "object",
+  //     properties: {
+  //       userId: {
+  //         type: "string",
+  //         description: "The ID of the user whose liked glifs to fetch",
+  //       },
+  //     },
+  //     required: ["userId"],
+  //   },
+  // },
+  {
+    name: "create_glif",
+    description: "Create a new glif (Coming soon!)",
+    inputSchema: {
+      type: "object",
+      properties: {
+        name: {
+          type: "string",
+          description: "Name of the glif to create",
+        },
+        description: {
+          type: "string",
+          description: "Description of the glif",
+        },
+      },
+      required: ["name", "description"],
     },
   },
 ];

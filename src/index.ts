@@ -4,8 +4,12 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import {
   CallToolRequestSchema,
   ErrorCode,
+  GetPromptRequestSchema,
+  ListPromptsRequestSchema,
+  ListResourcesRequestSchema,
   ListToolsRequestSchema,
   McpError,
+  ReadResourceRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
 import axios from "axios";
 import { performance } from "node:perf_hooks";
@@ -15,6 +19,7 @@ import {
   GlifSchema,
   GlifRunSchema,
   SearchParamsSchema,
+  UserSchema,
   type Glif,
   type GlifRun,
   type GlifRunResponse,
@@ -170,10 +175,145 @@ async function main() {
     {
       capabilities: {
         tools: {},
+        resources: {},
+        prompts: {},
       },
     }
   );
 
+  // Resource handlers
+  server.setRequestHandler(ListResourcesRequestSchema, async () => ({
+    resources: [
+      {
+        uri: "glif://template",
+        name: "Glif Details",
+        description: "Get metadata about a specific glif",
+        uriTemplate: "glif://{id}",
+      },
+      {
+        uri: "glifRun://template",
+        name: "Glif Run Details",
+        description: "Get details about a specific glif run",
+        uriTemplate: "glifRun://{id}",
+      },
+      {
+        uri: "glifUser://template",
+        name: "Glif User Details",
+        description: "Get details about a glif user",
+        uriTemplate: "glifUser://{id}",
+      },
+    ],
+  }));
+
+  server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
+    const uri = new URL(request.params.uri);
+    const id = uri.hostname;
+
+    try {
+      switch (uri.protocol) {
+        case "glif:": {
+          const { glif } = await getGlifDetails(id);
+          return {
+            contents: [
+              {
+                uri: request.params.uri,
+                text: JSON.stringify(glif, null, 2),
+              },
+            ],
+          };
+        }
+        case "glifRun:": {
+          const response = await axios.get(
+            `https://glif.app/api/runs?id=${id}`
+          );
+          const run = GlifRunSchema.parse(response.data[0]);
+          return {
+            contents: [
+              {
+                uri: request.params.uri,
+                text: JSON.stringify(run, null, 2),
+              },
+            ],
+          };
+        }
+        case "glifUser:": {
+          const response = await axios.get(`https://glif.app/api/users/${id}`);
+          const user = UserSchema.parse(response.data);
+          return {
+            contents: [
+              {
+                uri: request.params.uri,
+                text: JSON.stringify(user, null, 2),
+              },
+            ],
+          };
+        }
+        default:
+          throw new McpError(
+            ErrorCode.InvalidRequest,
+            `Unsupported protocol: ${uri.protocol}`
+          );
+      }
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        throw new McpError(
+          ErrorCode.InternalError,
+          `API error: ${error.response?.data?.message ?? error.message}`
+        );
+      }
+      throw error;
+    }
+  });
+
+  // Prompt handlers
+  server.setRequestHandler(ListPromptsRequestSchema, async () => ({
+    prompts: [
+      {
+        name: "list_featured_glifs",
+        description: "Get a curated list of featured glifs",
+      },
+    ],
+  }));
+
+  server.setRequestHandler(GetPromptRequestSchema, async (request) => {
+    if (request.params.name !== "list_featured_glifs") {
+      throw new McpError(ErrorCode.InvalidRequest, "Unknown prompt");
+    }
+
+    try {
+      const response = await axios.get("https://glif.app/api/glifs?featured=1");
+      const glifs = z.array(GlifSchema).parse(response.data);
+      const formattedGlifs = glifs
+        .map(
+          (glif) =>
+            `${glif.name} (${glif.id})\n${glif.description}\nBy: ${glif.user.name}\nRuns: ${glif.completedSpellRunCount}\n`
+        )
+        .join("\n");
+
+      return {
+        description: "Featured glifs that showcase interesting workflows",
+        messages: [
+          {
+            role: "user",
+            content: {
+              type: "text",
+              text: `Here are some featured glifs you might find useful:\n\n${formattedGlifs}`,
+            },
+          },
+        ],
+      };
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        throw new McpError(
+          ErrorCode.InternalError,
+          `API error: ${error.response?.data?.message ?? error.message}`
+        );
+      }
+      throw error;
+    }
+  });
+
+  // Tool handlers
   server.setRequestHandler(ListToolsRequestSchema, async () => ({
     tools: [
       {
@@ -198,30 +338,9 @@ async function main() {
         },
       },
       {
-        name: "search_glifs",
-        description: "Search for glifs or get details about specific glifs",
-        inputSchema: {
-          type: "object",
-          properties: {
-            q: {
-              type: "string",
-              description: "Search query (optional)",
-            },
-            featured: {
-              type: "boolean",
-              description: "Only return featured glifs (optional)",
-            },
-            id: {
-              type: "string",
-              description: "Get details for a specific glif ID (optional)",
-            },
-          },
-        },
-      },
-      {
-        name: "show_glif",
+        name: "get_glif_info",
         description:
-          "Show detailed information about a glif and its recent runs",
+          "Get detailed information about a glif including input fields",
         inputSchema: {
           type: "object",
           properties: {
@@ -241,37 +360,72 @@ async function main() {
       case "run_glif": {
         const args = RunGlifArgsSchema.parse(request.params.arguments);
         const result = await runGlif(args.id, args.inputs);
+
+        // Format output based on type
+        let formattedOutput = "";
+        if (result.outputFull.type === "IMAGE") {
+          formattedOutput = `[Image] ${result.output}`;
+        } else if (result.outputFull.type === "VIDEO") {
+          formattedOutput = `[Video] ${result.output}`;
+        } else if (result.outputFull.type === "AUDIO") {
+          formattedOutput = `[Audio] ${result.output}`;
+        } else {
+          formattedOutput = result.output;
+        }
+
         return {
           content: [
             {
               type: "text",
-              text: JSON.stringify(result, null, 2),
+              text: formattedOutput,
             },
           ],
         };
       }
 
-      case "search_glifs": {
-        const args = SearchGlifsArgsSchema.parse(request.params.arguments);
-        const results = await searchGlifs(args);
-        return {
-          content: [
-            {
-              type: "text",
-              text: JSON.stringify(results, null, 2),
-            },
-          ],
-        };
-      }
-
-      case "show_glif": {
+      case "get_glif_info": {
         const args = ShowGlifArgsSchema.parse(request.params.arguments);
         const { glif, recentRuns } = await getGlifDetails(args.id);
+
+        // Extract input field names from glif data
+        const inputFields = glif.data.nodes
+          .filter((node) => node.type.includes("input"))
+          .map((node) => ({
+            name: node.name,
+            type: node.type,
+            params: node.params,
+          }));
+
+        const details = [
+          `Name: ${glif.name}`,
+          `Description: ${glif.description}`,
+          `Created by: ${glif.user.name} (@${glif.user.username})`,
+          `Created: ${new Date(glif.createdAt).toLocaleString()}`,
+          `Runs: ${glif.completedSpellRunCount}`,
+          `Average Duration: ${glif.averageDuration}ms`,
+          `Likes: ${glif.likeCount}`,
+          "",
+          "Input Fields:",
+          ...inputFields.map((field) => `- ${field.name} (${field.type})`),
+          "",
+          "Recent Runs:",
+          ...recentRuns.map(
+            (run) =>
+              `Time: ${new Date(run.createdAt).toLocaleString()}
+  Duration: ${run.totalDuration}ms
+  Output: ${formatOutput(run.outputType, run.output)}
+  By: ${run.user.name} (@${run.user.username})
+  ${Object.entries(run.inputs)
+    .map(([key, value]) => `  Input "${key}": ${value}`)
+    .join("\n")}`
+          ),
+        ];
+
         return {
           content: [
             {
               type: "text",
-              text: formatGlifDetails(glif, recentRuns),
+              text: details.join("\n"),
             },
           ],
         };

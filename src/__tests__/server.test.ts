@@ -59,6 +59,8 @@ describe("Glif MCP Server", () => {
       {
         capabilities: {
           tools: {},
+          resources: {},
+          prompts: {},
         },
       }
     );
@@ -88,30 +90,9 @@ describe("Glif MCP Server", () => {
           },
         },
         {
-          name: "search_glifs",
-          description: "Search for glifs or get details about specific glifs",
-          inputSchema: {
-            type: "object",
-            properties: {
-              q: {
-                type: "string",
-                description: "Search query (optional)",
-              },
-              featured: {
-                type: "boolean",
-                description: "Only return featured glifs (optional)",
-              },
-              id: {
-                type: "string",
-                description: "Get details for a specific glif ID (optional)",
-              },
-            },
-          },
-        },
-        {
-          name: "show_glif",
+          name: "get_glif_info",
           description:
-            "Show detailed information about a glif and its recent runs",
+            "Get detailed information about a glif including input fields",
           inputSchema: {
             type: "object",
             properties: {
@@ -148,8 +129,7 @@ describe("Glif MCP Server", () => {
             ],
           };
         }
-        case "search_glifs":
-        case "show_glif":
+        case "get_glif_info":
           return {
             content: [
               {
@@ -171,13 +151,10 @@ describe("Glif MCP Server", () => {
   });
 
   it("should list available tools", async () => {
-    console.log("starting...")
     const response = await transport.request("listTools");
-    console.log("ok got it...")
-    expect(response.tools).toHaveLength(3);
+    expect(response.tools).toHaveLength(2);
     expect(response.tools[0].name).toBe("run_glif");
-    expect(response.tools[1].name).toBe("search_glifs");
-    expect(response.tools[2].name).toBe("show_glif");
+    expect(response.tools[1].name).toBe("get_glif_info");
   });
 
   it("should validate run_glif tool input schema", async () => {
@@ -208,27 +185,28 @@ describe("Glif MCP Server", () => {
     ).rejects.toThrow();
   });
 
-  it("should validate search_glifs tool input schema", async () => {
+  it("should validate get_glif_info tool input schema", async () => {
     const validParams = {
-      name: "search_glifs",
+      name: "get_glif_info",
       arguments: {
-        q: "test query",
-        featured: true,
+        id: "test-id",
       },
     };
 
-    // All fields are optional, so this is also valid
-    const minimalParams = {
-      name: "search_glifs",
+    const invalidParams = {
+      name: "get_glif_info",
       arguments: {},
     };
 
+    // Valid request should not throw
     await expect(
       transport.request("callTool", validParams)
     ).resolves.toBeDefined();
+
+    // Invalid request should throw
     await expect(
-      transport.request("callTool", minimalParams)
-    ).resolves.toBeDefined();
+      transport.request("callTool", invalidParams)
+    ).rejects.toThrow();
   });
 
   it("should reject unknown tool requests", async () => {

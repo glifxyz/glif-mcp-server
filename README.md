@@ -43,7 +43,6 @@ Then configure your MCP client (e.g. Claude Desktop) to load this server
 
 - Subject to same limits as user accounts
 - Purchase more credits at https://glif.app/pricing
-- Models NOT available via API: StableDiffusion 3, DALL-E 3, Flux Pro, Flux Dev
 
 ## Resources
 

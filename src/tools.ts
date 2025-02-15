@@ -120,11 +120,19 @@ export function setupToolHandlers(server: Server) {
             (run) =>
               `Time: ${new Date(run.createdAt).toLocaleString()}
   Duration: ${run.totalDuration}ms
-  Output: ${formatOutput(run.outputType, run.output)}
+  Output: ${
+    run.output
+      ? formatOutput(run.outputType ?? "TEXT", run.output)
+      : "No output"
+  }
   By: ${run.user.name} (@${run.user.username})
-  ${Object.entries(run.inputs)
-    .map(([key, value]) => `  Input "${key}": ${value}`)
-    .join("\n")}`
+  ${
+    run.inputs
+      ? Object.entries(run.inputs)
+          .map(([key, value]) => `  Input "${key}": ${value}`)
+          .join("\n")
+      : "No inputs"
+  }`
           ),
         ];
 
@@ -199,7 +207,11 @@ export function setupToolHandlers(server: Server) {
                   run.createdAt
                 ).toLocaleString()}\n  Duration: ${
                   run.totalDuration
-                }ms\n  Output: ${formatOutput(run.outputType, run.output)}`
+                }ms\n  Output: ${
+                  run.output
+                    ? formatOutput(run.outputType ?? "TEXT", run.output)
+                    : "No output"
+                }`
             ),
         ].filter(Boolean);
 

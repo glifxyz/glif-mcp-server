@@ -26,12 +26,12 @@ export const GlifSchema = z.object({
   updatedAt: z.string().datetime(),
   publishedAt: z.string().datetime().nullable(),
   output: z.string().nullable(),
-  outputType: z.string(),
+  outputType: z.string().nullable(),
   forkedFromId: z.string().nullable(),
   featuredAt: z.string().datetime().nullable(),
   userId: z.string(),
   completedSpellRunCount: z.number().optional(),
-  averageDuration: z.number().optional(),
+  averageDuration: z.number().nullable(),
   likeCount: z.number().optional(),
   commentCount: z.number().optional(),
   user: UserSchema,
@@ -59,21 +59,21 @@ export const GlifRunSchema = z.object({
   id: z.string(),
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),
-  output: z.string(),
-  outputType: z.string(),
+  output: z.string().nullable(),
+  outputType: z.string().nullable(),
   userId: z.string(),
   startedAt: z.string().datetime(),
   completedAt: z.string().datetime().nullable(),
-  totalDuration: z.number().optional(),
+  totalDuration: z.number().nullable(),
   public: z.boolean().optional(),
   clientType: z.string().optional(),
-  inputs: z.record(z.unknown()),
+  inputs: z.record(z.unknown()).optional(),
   spellId: z.string(),
   outputImageWidth: z.number().nullable(),
   outputImageHeight: z.number().nullable(),
   deletionReason: z.string().nullable(),
   deleted: z.boolean().optional(),
-  totalSellingPriceCredits: z.string().nullable(),
+  totalSellingPriceCredits: z.string().nullable().optional(),
   likeCount: z.number().optional(),
   commentCount: z.number().optional(),
   visibility: z.string().optional(),
@@ -82,7 +82,7 @@ export const GlifRunSchema = z.object({
     id: z.string(),
     name: z.string(),
     output: z.string().nullable(),
-    outputType: z.string().optional(),
+    outputType: z.string().nullable(),
     user: UserSchema.optional(),
   }),
 });
@@ -112,4 +112,15 @@ export const SearchParamsSchema = z.object({
   id: z.string().optional(),
 });
 
+// Me response schema
+export const MeResponseSchema = z.object({
+  user: UserSchema,
+  credits: z.object({
+    remaining: z.number(),
+    limit: z.number(),
+    label: z.string(),
+  }),
+});
+
 export type SearchParams = z.infer<typeof SearchParamsSchema>;
+export type MeResponse = z.infer<typeof MeResponseSchema>;

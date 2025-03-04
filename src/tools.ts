@@ -289,20 +289,20 @@ export const toolDefinitions = [
       required: [],
     },
   },
-  {
-    name: "search_glifs",
-    description: "Search for glifs by query string",
-    inputSchema: {
-      type: "object",
-      properties: {
-        query: {
-          type: "string",
-          description: "Search query string",
-        },
-      },
-      required: ["query"],
-    },
-  },
+  // {
+  //   name: "search_glifs",
+  //   description: "Search for glifs by query string",
+  //   inputSchema: {
+  //     type: "object",
+  //     properties: {
+  //       query: {
+  //         type: "string",
+  //         description: "Search query string",
+  //       },
+  //     },
+  //     required: ["query"],
+  //   },
+  // },
   {
     name: "glif_info",
     description: "Get detailed information about a glif including input fields",
@@ -327,7 +327,7 @@ export const toolDefinitions = [
     },
   },
   {
-    name: "debug_me",
+    name: "my_glif_user_info",
     description:
       "Get detailed information about your user account, recent glifs, and recent runs",
     inputSchema: {
@@ -351,22 +351,22 @@ export const toolDefinitions = [
   //     required: ["userId"],
   //   },
   // },
-  {
-    name: "create_glif",
-    description: "Create a new glif (Coming soon!)",
-    inputSchema: {
-      type: "object",
-      properties: {
-        name: {
-          type: "string",
-          description: "Name of the glif to create",
-        },
-        description: {
-          type: "string",
-          description: "Description of the glif",
-        },
-      },
-      required: ["name", "description"],
-    },
-  },
+  // {
+  //   name: "create_glif",
+  //   description: "Create a new glif (Coming soon!)",
+  //   inputSchema: {
+  //     type: "object",
+  //     properties: {
+  //       name: {
+  //         type: "string",
+  //         description: "Name of the glif to create",
+  //       },
+  //       description: {
+  //         type: "string",
+  //         description: "Description of the glif",
+  //       },
+  //     },
+  //     required: ["name", "description"],
+  //   },
+  // },
 ];

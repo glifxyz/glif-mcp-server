@@ -23,7 +23,7 @@ npm run build
 Then configure your MCP client (e.g. Claude Desktop) to load this server
 
 1. Get your API token from https://glif.app/settings/api-tokens
-2. Add the server in your Claude Desktop config file. on macOS this is: `~/Library/Application Supoprt/Claude/claude_desktop_config.json`
+2. Add the server in your Claude Desktop config file. on macOS this is: `~/Library/Application Support/Claude/claude_desktop_config.json`
 
    ```json
    {
@@ -102,3 +102,7 @@ npm run inspector
 The Inspector will provide a URL to access debugging tools in your browser.
 
 You can also look at the glif-mcp logs inside the Claude logs directy if you're using Claude Desktop.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

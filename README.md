@@ -52,12 +52,17 @@ Then configure your MCP client (e.g. Claude Desktop) to load this server
 
 ## Tools
 
-- `get_glif_info` - Get detailed information about a glif including input fields
+General glif running & info:
+
 - `run_glif` - Execute a glif with inputs
-
-## Prompts
-
+- `glif_info` - Get detailed metadata about a glif, including input fields
 - `list_featured_glifs` - Get a curated list of featured glifs
+
+Info about authenticated user's glifs:
+
+- `my_glifs` - current user's published glifs (no drats)
+- `my_liked_glifs` - current user's liked glifs
+- `my_runs` - current user's public runs
 
 ## Development
 

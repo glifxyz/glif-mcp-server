@@ -9,11 +9,15 @@ import {
   SearchParamsSchema,
   UserSchema,
   MeResponseSchema,
+  BotSchema,
+  BotListResponseSchema,
   type Glif,
   type GlifRun,
   type GlifRunResponse,
   type User,
   type MeResponse,
+  type Bot,
+  type BotListResponse,
 } from "./types.js";
 
 const API_TOKEN = process.env.GLIF_API_TOKEN;
@@ -231,6 +235,87 @@ export async function createGlif(
 ): Promise<Glif> {
   // TODO: Coming soon!
   throw new Error("Create glif functionality coming soon!");
+}
+
+export async function listBots(): Promise<BotListResponse> {
+  try {
+    const url =
+      "https://glif.app/api/trpc/glifChatDiscovery.getBotsAndSimTemplates";
+    const params = {
+      input: JSON.stringify({
+        json: {
+          sort: "featured",
+          creator: null,
+          searchQuery: null,
+        },
+        meta: {
+          values: {
+            creator: ["undefined"],
+            searchQuery: ["undefined"],
+          },
+        },
+      }),
+    };
+
+    console.error("Making API request to fetch bots:", {
+      url,
+      params,
+    });
+
+    const data = await api
+      .url(url)
+      .query(params)
+      .get()
+      .unauthorized((err: WretchError) => {
+        console.error("Unauthorized request:", err);
+        throw err;
+      })
+      .json();
+
+    return BotListResponseSchema.parse(data);
+  } catch (error) {
+    console.error("Error fetching bots:", error);
+    throw error;
+  }
+}
+
+export async function loadBot(id: string): Promise<Bot> {
+  try {
+    const url = "https://glif.app/api/trpc/bot.find";
+    const params = {
+      input: JSON.stringify({
+        json: {
+          id,
+        },
+      }),
+    };
+
+    console.error("Making API request to fetch bot details:", {
+      url,
+      params,
+    });
+
+    const data = await api
+      .url(url)
+      .query(params)
+      .get()
+      .unauthorized((err: WretchError) => {
+        console.error("Unauthorized request:", err);
+        throw err;
+      })
+      .json<{ result?: { data?: { json?: unknown } } }>();
+
+    // The response structure is different from the BotSchema, so we need to extract the bot data
+    const botData = data?.result?.data?.json;
+    if (!botData) {
+      throw new Error("Invalid bot data received");
+    }
+
+    return BotSchema.parse(botData);
+  } catch (error) {
+    console.error("Error fetching bot details:", error);
+    throw error;
+  }
 }
 
 export function formatOutput(type: string, output: string): string {

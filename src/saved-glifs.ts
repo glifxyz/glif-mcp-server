@@ -111,3 +111,22 @@ export async function removeGlif(toolName: string): Promise<boolean> {
 
   return false;
 }
+
+export async function removeAllGlifs(): Promise<number> {
+  try {
+    // Ensure directory exists
+    await fs.mkdir(path.dirname(SAVED_GLIFS_PATH), { recursive: true });
+
+    // Get current count for reporting
+    const currentGlifs = await getSavedGlifs();
+    const count = currentGlifs.length;
+
+    // Write empty array to file
+    await fs.writeFile(SAVED_GLIFS_PATH, "[]");
+
+    return count;
+  } catch (err) {
+    console.error("Error removing all glifs:", err);
+    return 0;
+  }
+}

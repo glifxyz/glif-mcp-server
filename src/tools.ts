@@ -15,11 +15,15 @@ import {
   createGlif,
   getMyUserInfo,
   getMyRecentRuns,
+  listBots,
+  loadBot,
 } from "./api.js";
+import { BotSchema } from "./types.js";
 import {
   getSavedGlifs,
   saveGlif,
   removeGlif,
+  removeAllGlifs,
   SavedGlif,
 } from "./saved-glifs.js";
 
@@ -46,6 +50,15 @@ const SaveGlifArgsSchema = z.object({
 
 const RemoveGlifToolArgsSchema = z.object({
   toolName: z.string(),
+});
+
+const LoadBotArgsSchema = z.object({
+  id: z.string(),
+});
+
+const SaveBotSkillsArgsSchema = z.object({
+  id: z.string(),
+  prefix: z.string().optional(),
 });
 
 export function setupToolHandlers(server: Server) {
@@ -273,7 +286,215 @@ export function setupToolHandlers(server: Server) {
         };
       }
 
-      case "debug_me": {
+      case "list_bots": {
+        try {
+          const botList = await listBots();
+
+          // Extract bots from the response
+          const bots = botList.result.data.json
+            .filter((item) => item.type === "bot")
+            .map((item) => item.data as z.infer<typeof BotSchema>);
+
+          // Format the bot list
+          const formattedBots = bots
+            .map((bot) => {
+              const skills =
+                bot.skills && bot.skills.length > 0
+                  ? `\nSkills: ${bot.skills
+                      .map((s: { name: string }) => s.name)
+                      .join(", ")}`
+                  : "";
+
+              return `${bot.name} (@${bot.username}) - ID: ${bot.id}
+Bio: ${bot.bio || "No bio"}
+Created by: ${bot.user.name} (@${bot.user.username})
+Messages: ${bot.messageCount || 0}${skills}\n`;
+            })
+            .join("\n");
+
+          return {
+            content: [
+              {
+                type: "text",
+                text: `Available bots:\n\n${formattedBots}`,
+              },
+            ],
+          };
+        } catch (error) {
+          console.error("Error listing bots:", error);
+          return {
+            content: [
+              {
+                type: "text",
+                text: `Error listing bots: ${
+                  error instanceof Error ? error.message : String(error)
+                }`,
+              },
+            ],
+          };
+        }
+      }
+
+      case "load_bot":
+      case "show_bot_info": {
+        try {
+          const args = LoadBotArgsSchema.parse(request.params.arguments);
+          const bot = await loadBot(args.id);
+
+          // Format the bot skills
+          const skillsInfo = bot.skills?.length
+            ? bot.skills
+                .map(
+                  (skill) => `- ${skill.name}${
+                    skill.customName ? ` (${skill.customName})` : ""
+                  }
+  Description: ${
+    skill.description || skill.customDescription || "No description"
+  }
+  Type: ${skill.type}
+  Glif ID: ${skill.spell.id}
+  ${skill.usageInstructions ? `Usage: ${skill.usageInstructions}` : ""}`
+                )
+                .join("\n\n")
+            : "No skills available";
+
+          const details = [
+            `Name: ${bot.name} (@${bot.username})`,
+            `ID: ${bot.id}`,
+            `Bio: ${bot.bio || "No bio"}`,
+            `Created by: ${bot.user.name} (@${bot.user.username})`,
+            `Created: ${new Date(bot.createdAt).toLocaleString()}`,
+            `Updated: ${new Date(bot.updatedAt).toLocaleString()}`,
+            `Message Count: ${bot.messageCount || 0}`,
+            "",
+            "Skills:",
+            skillsInfo,
+            "",
+            "Personality:",
+            bot.personality || "No personality defined",
+          ];
+
+          return {
+            content: [
+              {
+                type: "text",
+                text: details.join("\n"),
+              },
+            ],
+          };
+        } catch (error) {
+          console.error("Error loading bot:", error);
+          return {
+            content: [
+              {
+                type: "text",
+                text: `Error loading bot: ${
+                  error instanceof Error ? error.message : String(error)
+                }`,
+              },
+            ],
+          };
+        }
+      }
+
+      case "save_bot_skills_as_tools": {
+        try {
+          const args = SaveBotSkillsArgsSchema.parse(request.params.arguments);
+          const bot = await loadBot(args.id);
+
+          if (!bot.skills || bot.skills.length === 0) {
+            return {
+              content: [
+                {
+                  type: "text",
+                  text: `Bot "${bot.name}" has no skills to save.`,
+                },
+              ],
+            };
+          }
+
+          const prefix = args.prefix || "";
+          const savedSkills = [];
+
+          // Save each skill as a tool
+          for (const skill of bot.skills) {
+            const toolName = `${prefix}${skill.name
+              .replace(/\s+/g, "_")
+              .toLowerCase()}`;
+            const description =
+              skill.description ||
+              skill.customDescription ||
+              `Skill from ${bot.name} bot`;
+
+            const savedGlif: SavedGlif = {
+              id: skill.spell.id,
+              toolName,
+              name: skill.customName || skill.name,
+              description,
+              createdAt: new Date().toISOString(),
+            };
+
+            await saveGlif(savedGlif);
+            savedSkills.push({
+              name: skill.name,
+              toolName,
+            });
+          }
+
+          const formattedSkills = savedSkills
+            .map((s) => `- ${s.name} → Tool: "${s.toolName}"`)
+            .join("\n");
+
+          return {
+            content: [
+              {
+                type: "text",
+                text: `Successfully saved ${savedSkills.length} skills from bot "${bot.name}" as tools:\n\n${formattedSkills}\n\nYou can now use these tools directly.`,
+              },
+            ],
+          };
+        } catch (error) {
+          console.error("Error saving bot skills:", error);
+          return {
+            content: [
+              {
+                type: "text",
+                text: `Error saving bot skills: ${
+                  error instanceof Error ? error.message : String(error)
+                }`,
+              },
+            ],
+          };
+        }
+      }
+
+      case "remove_all_glif_tools": {
+        try {
+          const count = await removeAllGlifs();
+          return {
+            content: [
+              {
+                type: "text",
+                text: `Successfully removed all ${count} saved glif tools.`,
+              },
+            ],
+          };
+        } catch (error) {
+          console.error("Error removing all glif tools:", error);
+          return {
+            content: [
+              {
+                type: "text",
+                text: `Error removing all glif tools: ${
+                  error instanceof Error ? error.message : String(error)
+                }`,
+              },
+            ],
+          };
+        }
+      }
+
+      case "my_glif_user_info": {
         const [user, glifs, recentRuns] = await Promise.all([
           getMyUserInfo(),
           getMyGlifs(),
@@ -583,6 +804,71 @@ export const toolDefinitions = [
     name: "my_glif_user_info",
     description:
       "Get detailed information about your user account, recent glifs, and recent runs",
+    inputSchema: {
+      type: "object",
+      properties: {},
+      required: [],
+    },
+  },
+  {
+    name: "list_bots",
+    description: "Get a list of featured bots and sim templates",
+    inputSchema: {
+      type: "object",
+      properties: {},
+      required: [],
+    },
+  },
+  {
+    name: "load_bot",
+    description: "Get detailed information about a specific bot",
+    inputSchema: {
+      type: "object",
+      properties: {
+        id: {
+          type: "string",
+          description: "The ID of the bot to load",
+        },
+      },
+      required: ["id"],
+    },
+  },
+  {
+    name: "show_bot_info",
+    description:
+      "Get detailed information about a specific bot (alias for load_bot)",
+    inputSchema: {
+      type: "object",
+      properties: {
+        id: {
+          type: "string",
+          description: "The ID of the bot to show details for",
+        },
+      },
+      required: ["id"],
+    },
+  },
+  {
+    name: "save_bot_skills_as_tools",
+    description: "Save all skills from a bot as individual tools",
+    inputSchema: {
+      type: "object",
+      properties: {
+        id: {
+          type: "string",
+          description: "The ID of the bot whose skills to save",
+        },
+        prefix: {
+          type: "string",
+          description: "Optional prefix to add to tool names (e.g., 'tshirt_')",
+        },
+      },
+      required: ["id"],
+    },
+  },
+  {
+    name: "remove_all_glif_tools",
+    description: "Remove all saved glif tools and return to a pristine state",
     inputSchema: {
       type: "object",
       properties: {},

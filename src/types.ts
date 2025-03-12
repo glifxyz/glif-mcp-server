@@ -1,5 +1,73 @@
 import { z } from "zod";
 
+// Bot related schemas
+export const SimplifiedGlifSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  description: z.string().nullable(),
+  user: z.object({
+    id: z.string(),
+    name: z.string(),
+    username: z.string(),
+    image: z.string().url().nullable(),
+    isSubscriber: z.boolean().optional(),
+  }),
+  averageDuration: z.number().nullable(),
+  inputs: z.record(z.string()).optional(),
+});
+
+export const BotSkillSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  displayName: z.string(),
+  description: z.string().nullable(),
+  customName: z.string().nullable(),
+  customDescription: z.string().nullable(),
+  usageInstructions: z.string().nullable(),
+  type: z.string(), // Usually "skillGlif"
+  spell: SimplifiedGlifSchema,
+});
+
+export const BotSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  username: z.string(),
+  bio: z.string().nullable(),
+  image: z.string().url().nullable(),
+  userId: z.string(),
+  memory: z.string().nullable(),
+  personality: z.string().nullable(),
+  themeCss: z.string().nullable(),
+  messageCount: z.number().optional(),
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime(),
+  user: z.object({
+    id: z.string(),
+    name: z.string(),
+    username: z.string(),
+    image: z.string().url().nullable(),
+  }),
+  skills: z.array(BotSkillSchema).optional(),
+});
+
+export const BotListResponseSchema = z.object({
+  result: z.object({
+    data: z.object({
+      json: z.array(
+        z.object({
+          type: z.string(),
+          data: z.union([
+            BotSchema,
+            z.object({}).passthrough(), // For sim templates or other types
+          ]),
+          featured: z.boolean().optional(),
+          featuredOrder: z.number().optional(),
+        })
+      ),
+    }),
+  }),
+});
+
 // User schema
 export const UserSchema = z.object({
   id: z.string(),
@@ -124,3 +192,8 @@ export const MeResponseSchema = z.object({
 
 export type SearchParams = z.infer<typeof SearchParamsSchema>;
 export type MeResponse = z.infer<typeof MeResponseSchema>;
+
+// Bot types
+export type Bot = z.infer<typeof BotSchema>;
+export type BotSkill = z.infer<typeof BotSkillSchema>;
+export type BotListResponse = z.infer<typeof BotListResponseSchema>;

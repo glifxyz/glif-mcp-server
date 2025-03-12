@@ -59,6 +59,13 @@ Then configure your MCP client (e.g. Claude Desktop) to load this server
 - `list_featured_glifs` - Get a curated list of featured glifs
 - `search_glifs` (TODO) - J/k this isn't implemented yet
 
+### Bot Tools
+
+- `list_bots` - Get a list of featured bots and sim templates
+- `load_bot` - Get detailed information about a specific bot, including its skills
+- `show_bot_info` - Alias for `load_bot` with consistent naming
+- `save_bot_skills_as_tools` - Save all skills from a bot as individual tools
+
 ### User-specific Tools
 
 - `my_glifs` - Get a list of your glifs
@@ -68,6 +75,7 @@ Then configure your MCP client (e.g. Claude Desktop) to load this server
 
 - `save_glif_as_tool` - Save a glif as a custom tool
 - `remove_glif_tool` - Remove a saved glif tool
+- `remove_all_glif_tools` - Remove all saved glif tools and return to a pristine state
 - `list_saved_glif_tools` - List all saved glif tools
 
 ## How to turn glifs into custom tools
@@ -87,6 +95,34 @@ An example prompt session:
 You can list these special tools with `list_saved_glif_tools` and remove any you don't like with `remove_glif_tool`
 
 Note that Claude Desktop requires a restart to load new tool definitions. Cline & Cursor seem to reload automatically on changes and requery for available tools
+
+## How to explore and use bots
+
+Glif.app hosts a variety of bots that can be used for different tasks. These bots are essentially collections of glifs with specific personalities and capabilities. You can explore and interact with these bots using the bot tools:
+
+An example prompt session:
+
+- what bots are available on glif.app?
+- [toolcall: `list_bots`...]
+- tell me more about the T-Shirt Designer bot
+- [toolcall: `load_bot id=cm3oa7vzp002a7csdww668us4`]
+- i want to use the Create Art skill from this bot
+- [toolcall: `run_glif id=cm3och9dl000313onkn3ailhr inputs=["a futuristic robot on a white background"]`]
+
+This allows you to discover and use the various capabilities of bots directly through the MCP server, without having to visit the Glif website.
+
+You can also save all of a bot's skills as individual tools:
+
+- what skills does the T-Shirt Designer bot have?
+- [toolcall: `load_bot id=cm3oa7vzp002a7csdww668us4`]
+- save all these skills as tools with a prefix
+- [toolcall: `save_bot_skills_as_tools id=cm3oa7vzp002a7csdww668us4 prefix=tshirt_`]
+- now I can use the Create Art skill directly
+- [toolcall: `tshirt_create_art inputs=["a futuristic robot on a white background"]`]
+
+If you want to remove all saved tools and start fresh:
+
+- [toolcall: `remove_all_glif_tools`]
 
 ## Development
 

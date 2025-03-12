@@ -16,7 +16,7 @@ export type SavedGlif = z.infer<typeof SavedGlifSchema>;
 
 // Path to the saved glifs file
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const SAVED_GLIFS_PATH = path.join(__dirname, "../data/saved-glifs.json");
+const SAVED_GLIFS_PATH = path.join(__dirname, "../config/saved-glifs.json");
 
 // Functions to manage saved glifs
 // Define a schema for raw JSON data that might have date objects

@@ -2,6 +2,7 @@ import { z } from "zod";
 import {
   CallToolRequestSchema,
   ErrorCode,
+  ListToolsRequestSchema,
   McpError,
 } from "@modelcontextprotocol/sdk/types.js";
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
@@ -16,6 +17,12 @@ import {
   getMyRecentRuns,
 } from "./api.js";
 import { SearchParamsSchema } from "./types.js";
+import {
+  getSavedGlifs,
+  saveGlif,
+  removeGlif,
+  SavedGlif,
+} from "./saved-glifs.js";
 
 const RunGlifArgsSchema = z.object({
   id: z.string(),
@@ -31,8 +38,106 @@ const CreateGlifArgsSchema = z.object({
   description: z.string(),
 });
 
+const SaveGlifArgsSchema = z.object({
+  id: z.string(),
+  toolName: z.string(),
+  name: z.string().optional(),
+  description: z.string().optional(),
+});
+
+const RemoveGlifToolArgsSchema = z.object({
+  toolName: z.string(),
+});
+
 export function setupToolHandlers(server: Server) {
+  // Register tool definitions including saved glifs
+  server.setRequestHandler(ListToolsRequestSchema, async () => {
+    // Get saved glifs
+    const savedGlifs = await getSavedGlifs();
+
+    // Create tool definitions for saved glifs
+    const savedGlifTools = savedGlifs.map((glif) => ({
+      name: glif.toolName,
+      description: `${glif.name}: ${glif.description}`,
+      inputSchema: {
+        type: "object",
+        properties: {
+          inputs: {
+            type: "array",
+            items: {
+              type: "string",
+            },
+            description: "Array of input values for the glif",
+          },
+        },
+        required: ["inputs"],
+      },
+    }));
+
+    // Return all tool definitions
+    return {
+      tools: [...toolDefinitions, ...savedGlifTools],
+    };
+  });
+
   server.setRequestHandler(CallToolRequestSchema, async (request) => {
+    // Check if this is a saved glif tool
+    const savedGlifs = await getSavedGlifs();
+    // Ensure savedGlifs is an array before using find
+    const savedGlif = Array.isArray(savedGlifs)
+      ? savedGlifs.find((g) => g.toolName === request.params.name)
+      : undefined;
+
+    if (savedGlif) {
+      // Handle saved glif tool call
+      const args = z
+        .object({ inputs: z.array(z.string()) })
+        .parse(request.params.arguments);
+
+      try {
+        const result = await runGlif(savedGlif.id, args.inputs);
+
+        // Ensure we have valid output
+        if (!result || !result.output) {
+          return {
+            content: [
+              {
+                type: "text",
+                text: "No output received from glif run",
+              },
+            ],
+          };
+        }
+
+        // Format the output
+        const formattedOutput = formatOutput(
+          result.outputFull?.type || "TEXT",
+          result.output
+        );
+
+        return {
+          content: [
+            {
+              type: "text",
+              text: formattedOutput,
+            },
+          ],
+        };
+      } catch (error) {
+        console.error("Error running glif:", error);
+        return {
+          content: [
+            {
+              type: "text",
+              text: `Error running glif: ${
+                error instanceof Error ? error.message : String(error)
+              }`,
+            },
+          ],
+        };
+      }
+    }
+
     switch (request.params.name) {
       case "run_glif": {
         const args = RunGlifArgsSchema.parse(request.params.arguments);
@@ -249,6 +354,104 @@ export function setupToolHandlers(server: Server) {
         }
       }
 
+      case "save_glif_as_tool": {
+        const args = SaveGlifArgsSchema.parse(request.params.arguments);
+
+        // Get glif details to use name/description if not provided
+        const { glif } = await getGlifDetails(args.id);
+
+        const savedGlif: SavedGlif = {
+          id: args.id,
+          toolName: args.toolName,
+          name: args.name || glif.name,
+          description: args.description || glif.description || "",
+          createdAt: new Date().toISOString(),
+        };
+
+        await saveGlif(savedGlif);
+
+        return {
+          content: [
+            {
+              type: "text",
+              text: `Successfully saved glif "${savedGlif.name}" as tool "${savedGlif.toolName}"`,
+            },
+          ],
+        };
+      }
+
+      case "remove_glif_tool": {
+        const args = RemoveGlifToolArgsSchema.parse(request.params.arguments);
+        const removed = await removeGlif(args.toolName);
+
+        return {
+          content: [
+            {
+              type: "text",
+              text: removed
+                ? `Successfully removed tool "${args.toolName}"`
+                : `Tool "${args.toolName}" not found`,
+            },
+          ],
+        };
+      }
+
+      case "list_saved_glif_tools": {
+        const savedGlifs = await getSavedGlifs();
+
+        // Ensure savedGlifs is a valid array with content
+        if (!Array.isArray(savedGlifs) || savedGlifs.length === 0) {
+          return {
+            content: [
+              {
+                type: "text",
+                text: "No saved glif tools found.",
+              },
+            ],
+          };
+        }
+
+        try {
+          const formattedGlifs = savedGlifs
+            .map((glif) => {
+              // Ensure we have valid date string for createdAt
+              let dateStr = "Unknown date";
+              try {
+                dateStr = new Date(glif.createdAt).toLocaleString();
+              } catch (err) {
+                // Use fallback if date is invalid
+              }
+
+              return `${glif.name} (tool: ${glif.toolName})\n${glif.description}\nOriginal Glif ID: ${glif.id}\nSaved: ${dateStr}\n`;
+            })
+            .join("\n");
+
+          return {
+            content: [
+              {
+                type: "text",
+                text: `Saved glif tools:\n\n${formattedGlifs}`,
+              },
+            ],
+          };
+        } catch (error) {
+          console.error("Error formatting saved glifs:", error);
+          // Return a fallback response with the raw data
+          return {
+            content: [
+              {
+                type: "text",
+                text: `Saved glif tools:\n\n${JSON.stringify(
+                  savedGlifs,
+                  null,
+                  2
+                )}`,
+              },
+            ],
+          };
+        }
+      }
+
       default:
         throw new McpError(
           ErrorCode.MethodNotFound,
@@ -259,6 +462,57 @@ export function setupToolHandlers(server: Server) {
 }
 
 export const toolDefinitions = [
+  {
+    name: "save_glif_as_tool",
+    description: "Save a glif as a custom tool",
+    inputSchema: {
+      type: "object",
+      properties: {
+        id: {
+          type: "string",
+          description: "The ID of the glif to save",
+        },
+        toolName: {
+          type: "string",
+          description: "The name to use for the tool (must be unique)",
+        },
+        name: {
+          type: "string",
+          description:
+            "Optional custom name for the tool (defaults to glif name)",
+        },
+        description: {
+          type: "string",
+          description:
+            "Optional custom description (defaults to glif description)",
+        },
+      },
+      required: ["id", "toolName"],
+    },
+  },
+  {
+    name: "remove_glif_tool",
+    description: "Remove a saved glif tool",
+    inputSchema: {
+      type: "object",
+      properties: {
+        toolName: {
+          type: "string",
+          description: "The tool name of the saved glif to remove",
+        },
+      },
+      required: ["toolName"],
+    },
+  },
+  {
+    name: "list_saved_glif_tools",
+    description: "List all saved glif tools",
+    inputSchema: {
+      type: "object",
+      properties: {},
+      required: [],
+    },
+  },
   {
     name: "run_glif",
     description: "Run a glif with the specified ID and inputs",

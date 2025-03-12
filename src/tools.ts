@@ -16,7 +16,6 @@ import {
   getMyUserInfo,
   getMyRecentRuns,
 } from "./api.js";
-import { SearchParamsSchema } from "./types.js";
 import {
   getSavedGlifs,
   saveGlif,

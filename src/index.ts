@@ -1,10 +1,9 @@
 #!/usr/bin/env node
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { ListToolsRequestSchema } from "@modelcontextprotocol/sdk/types.js";
 import { setupResourceHandlers } from "./resources.js";
 import { setupPromptHandlers } from "./prompts.js";
-import { setupToolHandlers, toolDefinitions } from "./tools.js";
+import { setupToolHandlers } from "./tools.js";
 
 async function main() {
   const server = new Server(

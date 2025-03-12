@@ -52,12 +52,41 @@ Then configure your MCP client (e.g. Claude Desktop) to load this server
 
 ## Tools
 
-- `get_glif_info` - Get detailed information about a glif including input fields
-- `run_glif` - Execute a glif with inputs
+### General Glif Tools
 
-## Prompts
-
+- `run_glif` - Run a glif with the specified ID and inputs
+- `glif_info` - Get detailed information about a glif including input fields
 - `list_featured_glifs` - Get a curated list of featured glifs
+- `search_glifs` (TODO) - J/k this isn't implemented yet
+
+### User-specific Tools
+
+- `my_glifs` - Get a list of your glifs
+- `my_glif_user_info` - Get detailed information about your user account, recent glifs, and recent runs
+
+### Glif->Tool Tools (metatools)
+
+- `save_glif_as_tool` - Save a glif as a custom tool
+- `remove_glif_tool` - Remove a saved glif tool
+- `list_saved_glif_tools` - List all saved glif tools
+
+## How to turn glifs into custom tools
+
+We have a general `run_glif` tool, but it (a) isn't very descriptive, and (b) requires doing a `glif_info` call first in order to learn how to call said glif. Plus, you need to know that glif exists.
+
+We're experimenting with several new meta-tools which turn specific glifs into new standalone tools:
+
+An example prompt session:
+
+- what are some cool new glifs?
+- [toolcall: `list_featured_glifs`...]
+- ok i like 1970s sci-fi book cover generator, make that into a tool called "scifi_book_image"
+- [toolcall: `save_glif_as_tool glifId=... toolName=scifi_book_image`]
+- [now user can just type "make sci fi book image of blah"]
+
+You can list these special tools with `list_saved_glif_tools` and remove any you don't like with `remove_glif_tool`
+
+Note that Claude Desktop requires a restart to load new tool definitions. Cline & Cursor seem to reload automatically on changes and requery for available tools
 
 ## Development
 

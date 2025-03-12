@@ -70,6 +70,24 @@ Then configure your MCP client (e.g. Claude Desktop) to load this server
 - `remove_glif_tool` - Remove a saved glif tool
 - `list_saved_glif_tools` - List all saved glif tools
 
+## How to turn glifs into custom tools
+
+We have a general `run_glif` tool, but it (a) isn't very descriptive, and (b) requires doing a `glif_info` call first in order to learn how to call said glif. Plus, you need to know that glif exists.
+
+We're experimenting with several new meta-tools which turn specific glifs into new standalone tools:
+
+An example prompt session:
+
+- what are some cool new glifs?
+- [toolcall: `list_featured_glifs`...]
+- ok i like 1970s sci-fi book cover generator, make that into a tool called "scifi_book_image"
+- [toolcall: `save_glif_as_tool glifId=... toolName=scifi_book_image`]
+- [now user can just type "make sci fi book image of blah"]
+
+You can list these special tools with `list_saved_glif_tools` and remove any you don't like with `remove_glif_tool`
+
+Note that Claude Desktop requires a restart to load new tool definitions. Cline & Cursor seem to reload automatically on changes and requery for available tools
+
 ## Development
 
 Install dependencies:

@@ -26,11 +26,6 @@ async function main() {
   setupPromptHandlers(server);
   setupToolHandlers(server);
 
-  // Register tool definitions
-  server.setRequestHandler(ListToolsRequestSchema, async () => ({
-    tools: toolDefinitions,
-  }));
-
   server.onerror = (error) => console.error("[MCP Error]", error);
 
   process.on("SIGINT", async () => {

@@ -17,7 +17,8 @@
     "inspector": "npx @modelcontextprotocol/inspector -e GLIF_API_TOKEN=xxx node build/index.js",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "logs:claude": "tail -f -n 5 ~/Library/Logs/Claude/**glif*.log"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.6.1",

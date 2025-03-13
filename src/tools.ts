@@ -18,7 +18,7 @@ import {
   listBots,
   loadBot,
 } from "./api.js";
-import { BotSchema } from "./types.js";
+import { BotSchema, type Bot } from "./types.js";
 import {
   getSavedGlifs,
   saveGlif,
@@ -340,7 +340,12 @@ Messages: ${bot.messageCount || 0}${skills}\n`;
           const skillsInfo = bot.spellsForBot?.length
             ? bot.spellsForBot
                 .map(
-                  (skill) => `- ${skill.spell.name}${
+                  (skill: {
+                    spell: { name: string; id: string };
+                    customName: string | null;
+                    customDescription: string | null;
+                    usageInstructions: string | null;
+                  }) => `- ${skill.spell.name}${
                     skill.customName ? ` (${skill.customName})` : ""
                   }
   Description: ${skill.customDescription || "No description"}

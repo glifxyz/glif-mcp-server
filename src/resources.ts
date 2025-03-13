@@ -6,10 +6,8 @@ import {
 } from "@modelcontextprotocol/sdk/types.js";
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import type { WretchError } from "wretch";
-import { GlifRunSchema, GlifSchema, UserSchema } from "./types.js";
-import { api, getGlifDetails } from "./api.js";
-
-const glifApi = api.url("https://glif.app/api");
+import { GlifRunSchema, UserSchema } from "./types.js";
+import { glifApi, getGlifDetails } from "./api.js";
 
 export function setupResourceHandlers(server: Server) {
   server.setRequestHandler(ListResourcesRequestSchema, async () => ({

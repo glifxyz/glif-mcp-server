@@ -33,8 +33,8 @@ export const api = wretch()
   })
   .errorType("json");
 
-const simpleApi = api.url("https://simple-api.glif.app");
-const glifApi = api.url("https://glif.app/api");
+export const simpleApi = api.url("https://simple-api.glif.app");
+export const glifApi = api.url("https://glif.app/api");
 
 export async function runGlif(
   id: string,
@@ -65,10 +65,7 @@ export async function searchGlifs(
     if (params.featured) queryParams.featured = "1";
     if (params.id) queryParams.id = params.id;
 
-    console.error("Making API request to search glifs:", {
-      url: "https://glif.app/api/glifs",
-      params: queryParams,
-    });
+    console.error("searchGlifs", { queryParams });
 
     const data = await glifApi
       .url("/glifs")
@@ -92,10 +89,7 @@ export async function getGlifDetails(id: string): Promise<{
   recentRuns: GlifRun[];
 }> {
   try {
-    console.error("Making API requests to fetch glif details:", {
-      urls: ["https://glif.app/api/glifs", "https://glif.app/api/runs"],
-      params: { id, glifId: id },
-    });
+    console.error("getGlifDetails", { id });
 
     const [glifData, runsData] = await Promise.all([
       glifApi
@@ -135,9 +129,7 @@ let cachedUserId: string | null = null;
 
 export async function getMyUserInfo() {
   try {
-    console.error("Making API request to fetch user info:", {
-      url: "https://glif.app/api/me",
-    });
+    console.error("getMyUserInfo");
 
     const data = await glifApi
       .url("/me")
@@ -148,7 +140,7 @@ export async function getMyUserInfo() {
       })
       .json();
 
-    console.error("Raw user data:", JSON.stringify(data, null, 2));
+    console.error("getMyUserInfo:response", data);
     const response = MeResponseSchema.parse(data);
     const user = response.user;
     cachedUserId = user.id;
@@ -162,10 +154,7 @@ export async function getMyUserInfo() {
 export async function getMyRecentRuns(): Promise<GlifRun[]> {
   try {
     const userId = cachedUserId ?? (await getMyUserInfo()).id;
-    console.error("Making API request to fetch runs:", {
-      url: "https://glif.app/api/runs",
-      params: { userId },
-    });
+    console.error("getMyRecentRuns", { userId });
 
     const data = await glifApi
       .url("/runs")
@@ -187,10 +176,7 @@ export async function getMyRecentRuns(): Promise<GlifRun[]> {
 export async function getMyGlifs(): Promise<Glif[]> {
   try {
     const userId = cachedUserId ?? (await getMyUserInfo()).id;
-    console.error("Making API request to fetch glifs:", {
-      url: "https://glif.app/api/glifs",
-      params: { userId },
-    });
+    console.error("getMyGlifs", { userId });
 
     const data = await glifApi
       .url("/glifs")
@@ -252,10 +238,7 @@ export async function getBots(params: {
     if (params.searchQuery) queryParams.searchQuery = params.searchQuery;
     if (params.creator) queryParams.creator = params.creator;
 
-    console.error("Making API request to fetch bots:", {
-      url,
-      params: queryParams,
-    });
+    console.error("getBots", { queryParams });
 
     const data = await glifApi
       .url("/bots")
@@ -286,12 +269,15 @@ export async function listBots(
     searchQuery?: string;
     creator?: string;
   } = {}
-) {
-  return getBots(params);
+): Promise<Bot[]> {
+  // Ensure we're getting an array of bots
+  const result = await getBots(params);
+  return Array.isArray(result) ? result : [result];
 }
 
-export async function loadBot(id: string) {
-  return getBots({ id });
+export async function loadBot(id: string): Promise<Bot> {
+  const result = await getBots({ id });
+  return Array.isArray(result) ? result[0] : result;
 }
 
 export function searchBots(query: string) {

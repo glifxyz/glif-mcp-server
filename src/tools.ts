@@ -288,20 +288,15 @@ export function setupToolHandlers(server: Server) {
 
       case "list_bots": {
         try {
-          const botList = await listBots();
-
-          // Extract bots from the response
-          const bots = botList.result.data.json
-            .filter((item) => item.type === "bot")
-            .map((item) => item.data as z.infer<typeof BotSchema>);
+          const bots = await listBots();
 
           // Format the bot list
           const formattedBots = bots
             .map((bot) => {
               const skills =
-                bot.skills && bot.skills.length > 0
-                  ? `\nSkills: ${bot.skills
-                      .map((s: { name: string }) => s.name)
+                bot.spellsForBot && bot.spellsForBot.length > 0
+                  ? `\nSkills: ${bot.spellsForBot
+                      .map((s) => s.spell.name)
                       .join(", ")}`
                   : "";
 
@@ -342,16 +337,13 @@ Messages: ${bot.messageCount || 0}${skills}\n`;
           const bot = await loadBot(args.id);
 
           // Format the bot skills
-          const skillsInfo = bot.skills?.length
-            ? bot.skills
+          const skillsInfo = bot.spellsForBot?.length
+            ? bot.spellsForBot
                 .map(
-                  (skill) => `- ${skill.name}${
+                  (skill) => `- ${skill.spell.name}${
                     skill.customName ? ` (${skill.customName})` : ""
                   }
-  Description: ${
-    skill.description || skill.customDescription || "No description"
-  }
-  Type: ${skill.type}
+  Description: ${skill.customDescription || "No description"}
   Glif ID: ${skill.spell.id}
   ${skill.usageInstructions ? `Usage: ${skill.usageInstructions}` : ""}`
                 )
@@ -402,7 +394,7 @@ Messages: ${bot.messageCount || 0}${skills}\n`;
           const args = SaveBotSkillsArgsSchema.parse(request.params.arguments);
           const bot = await loadBot(args.id);
 
-          if (!bot.skills || bot.skills.length === 0) {
+          if (!bot.spellsForBot || bot.spellsForBot.length === 0) {
             return {
               content: [
                 {
@@ -417,26 +409,25 @@ Messages: ${bot.messageCount || 0}${skills}\n`;
           const savedSkills = [];
 
           // Save each skill as a tool
-          for (const skill of bot.skills) {
-            const toolName = `${prefix}${skill.name
+          for (const skill of bot.spellsForBot) {
+            const skillName = skill.spell.name;
+            const toolName = `${prefix}${skillName
               .replace(/\s+/g, "_")
               .toLowerCase()}`;
             const description =
-              skill.description ||
-              skill.customDescription ||
-              `Skill from ${bot.name} bot`;
+              skill.customDescription || `Skill from ${bot.name} bot`;
 
             const savedGlif: SavedGlif = {
               id: skill.spell.id,
               toolName,
-              name: skill.customName || skill.name,
+              name: skill.customName || skillName,
               description,
               createdAt: new Date().toISOString(),
             };
 
             await saveGlif(savedGlif);
             savedSkills.push({
-              name: skill.name,
+              name: skillName,
               toolName,
             });
           }

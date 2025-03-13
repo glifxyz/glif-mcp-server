@@ -33,40 +33,45 @@ export const BotSchema = z.object({
   name: z.string(),
   username: z.string(),
   bio: z.string().nullable(),
-  image: z.string().url().nullable(),
   userId: z.string(),
+  image: z.string().url().nullable(),
   memory: z.string().nullable(),
   personality: z.string().nullable(),
-  themeCss: z.string().nullable(),
-  messageCount: z.number().optional(),
+  deployedAt: z.string().datetime().nullable(),
+  chatResponseGlifId: z.string().nullable(),
+  messageCount: z.number().nullable(),
+  conversationStarters: z.array(z.unknown()).nullable(),
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),
+  themeCss: z.string().nullable(),
   user: z.object({
     id: z.string(),
     name: z.string(),
     username: z.string(),
     image: z.string().url().nullable(),
   }),
-  skills: z.array(BotSkillSchema).optional(),
+  spellsForBot: z
+    .array(
+      z.object({
+        spell: z.object({
+          id: z.string(),
+          name: z.string(),
+        }),
+        spellId: z.string(),
+        customName: z.string().nullable(),
+        customDescription: z.string().nullable(),
+        usageInstructions: z.string().nullable(),
+        nativeToolName: z.string().nullable(),
+      })
+    )
+    .nullable(),
 });
 
-export const BotListResponseSchema = z.object({
-  result: z.object({
-    data: z.object({
-      json: z.array(
-        z.object({
-          type: z.string(),
-          data: z.union([
-            BotSchema,
-            z.object({}).passthrough(), // For sim templates or other types
-          ]),
-          featured: z.boolean().optional(),
-          featuredOrder: z.number().optional(),
-        })
-      ),
-    }),
-  }),
-});
+// Direct bot response schema (for single bot)
+export const BotResponseSchema = BotSchema;
+
+// Array of bots schema (for listing bots)
+export const BotsListSchema = z.array(BotSchema);
 
 // User schema
 export const UserSchema = z.object({
@@ -196,4 +201,5 @@ export type MeResponse = z.infer<typeof MeResponseSchema>;
 // Bot types
 export type Bot = z.infer<typeof BotSchema>;
 export type BotSkill = z.infer<typeof BotSkillSchema>;
-export type BotListResponse = z.infer<typeof BotListResponseSchema>;
+export type BotResponse = z.infer<typeof BotResponseSchema>;
+export type BotsList = z.infer<typeof BotsListSchema>;

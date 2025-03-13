@@ -10,14 +10,14 @@ import {
   UserSchema,
   MeResponseSchema,
   BotSchema,
-  BotListResponseSchema,
+  BotResponseSchema,
+  BotsListSchema,
   type Glif,
   type GlifRun,
   type GlifRunResponse,
   type User,
   type MeResponse,
   type Bot,
-  type BotListResponse,
 } from "./types.js";
 
 const API_TOKEN = process.env.GLIF_API_TOKEN;
@@ -237,34 +237,29 @@ export async function createGlif(
   throw new Error("Create glif functionality coming soon!");
 }
 
-export async function listBots(): Promise<BotListResponse> {
+export async function getBots(params: {
+  id?: string;
+  sort?: "new" | "popular" | "featured";
+  searchQuery?: string;
+  creator?: string;
+}): Promise<Bot | Bot[]> {
   try {
-    const url =
-      "https://glif.app/api/trpc/glifChatDiscovery.getBotsAndSimTemplates";
-    const params = {
-      input: JSON.stringify({
-        json: {
-          sort: "featured",
-          creator: null,
-          searchQuery: null,
-        },
-        meta: {
-          values: {
-            creator: ["undefined"],
-            searchQuery: ["undefined"],
-          },
-        },
-      }),
-    };
+    const url = "https://glif.app/api/bots";
+    const queryParams: Record<string, string> = {};
+
+    if (params.id) queryParams.id = params.id;
+    if (params.sort) queryParams.sort = params.sort;
+    if (params.searchQuery) queryParams.searchQuery = params.searchQuery;
+    if (params.creator) queryParams.creator = params.creator;
 
     console.error("Making API request to fetch bots:", {
       url,
-      params,
+      params: queryParams,
     });
 
-    const data = await api
-      .url(url)
-      .query(params)
+    const data = await glifApi
+      .url("/bots")
+      .query(queryParams)
       .get()
       .unauthorized((err: WretchError) => {
         console.error("Unauthorized request:", err);
@@ -272,50 +267,35 @@ export async function listBots(): Promise<BotListResponse> {
       })
       .json();
 
-    return BotListResponseSchema.parse(data);
+    // If id is provided, return a single bot
+    if (params.id) {
+      return BotResponseSchema.parse(data);
+    }
+
+    // Otherwise, return an array of bots
+    return BotsListSchema.parse(data);
   } catch (error) {
     console.error("Error fetching bots:", error);
     throw error;
   }
 }
 
-export async function loadBot(id: string): Promise<Bot> {
-  try {
-    const url = "https://glif.app/api/trpc/bot.find";
-    const params = {
-      input: JSON.stringify({
-        json: {
-          id,
-        },
-      }),
-    };
+export async function listBots(
+  params: {
+    sort?: "new" | "popular" | "featured";
+    searchQuery?: string;
+    creator?: string;
+  } = {}
+) {
+  return getBots(params);
+}
 
-    console.error("Making API request to fetch bot details:", {
-      url,
-      params,
-    });
+export async function loadBot(id: string) {
+  return getBots({ id });
+}
 
-    const data = await api
-      .url(url)
-      .query(params)
-      .get()
-      .unauthorized((err: WretchError) => {
-        console.error("Unauthorized request:", err);
-        throw err;
-      })
-      .json<{ result?: { data?: { json?: unknown } } }>();
-
-    // The response structure is different from the BotSchema, so we need to extract the bot data
-    const botData = data?.result?.data?.json;
-    if (!botData) {
-      throw new Error("Invalid bot data received");
-    }
-
-    return BotSchema.parse(botData);
-  } catch (error) {
-    console.error("Error fetching bot details:", error);
-    throw error;
-  }
+export function searchBots(query: string) {
+  return getBots({ searchQuery: query });
 }
 
 export function formatOutput(type: string, output: string): string {

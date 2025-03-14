@@ -292,7 +292,19 @@ export function setupToolHandlers(server: Server) {
 
       case "list_bots": {
         try {
-          const bots = await listBots();
+          const args = z
+            .object({
+              sort: z.enum(["new", "popular", "featured"]).optional(),
+              username: z.string().optional(),
+              searchQuery: z.string().optional(),
+            })
+            .parse(request.params.arguments || {});
+
+          const bots = await listBots({
+            sort: args.sort,
+            creator: args.username,
+            searchQuery: args.searchQuery,
+          });
 
           // Format the bot list
           const formattedBots = bots
@@ -879,10 +891,26 @@ export const toolDefinitions = [
   },
   {
     name: "list_bots",
-    description: "Get a list of featured bots and sim templates",
+    description:
+      "Get a list of bots and sim templates with optional filtering and sorting. Supports sort={new,popular,featured} (defaults to popular), username filtering, and text search.",
     inputSchema: {
       type: "object",
-      properties: {},
+      properties: {
+        sort: {
+          type: "string",
+          enum: ["new", "popular", "featured"],
+          description: "Optional sort order for bots (defaults to popular)",
+        },
+        username: {
+          type: "string",
+          description: "Optional filter for bots by creator username",
+        },
+        searchQuery: {
+          type: "string",
+          description:
+            "Optional search query to filter bots by name or description",
+        },
+      },
       required: [],
     },
   },

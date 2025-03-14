@@ -1,71 +1,88 @@
 import { z } from "zod";
 
 // Bot related schemas
-export const SimplifiedGlifSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  description: z.string().nullable(),
-  user: z.object({
+export const SimplifiedGlifSchema = z
+  .object({
     id: z.string(),
     name: z.string(),
-    username: z.string(),
-    image: z.string().url().nullable(),
-    isSubscriber: z.boolean().optional(),
-  }),
-  averageDuration: z.number().nullable(),
-  inputs: z.record(z.string()).optional(),
-});
-
-export const BotSkillSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  displayName: z.string(),
-  description: z.string().nullable(),
-  customName: z.string().nullable(),
-  customDescription: z.string().nullable(),
-  usageInstructions: z.string().nullable(),
-  type: z.string(), // Usually "skillGlif"
-  spell: SimplifiedGlifSchema,
-});
-
-export const BotSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  username: z.string(),
-  bio: z.string().nullable(),
-  userId: z.string(),
-  image: z.string().url().nullable(),
-  memory: z.string().nullable(),
-  personality: z.string().nullable(),
-  deployedAt: z.string().datetime().nullable(),
-  chatResponseGlifId: z.string().nullable(),
-  messageCount: z.number().nullable(),
-  conversationStarters: z.array(z.unknown()).nullable(),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(),
-  themeCss: z.string().nullable(),
-  user: z.object({
-    id: z.string(),
-    name: z.string(),
-    username: z.string(),
-    image: z.string().url().nullable(),
-  }),
-  spellsForBot: z
-    .array(
-      z.object({
-        spell: z.object({
-          id: z.string(),
-          name: z.string(),
-        }),
-        spellId: z.string(),
-        customName: z.string().nullable(),
-        customDescription: z.string().nullable(),
-        usageInstructions: z.string().nullable(),
-        nativeToolName: z.string().nullable(),
+    description: z.string().nullable().optional(),
+    user: z
+      .object({
+        id: z.string(),
+        name: z.string(),
+        username: z.string(),
+        image: z.string().url().nullable().optional(),
+        isSubscriber: z.boolean().optional(),
       })
-    )
-    .nullable(),
-});
+      .optional(),
+    averageDuration: z.number().nullable().optional(),
+    inputs: z.record(z.string()).optional(),
+  })
+  .passthrough();
+
+export const BotSkillSchema = z
+  .object({
+    id: z.string(),
+    name: z.string(),
+    displayName: z.string().optional(),
+    description: z.string().nullable().optional(),
+    customName: z.string().nullable().optional(),
+    customDescription: z.string().nullable().optional(),
+    usageInstructions: z.string().nullable().optional(),
+    type: z.string().optional(), // Usually "skillGlif"
+    spell: SimplifiedGlifSchema.optional(),
+  })
+  .passthrough();
+
+export const BotSchema = z
+  .object({
+    id: z.string(),
+    name: z.string(),
+    username: z.string(),
+    bio: z.string().nullable().optional(),
+    userId: z.string().optional(),
+    image: z.union([z.string().url(), z.string(), z.null()]).optional(),
+    memory: z.string().nullable().optional(),
+    personality: z.string().nullable().optional(),
+    deployedAt: z
+      .union([z.string().datetime(), z.string(), z.null()])
+      .optional(),
+    chatResponseGlifId: z.string().nullable().optional(),
+    messageCount: z.number().nullable().optional(),
+    conversationStarters: z.array(z.unknown()).nullable().optional(),
+    createdAt: z.union([z.string().datetime(), z.string()]).optional(),
+    updatedAt: z.union([z.string().datetime(), z.string()]).optional(),
+    themeCss: z.string().nullable().optional(),
+    user: z
+      .object({
+        id: z.string(),
+        name: z.string(),
+        username: z.string(),
+        image: z.union([z.string().url(), z.string(), z.null()]).optional(),
+      })
+      .optional(),
+    spellsForBot: z
+      .array(
+        z
+          .object({
+            spell: z
+              .object({
+                id: z.string(),
+                name: z.string(),
+              })
+              .passthrough(),
+            spellId: z.string().optional(),
+            customName: z.string().nullable().optional(),
+            customDescription: z.string().nullable().optional(),
+            usageInstructions: z.string().nullable().optional(),
+            nativeToolName: z.string().nullable().optional(),
+          })
+          .passthrough()
+      )
+      .nullable()
+      .optional(),
+  })
+  .passthrough();
 
 // Direct bot response schema (for single bot)
 export const BotResponseSchema = BotSchema;

@@ -301,13 +301,13 @@ export function setupToolHandlers(server: Server) {
               const skills =
                 bot.spellsForBot && bot.spellsForBot.length > 0
                   ? `\nSkills: ${bot.spellsForBot
-                      .map((s) => s.spell.name)
+                      .map((s) => s.spell?.name || "Unknown Skill")
                       .join(", ")}`
                   : "";
 
               return `${bot.name} (@${bot.username}) - ID: ${bot.id}
 Bio: ${bot.bio || "No bio"}
-Created by: ${bot.user.name} (@${bot.user.username})
+Created by: ${bot.user?.name || "Unknown"} (@${bot.user?.username || "unknown"})
 Messages: ${bot.messageCount || 0}${skills}\n`;
             })
             .join("\n");
@@ -344,19 +344,16 @@ Messages: ${bot.messageCount || 0}${skills}\n`;
           // Format the bot skills
           const skillsInfo = bot.spellsForBot?.length
             ? bot.spellsForBot
-                .map(
-                  (skill: {
-                    spell: { name: string; id: string };
-                    customName: string | null;
-                    customDescription: string | null;
-                    usageInstructions: string | null;
-                  }) => `- ${skill.spell.name}${
+                .map((skill) => {
+                  const spellName = skill.spell?.name || "Unknown Skill";
+                  const spellId = skill.spell?.id || "unknown";
+                  return `- ${spellName}${
                     skill.customName ? ` (${skill.customName})` : ""
                   }
   Description: ${skill.customDescription || "No description"}
-  Glif ID: ${skill.spell.id}
-  ${skill.usageInstructions ? `Usage: ${skill.usageInstructions}` : ""}`
-                )
+  Glif ID: ${spellId}
+  ${skill.usageInstructions ? `Usage: ${skill.usageInstructions}` : ""}`;
+                })
                 .join("\n\n")
             : "No skills available";
 
@@ -364,9 +361,19 @@ Messages: ${bot.messageCount || 0}${skills}\n`;
             `Name: ${bot.name} (@${bot.username})`,
             `ID: ${bot.id}`,
             `Bio: ${bot.bio || "No bio"}`,
-            `Created by: ${bot.user.name} (@${bot.user.username})`,
-            `Created: ${new Date(bot.createdAt).toLocaleString()}`,
-            `Updated: ${new Date(bot.updatedAt).toLocaleString()}`,
+            `Created by: ${bot.user?.name || "Unknown"} (@${
+              bot.user?.username || "unknown"
+            })`,
+            `Created: ${
+              bot.createdAt
+                ? new Date(bot.createdAt).toLocaleString()
+                : "Unknown"
+            }`,
+            `Updated: ${
+              bot.updatedAt
+                ? new Date(bot.updatedAt).toLocaleString()
+                : "Unknown"
+            }`,
             `Message Count: ${bot.messageCount || 0}`,
             "",
             "Skills:",
@@ -420,7 +427,9 @@ Messages: ${bot.messageCount || 0}${skills}\n`;
 
           // Save each skill as a tool
           for (const skill of bot.spellsForBot) {
-            const skillName = skill.spell.name;
+            const skillName = skill.spell?.name || "Unknown Skill";
+            const spellId = skill.spell?.id || `unknown-${Date.now()}`;
+
             // Sanitize the tool name to match the pattern ^[a-zA-Z0-9_-]{1,64}$
             const toolName = `${prefix}${skillName
               .replace(/\s+/g, "_")
@@ -428,11 +437,12 @@ Messages: ${bot.messageCount || 0}${skills}\n`;
               .toLowerCase()}`
               .substring(0, 64)
               .replace(/_+$/, ""); // Remove trailing underscores
+
             const description =
               skill.customDescription || `Skill from ${bot.name} bot`;
 
             const savedGlif: SavedGlif = {
-              id: skill.spell.id,
+              id: spellId,
               toolName,
               name: skill.customName || skillName,
               description,

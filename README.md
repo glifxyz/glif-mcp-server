@@ -1,6 +1,5 @@
 # glif-mcp
 
-[![smithery badge](https://smithery.ai/badge/@glifxyz/mcp-glif)](https://smithery.ai/server/@glifxyz/mcp-glif)
 
 MCP server for running AI workflows from glif.app
 
@@ -14,19 +13,13 @@ For more info check out https://glif.app or join our Discord server: https://dis
 
 ## Setup
 
-### Installing via Smithery
-
-To install glif-mcp for Claude Desktop automatically via [Smithery](https://smithery.ai/server/@glifxyz/mcp-glif):
-
-```bash
-npx -y @smithery/cli install @glifxyz/mcp-glif --client claude
-```
+### Installing and running locally
 
 First, checkout this code and install dependencies. This assumes you have a recent-ish version of Nodejs:
 
 ```sh
-git clone https://github.com/glifxyz/mcp-glif
-cd mcp-glif
+git clone https://github.com/glifxyz/glif-mcp-server
+cd glif-mcp-server
 npm install
 npm run build
 # there's now a build/index.js file which is what we'll run next
@@ -50,6 +43,15 @@ Then configure your MCP client (e.g. Claude Desktop) to load this server
      }
    }
    ```
+
+### Install and run remotely with Smithery
+
+To install glif-mcp for Claude Desktop automatically via [Smithery](https://smithery.ai/server/@glifxyz/glif-mcp-server),
+which hosts and runs the MCP server for you:
+
+```bash
+npx -y @smithery/cli install @glifxyz/glif-mcp-server --client claude
+```
 
 ## Usage Limits
 

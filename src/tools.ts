@@ -899,7 +899,7 @@ export const toolDefinitions = [
         sort: {
           type: "string",
           enum: ["new", "popular", "featured"],
-          description: "Optional sort order for bots (defaults to popular)",
+          description: "Optional sort order for bots (defaults to featured)",
         },
         username: {
           type: "string",

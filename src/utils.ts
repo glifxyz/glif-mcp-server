@@ -26,7 +26,7 @@ export const logger = {
 export function formatOutput(type: string, output: string): string {
   switch (type) {
     case "IMAGE":
-      return `[Image] ${output}`;
+      return `[Image] ${output} ![](${output})`;
     case "VIDEO":
       return `[Video] ${output}`;
     case "AUDIO":

@@ -341,6 +341,40 @@ Messages: ${bot.messageCount || 0}${skills}\n`;
           const args = LoadBotArgsSchema.parse(request.params.arguments);
           const bot = await loadBot(args.id);
 
+          // Save all the bot's skills as tools automatically
+          const savedSkills = [];
+          if (bot.spellsForBot && bot.spellsForBot.length > 0) {
+            for (const skill of bot.spellsForBot) {
+              const skillName = skill.spell?.name || "Unknown Skill";
+              const spellId = skill.spell?.id || `unknown-${Date.now()}`;
+
+              // Sanitize the tool name
+              const toolName = `${skillName
+                .replace(/\s+/g, "_")
+                .replace(/[^a-zA-Z0-9_-]/g, "")
+                .toLowerCase()}`
+                .substring(0, 64)
+                .replace(/_+$/, "");
+
+              const description =
+                skill.customDescription || `Skill from ${bot.name} bot`;
+
+              const savedGlif: SavedGlif = {
+                id: spellId,
+                toolName,
+                name: skill.customName || skillName,
+                description,
+                createdAt: new Date().toISOString(),
+              };
+
+              await saveGlif(savedGlif);
+              savedSkills.push({
+                name: skillName,
+                toolName,
+              });
+            }
+          }
+
           // Format the bot skills
           const skillsInfo = bot.spellsForBot?.length
             ? bot.spellsForBot
@@ -356,6 +390,23 @@ Messages: ${bot.messageCount || 0}${skills}\n`;
                 })
                 .join("\n\n")
             : "No skills available";
+
+          // Create the instruction for the LLM to adopt the bot's personality
+          const personalityInstruction = bot.personality
+            ? `\n\nHere is the bot info:\n\nName: ${bot.name}\nBio: ${
+                bot.bio || "No bio"
+              }\n\nPersonality:\n${
+                bot.personality
+              }\n\nNow use this bot's personality as your new personality from now on, and I've loaded all of the bot's skills as new tools for you to use.`
+            : "\n\nI've loaded all of the bot's skills as new tools for you to use.";
+
+          // Format the saved skills info
+          const savedSkillsInfo =
+            savedSkills.length > 0
+              ? `\n\nLoaded skills as tools:\n${savedSkills
+                  .map((s) => `- ${s.name} → Tool: "${s.toolName}"`)
+                  .join("\n")}`
+              : "";
 
           const details = [
             `Name: ${bot.name} (@${bot.username})`,
@@ -381,6 +432,8 @@ Messages: ${bot.messageCount || 0}${skills}\n`;
             "",
             "Personality:",
             bot.personality || "No personality defined",
+            personalityInstruction,
+            savedSkillsInfo,
           ];
 
           return {

@@ -63,7 +63,6 @@ Then configure your MCP client (e.g. Claude Desktop) to load this server
 
 - `list_bots` - Get a list of featured bots and sim templates
 - `load_bot` - Get detailed information about a specific bot, including its skills
-- `show_bot_info` - Alias for `load_bot` with consistent naming
 - `save_bot_skills_as_tools` - Save all skills from a bot as individual tools
 
 ### User-specific Tools

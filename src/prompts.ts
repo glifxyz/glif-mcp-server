@@ -115,10 +115,11 @@ export function setupPromptHandlers(server: Server) {
               glif.featuredAt!
             ).toLocaleString()}\n\nIt takes these inputs:\n${inputFields
               .map((f, i) => `${f.params.label ?? f.name}: "${funInputs[i]}"`)
-              .join("\n")}\n\nHere's what it created:\n${formatOutput(
-              result.outputFull.type,
-              result.output
-            )}`,
+              .join("\n")}\n\nHere's what it created:\n${
+              result.output !== null && result.outputFull
+                ? formatOutput(result.outputFull.type, result.output)
+                : "No output received"
+            }`,
           },
         },
       ];

@@ -181,12 +181,13 @@ export const GlifRunSchema = z.object({
 export const GlifRunResponseSchema = z.object({
   id: z.string(),
   inputs: z.record(z.string()),
-  output: z.string(),
+  output: z.string().nullable(), // Allow null values for output
   outputFull: z
     .object({
       type: z.string(),
     })
-    .and(z.record(z.unknown())),
+    .and(z.record(z.unknown()))
+    .optional(), // Make outputFull optional
 });
 
 // Export types

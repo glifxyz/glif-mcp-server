@@ -159,6 +159,18 @@ export function setupToolHandlers(server: Server) {
         const args = RunGlifArgsSchema.parse(request.params.arguments);
         const result = await runGlif(args.id, args.inputs);
 
+        // Handle case where outputFull might be undefined or output might be null
+        if (!result.outputFull || result.output === null) {
+          return {
+            content: [
+              {
+                type: "text",
+                text: "No output received from glif run",
+              },
+            ],
+          };
+        }
+
         return {
           content: [
             {

@@ -2,6 +2,10 @@
 
 MCP server for running AI workflows from glif.app
 
+<a href="https://glama.ai/mcp/servers/gwrql5ibq2">
+  <img width="380" height="200" src="https://glama.ai/mcp/servers/gwrql5ibq2/badge" alt="Glif MCP server" />
+</a>
+
 ## Features
 
 - Run glifs with inputs

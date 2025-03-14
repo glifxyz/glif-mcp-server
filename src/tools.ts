@@ -43,7 +43,12 @@ const CreateGlifArgsSchema = z.object({
 
 const SaveGlifArgsSchema = z.object({
   id: z.string(),
-  toolName: z.string(),
+  toolName: z
+    .string()
+    .regex(
+      /^[a-zA-Z0-9_-]{1,64}$/,
+      "Tool name must only contain alphanumeric characters, underscores, and hyphens, and be 1-64 characters long"
+    ),
   name: z.string().optional(),
   description: z.string().optional(),
 });
@@ -416,9 +421,13 @@ Messages: ${bot.messageCount || 0}${skills}\n`;
           // Save each skill as a tool
           for (const skill of bot.spellsForBot) {
             const skillName = skill.spell.name;
+            // Sanitize the tool name to match the pattern ^[a-zA-Z0-9_-]{1,64}$
             const toolName = `${prefix}${skillName
               .replace(/\s+/g, "_")
-              .toLowerCase()}`;
+              .replace(/[^a-zA-Z0-9_-]/g, "")
+              .toLowerCase()}`
+              .substring(0, 64)
+              .replace(/_+$/, ""); // Remove trailing underscores
             const description =
               skill.customDescription || `Skill from ${bot.name} bot`;
 

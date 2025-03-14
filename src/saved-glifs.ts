@@ -7,7 +7,12 @@ import { logger, safeJsonParse, validateWithSchema } from "./utils.js";
 // Define the schema for saved glifs
 export const SavedGlifSchema = z.object({
   id: z.string(), // Original glif ID
-  toolName: z.string(), // Tool name (for invocation)
+  toolName: z
+    .string()
+    .regex(
+      /^[a-zA-Z0-9_-]{1,64}$/,
+      "Tool name must only contain alphanumeric characters, underscores, and hyphens, and be 1-64 characters long"
+    ), // Tool name (for invocation)
   name: z.string(), // Display name
   description: z.string(), // Custom description
   createdAt: z.string().datetime(), // When it was saved
@@ -22,7 +27,13 @@ const SAVED_GLIFS_PATH = path.join(__dirname, "../config/saved-glifs.json");
 // Define a schema for raw JSON data that might have date objects
 const RawGlifSchema = z.object({
   id: z.string(),
-  toolName: z.string(),
+  toolName: z.string().transform((toolName) => {
+    // Sanitize tool name if it doesn't match the pattern
+    if (!/^[a-zA-Z0-9_-]{1,64}$/.test(toolName)) {
+      return sanitizeToolName(toolName);
+    }
+    return toolName;
+  }),
   name: z.string(),
   description: z.string(),
   createdAt: z.union([
@@ -86,7 +97,30 @@ export async function getSavedGlifs(): Promise<SavedGlif[]> {
   return FileContentSchema.parse(data);
 }
 
+// Validate tool name against the pattern ^[a-zA-Z0-9_-]{1,64}$
+function isValidToolName(toolName: string): boolean {
+  return /^[a-zA-Z0-9_-]{1,64}$/.test(toolName);
+}
+
+// Sanitize tool name to match the pattern ^[a-zA-Z0-9_-]{1,64}$
+function sanitizeToolName(toolName: string): string {
+  return toolName
+    .replace(/\s+/g, "_")
+    .replace(/[^a-zA-Z0-9_-]/g, "")
+    .substring(0, 64)
+    .replace(/_+$/, ""); // Remove trailing underscores
+}
+
 export async function saveGlif(glif: SavedGlif): Promise<void> {
+  // Validate and sanitize the tool name
+  if (!isValidToolName(glif.toolName)) {
+    logger.info("Invalid tool name, sanitizing", {
+      original: glif.toolName,
+      sanitized: sanitizeToolName(glif.toolName),
+    });
+    glif.toolName = sanitizeToolName(glif.toolName);
+  }
+
   logger.debug("Saving glif", { toolName: glif.toolName });
 
   const glifs = await getSavedGlifs();

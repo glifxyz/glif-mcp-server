@@ -5,32 +5,41 @@ import {
   ReadResourceRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
-import type { WretchError } from "wretch";
 import { GlifRunSchema, UserSchema } from "./types.js";
 import { glifApi, getGlifDetails } from "./api.js";
+import {
+  handleApiError,
+  handleUnauthorized,
+  validateWithSchema,
+} from "./utils.js";
+
+/**
+ * Available resource types
+ */
+const RESOURCES = [
+  {
+    uri: "glif://template",
+    name: "Glif Details",
+    description: "Get metadata about a specific glif",
+    uriTemplate: "glif://{id}",
+  },
+  {
+    uri: "glifRun://template",
+    name: "Glif Run Details",
+    description: "Get details about a specific glif run",
+    uriTemplate: "glifRun://{id}",
+  },
+  {
+    uri: "glifUser://template",
+    name: "Glif User Details",
+    description: "Get details about a glif user",
+    uriTemplate: "glifUser://{id}",
+  },
+];
 
 export function setupResourceHandlers(server: Server) {
   server.setRequestHandler(ListResourcesRequestSchema, async () => ({
-    resources: [
-      {
-        uri: "glif://template",
-        name: "Glif Details",
-        description: "Get metadata about a specific glif",
-        uriTemplate: "glif://{id}",
-      },
-      {
-        uri: "glifRun://template",
-        name: "Glif Run Details",
-        description: "Get details about a specific glif run",
-        uriTemplate: "glifRun://{id}",
-      },
-      {
-        uri: "glifUser://template",
-        name: "Glif User Details",
-        description: "Get details about a glif user",
-        uriTemplate: "glifUser://{id}",
-      },
-    ],
+    resources: RESOURCES,
   }));
 
   server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
@@ -55,15 +64,15 @@ export function setupResourceHandlers(server: Server) {
             .url("/runs")
             .query({ id })
             .get()
-            .unauthorized((err: WretchError) => {
-              console.error("Unauthorized request:", err);
-              throw new McpError(
-                ErrorCode.InternalError,
-                `Unauthorized: ${err.message}`
-              );
-            })
+            .unauthorized(handleUnauthorized)
             .json<unknown[]>();
-          const run = GlifRunSchema.parse(data[0]);
+
+          const run = validateWithSchema(
+            GlifRunSchema,
+            data[0],
+            "glifRun resource validation"
+          );
+
           return {
             contents: [
               {
@@ -77,15 +86,15 @@ export function setupResourceHandlers(server: Server) {
           const data = await glifApi
             .url(`/users/${id}`)
             .get()
-            .unauthorized((err: WretchError) => {
-              console.error("Unauthorized request:", err);
-              throw new McpError(
-                ErrorCode.InternalError,
-                `Unauthorized: ${err.message}`
-              );
-            })
+            .unauthorized(handleUnauthorized)
             .json<unknown>();
-          const user = UserSchema.parse(data);
+
+          const user = validateWithSchema(
+            UserSchema,
+            data,
+            "glifUser resource validation"
+          );
+
           return {
             contents: [
               {
@@ -102,13 +111,7 @@ export function setupResourceHandlers(server: Server) {
           );
       }
     } catch (error) {
-      if (error instanceof McpError) {
-        throw error;
-      }
-      throw new McpError(
-        ErrorCode.InternalError,
-        `API error: ${error instanceof Error ? error.message : String(error)}`
-      );
+      return handleApiError(error, `Reading resource ${request.params.uri}`);
     }
   });
 }

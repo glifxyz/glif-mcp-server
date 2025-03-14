@@ -7,7 +7,6 @@ import {
 } from "@modelcontextprotocol/sdk/types.js";
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import {
-  formatOutput,
   getGlifDetails,
   runGlif,
   searchGlifs,
@@ -18,6 +17,7 @@ import {
   listBots,
   loadBot,
 } from "./api.js";
+import { formatOutput, handleApiError, logger } from "./utils.js";
 import { BotSchema, type Bot } from "./types.js";
 import {
   getSavedGlifs,
@@ -136,7 +136,7 @@ export function setupToolHandlers(server: Server) {
           ],
         };
       } catch (error) {
-        console.error("Error running glif:", error);
+        logger.error("Error running glif:", error);
         return {
           content: [
             {
@@ -316,7 +316,7 @@ Messages: ${bot.messageCount || 0}${skills}\n`;
             ],
           };
         } catch (error) {
-          console.error("Error listing bots:", error);
+          logger.error("Error listing bots:", error);
           return {
             content: [
               {
@@ -380,7 +380,7 @@ Messages: ${bot.messageCount || 0}${skills}\n`;
             ],
           };
         } catch (error) {
-          console.error("Error loading bot:", error);
+          logger.error("Error loading bot:", error);
           return {
             content: [
               {
@@ -450,7 +450,7 @@ Messages: ${bot.messageCount || 0}${skills}\n`;
             ],
           };
         } catch (error) {
-          console.error("Error saving bot skills:", error);
+          logger.error("Error saving bot skills:", error);
           return {
             content: [
               {
@@ -476,7 +476,7 @@ Messages: ${bot.messageCount || 0}${skills}\n`;
             ],
           };
         } catch (error) {
-          console.error("Error removing all glif tools:", error);
+          logger.error("Error removing all glif tools:", error);
           return {
             content: [
               {
@@ -651,7 +651,7 @@ Messages: ${bot.messageCount || 0}${skills}\n`;
             ],
           };
         } catch (error) {
-          console.error("Error formatting saved glifs:", error);
+          logger.error("Error formatting saved glifs:", error);
           // Return a fallback response with the raw data
           return {
             content: [

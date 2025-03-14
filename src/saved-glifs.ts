@@ -2,6 +2,7 @@ import { z } from "zod";
 import fs from "fs/promises";
 import path from "path";
 import { fileURLToPath } from "url";
+import { logger, safeJsonParse, validateWithSchema } from "./utils.js";
 
 // Define the schema for saved glifs
 export const SavedGlifSchema = z.object({
@@ -18,7 +19,6 @@ export type SavedGlif = z.infer<typeof SavedGlifSchema>;
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const SAVED_GLIFS_PATH = path.join(__dirname, "../config/saved-glifs.json");
 
-// Functions to manage saved glifs
 // Define a schema for raw JSON data that might have date objects
 const RawGlifSchema = z.object({
   id: z.string(),
@@ -40,11 +40,7 @@ const FileContentSchema = z.preprocess(
       return [];
     }
 
-    try {
-      return JSON.parse(data);
-    } catch {
-      return [];
-    }
+    return safeJsonParse(data, []);
   },
   z
     .array(RawGlifSchema)
@@ -62,20 +58,28 @@ const FileContentSchema = z.preprocess(
     .catch([])
 );
 
-export async function getSavedGlifs(): Promise<SavedGlif[]> {
-  // Ensure directory exists
+/**
+ * Ensure the config directory exists
+ */
+async function ensureConfigDir(): Promise<void> {
   try {
     await fs.mkdir(path.dirname(SAVED_GLIFS_PATH), { recursive: true });
   } catch (err) {
-    // Ignore directory creation errors
+    logger.debug("Error creating config directory (may already exist)", err);
   }
+}
+
+export async function getSavedGlifs(): Promise<SavedGlif[]> {
+  // Ensure directory exists
+  await ensureConfigDir();
 
   // Read file or return empty array if file doesn't exist
   let data = "[]";
   try {
     data = await fs.readFile(SAVED_GLIFS_PATH, "utf-8");
+    logger.debug("Read saved glifs file", { size: data.length });
   } catch (err) {
-    // File doesn't exist, use empty array
+    logger.debug("Saved glifs file doesn't exist, using empty array", err);
   }
 
   // Parse and validate with our schema
@@ -83,20 +87,26 @@ export async function getSavedGlifs(): Promise<SavedGlif[]> {
 }
 
 export async function saveGlif(glif: SavedGlif): Promise<void> {
+  logger.debug("Saving glif", { toolName: glif.toolName });
+
   const glifs = await getSavedGlifs();
   const existingIndex = glifs.findIndex((g) => g.toolName === glif.toolName);
 
   if (existingIndex >= 0) {
     glifs[existingIndex] = glif;
+    logger.debug("Updated existing glif", { toolName: glif.toolName });
   } else {
     glifs.push(glif);
+    logger.debug("Added new glif", { toolName: glif.toolName });
   }
 
-  await fs.mkdir(path.dirname(SAVED_GLIFS_PATH), { recursive: true });
+  await ensureConfigDir();
   await fs.writeFile(SAVED_GLIFS_PATH, JSON.stringify(glifs, null, 2));
 }
 
 export async function removeGlif(toolName: string): Promise<boolean> {
+  logger.debug("Removing glif", { toolName });
+
   const glifs = await getSavedGlifs();
   const initialLength = glifs.length;
   const filteredGlifs = glifs.filter((g) => g.toolName !== toolName);
@@ -106,16 +116,18 @@ export async function removeGlif(toolName: string): Promise<boolean> {
       SAVED_GLIFS_PATH,
       JSON.stringify(filteredGlifs, null, 2)
     );
+    logger.debug("Glif removed successfully", { toolName });
     return true;
   }
 
+  logger.debug("Glif not found for removal", { toolName });
   return false;
 }
 
 export async function removeAllGlifs(): Promise<number> {
   try {
     // Ensure directory exists
-    await fs.mkdir(path.dirname(SAVED_GLIFS_PATH), { recursive: true });
+    await ensureConfigDir();
 
     // Get current count for reporting
     const currentGlifs = await getSavedGlifs();
@@ -124,9 +136,10 @@ export async function removeAllGlifs(): Promise<number> {
     // Write empty array to file
     await fs.writeFile(SAVED_GLIFS_PATH, "[]");
 
+    logger.debug("Removed all glifs", { count });
     return count;
   } catch (err) {
-    console.error("Error removing all glifs:", err);
+    logger.error("Error removing all glifs:", err);
     return 0;
   }
 }

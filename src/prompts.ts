@@ -5,18 +5,47 @@ import {
   McpError,
 } from "@modelcontextprotocol/sdk/types.js";
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
-import type { WretchError } from "wretch";
-import { formatOutput, getGlifDetails, runGlif, searchGlifs } from "./api.js";
+import { getGlifDetails, runGlif, searchGlifs } from "./api.js";
+import { formatOutput, handleApiError, logger } from "./utils.js";
+
+/**
+ * Available prompts
+ */
+const PROMPTS = [
+  {
+    name: "showcase_featured_glif",
+    description: "Show and run the most recent featured glif with fun inputs",
+  },
+];
+
+/**
+ * Generate fun inputs based on field labels/types
+ */
+function generateFunInput(field: {
+  name: string;
+  type: string;
+  params: { label?: string | null } & Record<string, unknown>;
+}): string {
+  const label = (
+    typeof field.params.label === "string" ? field.params.label : field.name
+  ).toLowerCase();
+
+  // Try to generate a fun input based on the label
+  if (label.includes("name")) return "Captain Awesome";
+  if (label.includes("animal")) return "Flying Rainbow Unicorn";
+  if (label.includes("color")) return "Sparkly Galaxy Purple";
+  if (label.includes("food")) return "Magic Pizza with Stardust Toppings";
+  if (label.includes("place")) return "Cloud Castle in the Sky";
+  if (label.includes("story"))
+    return "Once upon a time in a digital wonderland...";
+
+  // Default to something generally fun
+  return "Something Magical ✨";
+}
 
 export function setupPromptHandlers(server: Server) {
   server.setRequestHandler(ListPromptsRequestSchema, async () => ({
-    prompts: [
-      {
-        name: "showcase_featured_glif",
-        description:
-          "Show and run the most recent featured glif with fun inputs",
-      },
-    ],
+    prompts: PROMPTS,
   }));
 
   server.setRequestHandler(GetPromptRequestSchema, async (request) => {
@@ -27,6 +56,9 @@ export function setupPromptHandlers(server: Server) {
     try {
       // Get featured glifs
       const glifs = await searchGlifs({ featured: true });
+      logger.debug("showcase_featured_glif - found glifs", {
+        count: glifs.length,
+      });
 
       // Sort by featuredAt and get most recent
       const mostRecent = glifs
@@ -65,23 +97,7 @@ export function setupPromptHandlers(server: Server) {
           })) ?? [];
 
       // Generate fun inputs based on field labels/types
-      const funInputs = inputFields.map((field) => {
-        const label = (
-          typeof field.params.label === "string"
-            ? field.params.label
-            : field.name
-        ).toLowerCase();
-        // Try to generate a fun input based on the label
-        if (label.includes("name")) return "Captain Awesome";
-        if (label.includes("animal")) return "Flying Rainbow Unicorn";
-        if (label.includes("color")) return "Sparkly Galaxy Purple";
-        if (label.includes("food")) return "Magic Pizza with Stardust Toppings";
-        if (label.includes("place")) return "Cloud Castle in the Sky";
-        if (label.includes("story"))
-          return "Once upon a time in a digital wonderland...";
-        // Default to something generally fun
-        return "Something Magical ✨";
-      });
+      const funInputs = inputFields.map(generateFunInput);
 
       // Run the glif with fun inputs
       const result = await runGlif(glif.id, funInputs);
@@ -111,13 +127,7 @@ export function setupPromptHandlers(server: Server) {
         messages,
       };
     } catch (error: unknown) {
-      if (error instanceof McpError) {
-        throw error;
-      }
-      throw new McpError(
-        ErrorCode.InternalError,
-        `API error: ${error instanceof Error ? error.message : String(error)}`
-      );
+      return handleApiError(error, "showcase_featured_glif prompt");
     }
   });
 }

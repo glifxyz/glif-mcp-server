@@ -19,6 +19,13 @@ import {
   type MeResponse,
   type Bot,
 } from "./types.js";
+import {
+  formatOutput,
+  handleApiError,
+  handleUnauthorized,
+  logger,
+  validateWithSchema,
+} from "./utils.js";
 
 const API_TOKEN = process.env.GLIF_API_TOKEN;
 if (!API_TOKEN) {
@@ -36,183 +43,184 @@ export const api = wretch()
 export const simpleApi = api.url("https://simple-api.glif.app");
 export const glifApi = api.url("https://glif.app/api");
 
+/**
+ * Generic API request function to reduce code duplication
+ */
+async function apiRequest<T>(
+  endpoint: string,
+  method: "get" | "post" | "put" | "delete",
+  options: {
+    baseApi?: typeof glifApi | typeof simpleApi;
+    queryParams?: Record<string, string>;
+    body?: unknown;
+    schema?: z.ZodType<T>;
+    context?: string;
+  } = {}
+): Promise<T> {
+  const {
+    baseApi = glifApi,
+    queryParams = {},
+    body,
+    schema,
+    context = `${method} ${endpoint}`,
+  } = options;
+
+  try {
+    let request = baseApi.url(endpoint);
+
+    if (Object.keys(queryParams).length > 0) {
+      request = request.query(queryParams);
+    }
+
+    let response;
+    switch (method) {
+      case "get":
+        response = await request.get().unauthorized(handleUnauthorized).json();
+        break;
+      case "post":
+        response = await request
+          .post(body)
+          .unauthorized(handleUnauthorized)
+          .json();
+        break;
+      case "put":
+        response = await request
+          .put(body)
+          .unauthorized(handleUnauthorized)
+          .json();
+        break;
+      case "delete":
+        response = await request
+          .delete()
+          .unauthorized(handleUnauthorized)
+          .json();
+        break;
+    }
+
+    return schema
+      ? validateWithSchema(schema, response, context)
+      : (response as T);
+  } catch (error) {
+    return handleApiError(error, context);
+  }
+}
+
 export async function runGlif(
   id: string,
   inputs: string[]
 ): Promise<GlifRunResponse> {
-  try {
-    const data = await simpleApi
-      .post({ id, inputs })
-      .unauthorized((err: WretchError) => {
-        console.error("Unauthorized request:", err);
-        throw err;
-      })
-      .json();
-
-    return GlifRunResponseSchema.parse(data);
-  } catch (error) {
-    console.error("Error running glif:", error);
-    throw error;
-  }
+  return apiRequest<GlifRunResponse>("", "post", {
+    baseApi: simpleApi,
+    body: { id, inputs },
+    schema: GlifRunResponseSchema,
+    context: "runGlif",
+  });
 }
 
 export async function searchGlifs(
   params: z.infer<typeof SearchParamsSchema>
 ): Promise<Glif[]> {
-  try {
-    const queryParams: Record<string, string> = {};
-    if (params.q) queryParams.q = params.q;
-    if (params.featured) queryParams.featured = "1";
-    if (params.id) queryParams.id = params.id;
+  const queryParams: Record<string, string> = {};
+  if (params.q) queryParams.q = params.q;
+  if (params.featured) queryParams.featured = "1";
+  if (params.id) queryParams.id = params.id;
 
-    console.error("searchGlifs", { queryParams });
+  logger.debug("searchGlifs", { queryParams });
 
-    const data = await glifApi
-      .url("/glifs")
-      .query(queryParams)
-      .get()
-      .unauthorized((err: WretchError) => {
-        console.error("Unauthorized request:", err);
-        throw err;
-      })
-      .json();
-
-    return z.array(GlifSchema).parse(data);
-  } catch (error) {
-    console.error("Error searching glifs:", error);
-    throw error;
-  }
+  return apiRequest<Glif[]>("/glifs", "get", {
+    queryParams,
+    schema: z.array(GlifSchema),
+    context: "searchGlifs",
+  });
 }
 
 export async function getGlifDetails(id: string): Promise<{
   glif: Glif;
   recentRuns: GlifRun[];
 }> {
-  try {
-    console.error("getGlifDetails", { id });
+  logger.debug("getGlifDetails", { id });
 
+  try {
     const [glifData, runsData] = await Promise.all([
-      glifApi
-        .url("/glifs")
-        .query({ id })
-        .get()
-        .unauthorized((err: WretchError) => {
-          console.error("Unauthorized request:", err);
-          throw err;
-        })
-        .json(),
-      glifApi
-        .url("/runs")
-        .query({ glifId: id })
-        .get()
-        .unauthorized((err: WretchError) => {
-          console.error("Unauthorized request:", err);
-          throw err;
-        })
-        .json(),
+      apiRequest<unknown>("/glifs", "get", {
+        queryParams: { id },
+        context: "getGlifDetails - glifs",
+      }),
+      apiRequest<unknown>("/runs", "get", {
+        queryParams: { glifId: id },
+        context: "getGlifDetails - runs",
+      }),
     ]);
 
-    const glif = z.array(GlifSchema).parse(glifData)[0];
-    const recentRuns = z.array(GlifRunSchema).parse(runsData).slice(0, 3);
+    const glif = validateWithSchema(
+      z.array(GlifSchema),
+      glifData,
+      "getGlifDetails - glifs validation"
+    )[0];
+
+    const recentRuns = validateWithSchema(
+      z.array(GlifRunSchema),
+      runsData,
+      "getGlifDetails - runs validation"
+    ).slice(0, 3);
 
     return { glif, recentRuns };
   } catch (error) {
-    console.error(
-      "Error fetching glif details:",
-      JSON.stringify(error, null, 2)
-    );
-    throw error;
+    return handleApiError(error, "getGlifDetails");
   }
 }
 
 let cachedUserId: string | null = null;
 
-export async function getMyUserInfo() {
-  try {
-    console.error("getMyUserInfo");
+export async function getMyUserInfo(): Promise<User> {
+  logger.debug("getMyUserInfo");
 
-    const data = await glifApi
-      .url("/me")
-      .get()
-      .unauthorized((err: WretchError) => {
-        console.error("Unauthorized request:", err);
-        throw err;
-      })
-      .json();
+  const data = await apiRequest<unknown>("/me", "get", {
+    context: "getMyUserInfo",
+  });
 
-    console.error("getMyUserInfo:response", data);
-    const response = MeResponseSchema.parse(data);
-    const user = response.user;
-    cachedUserId = user.id;
-    return user;
-  } catch (error) {
-    console.error("Error fetching user info:", error);
-    throw error;
-  }
+  const response = validateWithSchema(
+    MeResponseSchema,
+    data,
+    "getMyUserInfo validation"
+  );
+
+  const user = response.user;
+  cachedUserId = user.id;
+  logger.debug("getMyUserInfo:response", user);
+
+  return user;
 }
 
 export async function getMyRecentRuns(): Promise<GlifRun[]> {
-  try {
-    const userId = cachedUserId ?? (await getMyUserInfo()).id;
-    console.error("getMyRecentRuns", { userId });
+  const userId = cachedUserId ?? (await getMyUserInfo()).id;
+  logger.debug("getMyRecentRuns", { userId });
 
-    const data = await glifApi
-      .url("/runs")
-      .query({ userId })
-      .get()
-      .unauthorized((err: WretchError) => {
-        console.error("Unauthorized request:", err);
-        throw err;
-      })
-      .json();
-
-    return z.array(GlifRunSchema).parse(data);
-  } catch (error) {
-    console.error("Error fetching user's recent runs:", error);
-    throw error;
-  }
+  return apiRequest<GlifRun[]>("/runs", "get", {
+    queryParams: { userId },
+    schema: z.array(GlifRunSchema),
+    context: "getMyRecentRuns",
+  });
 }
 
 export async function getMyGlifs(): Promise<Glif[]> {
-  try {
-    const userId = cachedUserId ?? (await getMyUserInfo()).id;
-    console.error("getMyGlifs", { userId });
+  const userId = cachedUserId ?? (await getMyUserInfo()).id;
+  logger.debug("getMyGlifs", { userId });
 
-    const data = await glifApi
-      .url("/glifs")
-      .query({ userId })
-      .get()
-      .unauthorized((err: WretchError) => {
-        console.error("Unauthorized request:", err);
-        throw err;
-      })
-      .json();
-
-    return z.array(GlifSchema).parse(data);
-  } catch (error) {
-    console.error("Error fetching user's glifs:", error);
-    throw error;
-  }
+  return apiRequest<Glif[]>("/glifs", "get", {
+    queryParams: { userId },
+    schema: z.array(GlifSchema),
+    context: "getMyGlifs",
+  });
 }
 
 // TODO: Endpoint not yet available
 // export async function getMyLikedGlifs(userId: string): Promise<Glif[]> {
-//   try {
-//     const data = await glifApi
-//       .url("/glifs/liked")
-//       .query({ userId })
-//       .get()
-//       .unauthorized((err: WretchError) => {
-//         console.error("Unauthorized request:", err);
-//         throw err;
-//       })
-//       .json();
-//
-//     return z.array(GlifSchema).parse(data);
-//   } catch (error) {
-//     console.error("Error fetching user's liked glifs:", error);
-//     throw error;
-//   }
+//   return apiRequest<Glif[]>("/glifs/liked", "get", {
+//     queryParams: { userId },
+//     schema: z.array(GlifSchema),
+//     context: "getMyLikedGlifs",
+//   });
 // }
 
 export async function createGlif(
@@ -229,38 +237,27 @@ export async function getBots(params: {
   searchQuery?: string;
   creator?: string;
 }): Promise<Bot | Bot[]> {
-  try {
-    const url = "https://glif.app/api/bots";
-    const queryParams: Record<string, string> = {};
+  const queryParams: Record<string, string> = {};
 
-    if (params.id) queryParams.id = params.id;
-    if (params.sort) queryParams.sort = params.sort;
-    if (params.searchQuery) queryParams.searchQuery = params.searchQuery;
-    if (params.creator) queryParams.creator = params.creator;
+  if (params.id) queryParams.id = params.id;
+  if (params.sort) queryParams.sort = params.sort;
+  if (params.searchQuery) queryParams.searchQuery = params.searchQuery;
+  if (params.creator) queryParams.creator = params.creator;
 
-    console.error("getBots", { queryParams });
+  logger.debug("getBots", { queryParams });
 
-    const data = await glifApi
-      .url("/bots")
-      .query(queryParams)
-      .get()
-      .unauthorized((err: WretchError) => {
-        console.error("Unauthorized request:", err);
-        throw err;
-      })
-      .json();
+  const data = await apiRequest<unknown>("/bots", "get", {
+    queryParams,
+    context: "getBots",
+  });
 
-    // If id is provided, return a single bot
-    if (params.id) {
-      return BotResponseSchema.parse(data);
-    }
-
-    // Otherwise, return an array of bots
-    return BotsListSchema.parse(data);
-  } catch (error) {
-    console.error("Error fetching bots:", error);
-    throw error;
+  // If id is provided, return a single bot
+  if (params.id) {
+    return validateWithSchema(BotResponseSchema, data, "getBots - single bot");
   }
+
+  // Otherwise, return an array of bots
+  return validateWithSchema(BotsListSchema, data, "getBots - bot list");
 }
 
 export async function listBots(
@@ -284,15 +281,4 @@ export function searchBots(query: string) {
   return getBots({ searchQuery: query });
 }
 
-export function formatOutput(type: string, output: string): string {
-  switch (type) {
-    case "IMAGE":
-      return `[Image] ${output}`;
-    case "VIDEO":
-      return `[Video] ${output}`;
-    case "AUDIO":
-      return `[Audio] ${output}`;
-    default:
-      return output;
-  }
-}
+// formatOutput is now imported from utils.js

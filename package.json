@@ -20,7 +20,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "logs:claude": "tail -f -n 5 ~/Library/Logs/Claude/**glif*.log"
+    "logs:claude": "tail -f -n 5 ~/Library/Logs/Claude/**glif*.log",
+    "logs:claude_all": "tail -f -n 5 ~/Library/Logs/Claude/**.log"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.6.1",

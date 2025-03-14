@@ -505,8 +505,8 @@ export const toolDefinitions = [
     },
   },
   {
-    name: "list_saved_glif_tools",
-    description: "List all saved glif tools",
+    name: "reset_saved_glifs",
+    description: "Reset all saved glifs (does not affect other tools)",
     inputSchema: {
       type: "object",
       properties: {},

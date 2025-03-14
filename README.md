@@ -2,9 +2,7 @@
 
 MCP server for running AI workflows from glif.app
 
-<a href="https://glama.ai/mcp/servers/gwrql5ibq2">
-  <img width="380" height="200" src="https://glama.ai/mcp/servers/gwrql5ibq2/badge" alt="Glif MCP server" />
-</a>
+For more info check out https://glif.app or join our Discord server: https://discord.gg/glif
 
 ## Features
 
@@ -106,6 +104,16 @@ npm run inspector
 The Inspector will provide a URL to access debugging tools in your browser.
 
 You can also look at the glif-mcp logs inside the Claude logs directy if you're using Claude Desktop.
+
+## MCP registries
+
+
+[![smithery badge](https://smithery.ai/badge/@glifxyz/glif-mcp-server)](https://smithery.ai/server/@glifxyz/glif-mcp-server)
+
+<a href="https://glama.ai/mcp/servers/gwrql5ibq2">
+  <img width="380" height="200" src="https://glama.ai/mcp/servers/gwrql5ibq2/badge" alt="Glif MCP server" />
+</a>
+
 
 ## License
 

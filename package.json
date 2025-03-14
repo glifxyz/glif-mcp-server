@@ -16,7 +16,7 @@
     "typecheck": "tsc --noEmit",
     "lint": "pnpm typecheck",
     "watch": "tsc --watch",
-    "inspector": "npx @modelcontextprotocol/inspector -e GLIF_API_TOKEN=xxx node build/index.js",
+    "inspector": "npx @modelcontextprotocol/inspector node build/index.js",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",

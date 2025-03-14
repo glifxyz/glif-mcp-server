@@ -48,7 +48,7 @@ export const glifApi = api.url("https://glif.app/api");
  */
 async function apiRequest<T>(
   endpoint: string,
-  method: "get" | "post" | "put" | "delete",
+  method: "get" | "post",
   options: {
     baseApi?: typeof glifApi | typeof simpleApi;
     queryParams?: Record<string, string>;
@@ -71,29 +71,20 @@ async function apiRequest<T>(
     if (Object.keys(queryParams).length > 0) {
       request = request.query(queryParams);
     }
+    logger.info("apiRequest", { endpoint, method, queryParams, body });
 
     let response;
     switch (method) {
       case "get":
         response = await request.get().unauthorized(handleUnauthorized).json();
+        logger.info("GET response =>", response);
         break;
       case "post":
         response = await request
           .post(body)
           .unauthorized(handleUnauthorized)
           .json();
-        break;
-      case "put":
-        response = await request
-          .put(body)
-          .unauthorized(handleUnauthorized)
-          .json();
-        break;
-      case "delete":
-        response = await request
-          .delete()
-          .unauthorized(handleUnauthorized)
-          .json();
+        logger.info("POST response =>", response);
         break;
     }
 
@@ -250,14 +241,15 @@ export async function getBots(params: {
     queryParams,
     context: "getBots",
   });
+  logger.debug("response => ", data);
 
   // If id is provided, return a single bot
   if (params.id) {
     return validateWithSchema(BotResponseSchema, data, "getBots - single bot");
+  } else {
+    // Otherwise, return an array of bots
+    return validateWithSchema(BotsListSchema, data, "getBots - bot list");
   }
-
-  // Otherwise, return an array of bots
-  return validateWithSchema(BotsListSchema, data, "getBots - bot list");
 }
 
 export async function listBots(
@@ -267,7 +259,7 @@ export async function listBots(
     creator?: string;
   } = {}
 ): Promise<Bot[]> {
-  // Ensure we're getting an array of bots
+  logger.info("listBots", { params });
   const result = await getBots(params);
   return Array.isArray(result) ? result : [result];
 }

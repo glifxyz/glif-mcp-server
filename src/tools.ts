@@ -17,8 +17,7 @@ import {
   listBots,
   loadBot,
 } from "./api.js";
-import { formatOutput, handleApiError, logger } from "./utils.js";
-import { BotSchema, type Bot } from "./types.js";
+import { formatOutput, logger } from "./utils.js";
 import {
   getSavedGlifs,
   saveGlif,

@@ -4,6 +4,7 @@ import { z } from "zod";
 
 /**
  * Standardized logging utility with different log levels
+ * Don't push to stdout; that's used for actual server output
  */
 export const logger = {
   error: (message: string, error?: unknown) => {
@@ -43,7 +44,7 @@ export function handleApiError(error: unknown, context: string): never {
     throw error;
   }
 
-  logger.error(`${context}:`, error);
+  logger.error(`handleApiError, ${context}:`, error);
 
   throw new McpError(
     ErrorCode.InternalError,

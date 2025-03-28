@@ -8,12 +8,16 @@ import * as api from "../src/api";
 import * as savedGlifsModule from "../src/saved-glifs";
 import { setupToolHandlers, toolDefinitions } from "../src/tools";
 import { SavedGlif } from "../src/saved-glifs";
+import * as utils from "../src/utils";
 
 // Mock the API module
 vi.mock("../src/api");
 
 // Mock the saved-glifs module
 vi.mock("../src/saved-glifs");
+
+// Mock the utils module
+vi.mock("../src/utils");
 
 describe("Tools with Saved Glifs", () => {
   let server: Server;
@@ -328,7 +332,7 @@ describe("Tools with Saved Glifs", () => {
       vi.mocked(api.runGlif).mockResolvedValueOnce(sampleRunResult);
 
       // Mock formatOutput to return the expected output
-      vi.mocked(api.formatOutput).mockReturnValueOnce(sampleRunResult.output);
+      vi.mocked(utils.formatOutput).mockReturnValueOnce(sampleRunResult.output);
 
       const result = await callToolHandler({
         params: {
@@ -343,7 +347,7 @@ describe("Tools with Saved Glifs", () => {
       expect(api.runGlif).toHaveBeenCalledWith(sampleGlif1.id, ["test input"]);
 
       // Check that formatOutput was called
-      expect(api.formatOutput).toHaveBeenCalledWith(
+      expect(utils.formatOutput).toHaveBeenCalledWith(
         sampleRunResult.outputFull.type,
         sampleRunResult.output
       );

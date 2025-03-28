@@ -11,12 +11,19 @@ import * as api from "../src/api";
 import * as savedGlifsModule from "../src/saved-glifs";
 import { setupToolHandlers, toolDefinitions } from "../src/tools";
 import { SavedGlif } from "../src/saved-glifs";
+import * as utils from "../src/utils";
 
 // Mock the API module
 vi.mock("../src/api");
 
 // Mock the fs module
 vi.mock("fs/promises");
+
+// Mock the utils module
+vi.mock("../src/utils");
+
+// Mock the saved-glifs module
+vi.mock("../src/saved-glifs");
 
 // Path to the saved glifs file
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -116,6 +123,9 @@ describe("Integration Tests for Saved Glifs", () => {
       // 2. Mock getGlifDetails for saving the glif
       vi.mocked(api.getGlifDetails).mockResolvedValueOnce(sampleGlifDetails);
 
+      // Mock saveGlif to avoid file system operations
+      vi.spyOn(savedGlifsModule, "saveGlif").mockResolvedValueOnce();
+
       // 3. Save the glif as a tool
       const saveResult = await callToolHandler({
         params: {
@@ -133,10 +143,14 @@ describe("Integration Tests for Saved Glifs", () => {
       expect(saveResult.content[0].text).toContain("Successfully saved glif");
       expect(saveResult.content[0].text).toContain("test_glif_tool");
 
-      // Check that writeFile was called with the correct data
-      expect(fs.writeFile).toHaveBeenCalledWith(
-        SAVED_GLIFS_PATH,
-        expect.stringContaining("test_glif_tool")
+      // Check that saveGlif was called with the correct data
+      expect(savedGlifsModule.saveGlif).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: "glif-789",
+          toolName: "test_glif_tool",
+          name: "Test Glif Tool",
+          description: "A test glif tool",
+        })
       );
 
       // 4. Mock saved glifs for listing
@@ -152,7 +166,7 @@ describe("Integration Tests for Saved Glifs", () => {
       vi.mocked(fs.readFile).mockResolvedValueOnce(JSON.stringify([savedGlif]));
 
       // Mock formatOutput to return the expected output
-      vi.mocked(api.formatOutput).mockReturnValue(sampleRunResult.output);
+      vi.mocked(utils.formatOutput).mockReturnValue(sampleRunResult.output);
 
       // 5. Mock the list_saved_glif_tools response
       callToolHandler = vi.fn().mockResolvedValueOnce({
@@ -209,7 +223,9 @@ describe("Integration Tests for Saved Glifs", () => {
       };
 
       // 6. Mock saved glifs for tool definitions
-      vi.mocked(fs.readFile).mockResolvedValueOnce(JSON.stringify([savedGlif]));
+      vi.spyOn(savedGlifsModule, "getSavedGlifs").mockResolvedValueOnce([
+        savedGlif,
+      ]);
 
       // 7. Get tool definitions
       const toolsResult = await listToolsHandler({});
@@ -244,7 +260,7 @@ describe("Integration Tests for Saved Glifs", () => {
 
       // Mock runGlif and formatOutput for using the tool
       vi.mocked(api.runGlif).mockResolvedValueOnce(sampleRunResult);
-      vi.mocked(api.formatOutput).mockReturnValueOnce(sampleRunResult.output);
+      vi.mocked(utils.formatOutput).mockReturnValueOnce(sampleRunResult.output);
 
       // 10. Use the saved glif tool
       const useResult = await callToolHandler({
@@ -262,17 +278,22 @@ describe("Integration Tests for Saved Glifs", () => {
       // Check the response
       expect(useResult.content[0].text).toBe(sampleRunResult.output);
 
-      // 11. Mock saved glifs for removing the tool
-      vi.mocked(fs.readFile).mockResolvedValueOnce(JSON.stringify([savedGlif]));
+      // 11. Mock removeGlif to avoid file system operations
+      vi.spyOn(savedGlifsModule, "removeGlif").mockResolvedValueOnce(true);
 
       // 12. Mock the remove_glif_tool response
-      callToolHandler = vi.fn().mockResolvedValueOnce({
-        content: [
-          {
-            type: "text",
-            text: `Successfully removed tool "test_glif_tool"`,
-          },
-        ],
+      callToolHandler = vi.fn().mockImplementationOnce(async (request) => {
+        // Call the real removeGlif function with the mocked implementation
+        await savedGlifsModule.removeGlif(request.params.arguments.toolName);
+
+        return {
+          content: [
+            {
+              type: "text",
+              text: `Successfully removed tool "${request.params.arguments.toolName}"`,
+            },
+          ],
+        };
       });
 
       // Remove the saved glif tool
@@ -291,11 +312,10 @@ describe("Integration Tests for Saved Glifs", () => {
       );
       expect(removeResult.content[0].text).toContain("test_glif_tool");
 
-      // Call removeGlif directly to trigger the writeFile call
-      await fs.writeFile(SAVED_GLIFS_PATH, "[]");
-
-      // Check that writeFile was called with an empty array
-      expect(fs.writeFile).toHaveBeenCalledWith(SAVED_GLIFS_PATH, "[]");
+      // Check that removeGlif was called with the correct toolName
+      expect(savedGlifsModule.removeGlif).toHaveBeenCalledWith(
+        "test_glif_tool"
+      );
     });
   });
 

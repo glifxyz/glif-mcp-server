@@ -6,7 +6,7 @@ import {
 } from "@modelcontextprotocol/sdk/types.js";
 import * as api from "../src/api";
 import * as savedGlifsModule from "../src/saved-glifs";
-import { setupToolHandlers, toolDefinitions } from "../src/tools";
+import { setupToolHandlers } from "../src/tools/index.js";
 import { SavedGlif } from "../src/saved-glifs";
 import * as utils from "../src/utils";
 
@@ -132,8 +132,9 @@ describe("Tools with Saved Glifs", () => {
 
       const result = await listToolsHandler({});
 
-      // Check that the result includes the base tool definitions and saved glifs
-      expect(result.tools.length).toBe(toolDefinitions.length + 2);
+      // Check that the result includes both core tools and saved glifs
+      const coreToolsCount = 3; // glif-info, run-glif, list-bots
+      expect(result.tools.length).toBe(coreToolsCount + 2);
 
       // Check that the saved glifs are included with correct format
       const savedGlifTools = result.tools.filter(
@@ -156,8 +157,9 @@ describe("Tools with Saved Glifs", () => {
 
       const result = await listToolsHandler({});
 
-      // Check that the result includes only the base tool definitions
-      expect(result.tools.length).toBe(toolDefinitions.length);
+      // Check that the result includes only the core tools
+      const coreToolsCount = 3; // glif-info, run-glif, list-bots
+      expect(result.tools.length).toBe(coreToolsCount);
     });
   });
 

@@ -9,7 +9,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import * as api from "../src/api";
 import * as savedGlifsModule from "../src/saved-glifs";
-import { setupToolHandlers, toolDefinitions } from "../src/tools";
+import { setupToolHandlers } from "../src/tools/index.js";
 import { SavedGlif } from "../src/saved-glifs";
 import * as utils from "../src/utils";
 

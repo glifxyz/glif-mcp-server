@@ -3,7 +3,7 @@ import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { setupResourceHandlers } from "./resources.js";
 import { setupPromptHandlers } from "./prompts.js";
-import { setupToolHandlers } from "./tools.js";
+import { setupToolHandlers } from "./tools/index.js";
 
 async function main() {
   const server = new Server(

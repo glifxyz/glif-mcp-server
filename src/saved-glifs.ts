@@ -3,6 +3,7 @@ import fs from "fs/promises";
 import path from "path";
 import { fileURLToPath } from "url";
 import { logger, safeJsonParse, validateWithSchema } from "./utils.js";
+import { getGlifDetails } from "./api.js";
 
 // Define the schema for saved glifs
 export const SavedGlifSchema = z.object({
@@ -80,7 +81,67 @@ async function ensureConfigDir(): Promise<void> {
   }
 }
 
+/**
+ * Parse GLIF_IDS environment variable into an array of IDs
+ */
+function parseGlifIds(): string[] {
+  const glifIds = process.env.GLIF_IDS;
+  if (!glifIds) {
+    return [];
+  }
+
+  return glifIds
+    .split(",")
+    .map((id) => id.trim())
+    .filter((id) => id.length > 0);
+}
+
+/**
+ * Convert a glif to SavedGlif format
+ */
+async function convertGlifToSavedGlif(
+  glifId: string
+): Promise<SavedGlif | null> {
+  try {
+    const { glif } = await getGlifDetails(glifId);
+
+    // Sanitize the tool name from the glif name
+    const toolName = sanitizeToolName(glif.name);
+
+    return {
+      id: glif.id,
+      toolName,
+      name: glif.name,
+      description: glif.description || `Glif ${glif.id}`,
+      createdAt: glif.createdAt,
+    };
+  } catch (err) {
+    logger.error(`Failed to fetch glif ${glifId}:`, err);
+    return null;
+  }
+}
+
 export async function getSavedGlifs(): Promise<SavedGlif[]> {
+  const ignoreSavedGlifs = process.env.IGNORE_SAVED_GLIFS === "true";
+  const glifIds = parseGlifIds();
+
+  // Get glifs from GLIF_IDS
+  const glifsFromIds = await Promise.all(
+    glifIds.map((id) => convertGlifToSavedGlif(id))
+  );
+  const validGlifsFromIds = glifsFromIds.filter(
+    (glif): glif is SavedGlif => glif !== null
+  );
+
+  // If ignoring saved glifs, return only glifs from IDs
+  if (ignoreSavedGlifs) {
+    logger.debug("Ignoring saved glifs, using only GLIF_IDS", {
+      count: validGlifsFromIds.length,
+    });
+    return validGlifsFromIds;
+  }
+
+  // Otherwise, combine with saved glifs
   // Ensure directory exists
   await ensureConfigDir();
 
@@ -93,8 +154,24 @@ export async function getSavedGlifs(): Promise<SavedGlif[]> {
     logger.debug("Saved glifs file doesn't exist, using empty array", err);
   }
 
-  // Parse and validate with our schema
-  return FileContentSchema.parse(data);
+  // Parse saved glifs
+  const savedGlifs = FileContentSchema.parse(data);
+
+  // Combine and deduplicate by toolName (GLIF_IDS take precedence)
+  const combined = [...validGlifsFromIds];
+  for (const savedGlif of savedGlifs) {
+    if (!combined.some((g) => g.toolName === savedGlif.toolName)) {
+      combined.push(savedGlif);
+    }
+  }
+
+  logger.debug("Combined glifs", {
+    fromIds: validGlifsFromIds.length,
+    fromSaved: savedGlifs.length,
+    total: combined.length,
+  });
+
+  return combined;
 }
 
 // Validate tool name against the pattern ^[a-zA-Z0-9_-]{1,64}$

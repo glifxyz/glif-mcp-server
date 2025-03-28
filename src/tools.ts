@@ -16,7 +16,7 @@ import {
   getMyUserInfo,
   getMyRecentRuns,
 } from "./api.js";
-import { SearchParamsSchema } from "./types.js";
+import { SearchParamsSchema, ToolDefinition } from "./types.js";
 import {
   getSavedGlifs,
   saveGlif,
@@ -461,7 +461,7 @@ export function setupToolHandlers(server: Server) {
   });
 }
 
-export const toolDefinitions = [
+export const toolDefinitions: ToolDefinition[] = [
   {
     name: "save_glif_as_tool",
     description: "Save a glif as a custom tool",

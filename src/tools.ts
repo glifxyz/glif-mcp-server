@@ -329,9 +329,11 @@ export function setupToolHandlers(server: Server) {
                   : "";
 
               return `${bot.name} (@${bot.username}) - ID: ${bot.id}
-Bio: ${bot.bio || "No bio"}
-Created by: ${bot.user?.name || "Unknown"} (@${bot.user?.username || "unknown"})
-Messages: ${bot.messageCount || 0}${skills}\n`;
+      Bio: ${bot.bio || "No bio"}
+      Created by: ${bot.user?.name || "Unknown"} (@${
+                bot.user?.username || "unknown"
+              })
+      Messages: ${bot.messageCount || 0}${skills}\n`;
             })
             .join("\n");
 
@@ -845,15 +847,15 @@ export const toolDefinitions = [
       required: ["id", "inputs"],
     },
   },
-  {
-    name: "list_featured_glifs",
-    description: "Get a curated list of featured glifs",
-    inputSchema: {
-      type: "object",
-      properties: {},
-      required: [],
-    },
-  },
+  // {
+  //   name: "list_featured_glifs",
+  //   description: "Get a curated list of featured glifs",
+  //   inputSchema: {
+  //     type: "object",
+  //     properties: {},
+  //     required: [],
+  //   },
+  // },
   // {
   //   name: "search_glifs",
   //   description: "Search for glifs by query string",
@@ -882,25 +884,25 @@ export const toolDefinitions = [
       required: ["id"],
     },
   },
-  {
-    name: "my_glifs",
-    description: "Get a list of your glifs",
-    inputSchema: {
-      type: "object",
-      properties: {},
-      required: [],
-    },
-  },
-  {
-    name: "my_glif_user_info",
-    description:
-      "Get detailed information about your user account, recent glifs, and recent runs",
-    inputSchema: {
-      type: "object",
-      properties: {},
-      required: [],
-    },
-  },
+  // {
+  //   name: "my_glifs",
+  //   description: "Get a list of your glifs",
+  //   inputSchema: {
+  //     type: "object",
+  //     properties: {},
+  //     required: [],
+  //   },
+  // },
+  // {
+  //   name: "my_glif_user_info",
+  //   description:
+  //     "Get detailed information about your user account, recent glifs, and recent runs",
+  //   inputSchema: {
+  //     type: "object",
+  //     properties: {},
+  //     required: [],
+  //   },
+  // },
   {
     name: "list_bots",
     description:

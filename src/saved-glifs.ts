@@ -87,13 +87,17 @@ async function ensureConfigDir(): Promise<void> {
 function parseGlifIds(): string[] {
   const glifIds = process.env.GLIF_IDS;
   if (!glifIds) {
+    logger.debug("No GLIF_IDS environment variable found");
     return [];
   }
 
-  return glifIds
+  const ids = glifIds
     .split(",")
     .map((id) => id.trim())
     .filter((id) => id.length > 0);
+
+  logger.debug("Parsed GLIF_IDS", { count: ids.length, ids });
+  return ids;
 }
 
 /**
@@ -102,19 +106,26 @@ function parseGlifIds(): string[] {
 async function convertGlifToSavedGlif(
   glifId: string
 ): Promise<SavedGlif | null> {
+  logger.debug("Converting glif to SavedGlif format", { glifId });
   try {
     const { glif } = await getGlifDetails(glifId);
 
     // Sanitize the tool name from the glif name
     const toolName = sanitizeToolName(glif.name);
 
-    return {
+    const savedGlif = {
       id: glif.id,
       toolName,
       name: glif.name,
       description: glif.description || `Glif ${glif.id}`,
       createdAt: glif.createdAt,
     };
+    logger.debug("Successfully converted glif", {
+      glifId,
+      toolName,
+      name: glif.name,
+    });
+    return savedGlif;
   } catch (err) {
     logger.error(`Failed to fetch glif ${glifId}:`, err);
     return null;
@@ -123,20 +134,30 @@ async function convertGlifToSavedGlif(
 
 export async function getSavedGlifs(): Promise<SavedGlif[]> {
   const ignoreSavedGlifs = process.env.IGNORE_SAVED_GLIFS === "true";
-  const glifIds = parseGlifIds();
+  logger.debug("Loading glifs", { ignoreSavedGlifs });
 
   // Get glifs from GLIF_IDS
+  const glifIds = parseGlifIds();
+  logger.debug("Loading glifs from GLIF_IDS", { count: glifIds.length });
+
   const glifsFromIds = await Promise.all(
     glifIds.map((id) => convertGlifToSavedGlif(id))
   );
   const validGlifsFromIds = glifsFromIds.filter(
     (glif): glif is SavedGlif => glif !== null
   );
+  logger.debug("Successfully loaded glifs from GLIF_IDS", {
+    attempted: glifIds.length,
+    succeeded: validGlifsFromIds.length,
+    failed: glifIds.length - validGlifsFromIds.length,
+    toolNames: validGlifsFromIds.map((g) => g.toolName),
+  });
 
   // If ignoring saved glifs, return only glifs from IDs
   if (ignoreSavedGlifs) {
     logger.debug("Ignoring saved glifs, using only GLIF_IDS", {
       count: validGlifsFromIds.length,
+      toolNames: validGlifsFromIds.map((g) => g.toolName),
     });
     return validGlifsFromIds;
   }
@@ -149,19 +170,32 @@ export async function getSavedGlifs(): Promise<SavedGlif[]> {
   let data = "[]";
   try {
     data = await fs.readFile(SAVED_GLIFS_PATH, "utf-8");
-    logger.debug("Read saved glifs file", { size: data.length });
+    logger.debug("Read saved glifs file", {
+      size: data.length,
+      path: SAVED_GLIFS_PATH,
+    });
   } catch (err) {
-    logger.debug("Saved glifs file doesn't exist, using empty array", err);
+    logger.debug("Saved glifs file doesn't exist, using empty array", {
+      path: SAVED_GLIFS_PATH,
+      error: err,
+    });
   }
 
   // Parse saved glifs
   const savedGlifs = FileContentSchema.parse(data);
+  logger.debug("Loaded saved glifs from file", {
+    count: savedGlifs.length,
+    toolNames: savedGlifs.map((g) => g.toolName),
+  });
 
   // Combine and deduplicate by toolName (GLIF_IDS take precedence)
   const combined = [...validGlifsFromIds];
+  const skippedGlifs = [];
   for (const savedGlif of savedGlifs) {
     if (!combined.some((g) => g.toolName === savedGlif.toolName)) {
       combined.push(savedGlif);
+    } else {
+      skippedGlifs.push(savedGlif.toolName);
     }
   }
 
@@ -169,6 +203,8 @@ export async function getSavedGlifs(): Promise<SavedGlif[]> {
     fromIds: validGlifsFromIds.length,
     fromSaved: savedGlifs.length,
     total: combined.length,
+    skippedDuplicates: skippedGlifs,
+    finalToolNames: combined.map((g) => g.toolName),
   });
 
   return combined;

@@ -17,7 +17,7 @@
     "lint": "pnpm typecheck",
     "watch": "tsc --watch",
     "inspector": "npx @modelcontextprotocol/inspector node build/index.js",
-    "test": "vitest run",
+    "test": "GLIF_API_TOKEN=xxx vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "logs:claude": "tail -f -n 5 ~/Library/Logs/Claude/**glif*.log",

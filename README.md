@@ -39,6 +39,24 @@ Then configure your MCP client (e.g. Claude Desktop) to load this server
    }
    ```
 
+You can also specify glifs IDs (comma-separated) which will be loaded automatically when the server starts. This is useful for testing or if you want to share a pre-made glif configuration with someone else.
+
+```json
+{
+  "mcpServers": {
+    "glif": {
+      "command": "node",
+      "args": ["/path/to/glif-mcp/build/index.js"],
+      "env": {
+        "GLIF_API_TOKEN": "your-token-here",
+        "GLIF_IDS": "cm2v9aiga00008vfqdiximl2m,cm2v98jk6000r11afslqvooil,cm2v9rp66000bat9wr606qq6o",
+        "IGNORE_SAVED_GLIFS": true,
+      }
+    }
+  }
+}
+```
+
 ## Usage Limits
 
 - Subject to same limits as user accounts

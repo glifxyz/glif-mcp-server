@@ -124,3 +124,13 @@ export const MeResponseSchema = z.object({
 
 export type SearchParams = z.infer<typeof SearchParamsSchema>;
 export type MeResponse = z.infer<typeof MeResponseSchema>;
+
+export type ToolDefinition = {
+  name: string;
+  description: string;
+  inputSchema: {
+    type: string;
+    properties: Record<string, unknown>;
+    required: string[];
+  };
+};

@@ -2,7 +2,7 @@
   "name": "glif-server",
   "version": "0.1.0",
   "description": "Run AI magic workflows from glif.app",
-  "private": true,
+  "license": "MIT",
   "type": "module",
   "bin": {
     "glif-server": "./build/index.js"
@@ -15,6 +15,8 @@
     "prepare": "npm run build",
     "watch": "tsc --watch",
     "inspector": "npx @modelcontextprotocol/inspector -e GLIF_API_TOKEN=xxx node build/index.js",
+    "typecheck": "tsc --noEmit",
+    "lint": "npm run typecheck",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage"

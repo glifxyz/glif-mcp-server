@@ -1,5 +1,95 @@
 import { z } from "zod";
 
+// Bot related schemas
+export const SimplifiedGlifSchema = z
+  .object({
+    id: z.string(),
+    name: z.string(),
+    description: z.string().nullable().optional(),
+    user: z
+      .object({
+        id: z.string(),
+        name: z.string(),
+        username: z.string(),
+        image: z.string().url().nullable().optional(),
+        isSubscriber: z.boolean().optional(),
+      })
+      .optional(),
+    averageDuration: z.number().nullable().optional(),
+    inputs: z.record(z.string()).optional(),
+  })
+  .passthrough();
+
+export const BotSkillSchema = z
+  .object({
+    id: z.string(),
+    name: z.string(),
+    displayName: z.string().optional(),
+    description: z.string().nullable().optional(),
+    customName: z.string().nullable().optional(),
+    customDescription: z.string().nullable().optional(),
+    usageInstructions: z.string().nullable().optional(),
+    type: z.string().optional(), // Usually "skillGlif"
+    spell: SimplifiedGlifSchema.optional(),
+  })
+  .passthrough();
+
+export const BotSchema = z
+  .object({
+    id: z.string(),
+    name: z.string(),
+    username: z.string(),
+    bio: z.string().nullable().optional(),
+    userId: z.string().optional(),
+    image: z.union([z.string().url(), z.string(), z.null()]).optional(),
+    memory: z.string().nullable().optional(),
+    personality: z.string().nullable().optional(),
+    deployedAt: z
+      .union([z.string().datetime(), z.string(), z.null()])
+      .optional(),
+    chatResponseGlifId: z.string().nullable().optional(),
+    messageCount: z.number().nullable().optional(),
+    conversationStarters: z.array(z.unknown()).nullable().optional(),
+    createdAt: z.union([z.string().datetime(), z.string()]).optional(),
+    updatedAt: z.union([z.string().datetime(), z.string()]).optional(),
+    themeCss: z.string().nullable().optional(),
+    user: z
+      .object({
+        id: z.string(),
+        name: z.string(),
+        username: z.string(),
+        image: z.union([z.string().url(), z.string(), z.null()]).optional(),
+      })
+      .optional(),
+    spellsForBot: z
+      .array(
+        z
+          .object({
+            spell: z
+              .object({
+                id: z.string(),
+                name: z.string(),
+              })
+              .passthrough(),
+            spellId: z.string().optional(),
+            customName: z.string().nullable().optional(),
+            customDescription: z.string().nullable().optional(),
+            usageInstructions: z.string().nullable().optional(),
+            nativeToolName: z.string().nullable().optional(),
+          })
+          .passthrough()
+      )
+      .nullable()
+      .optional(),
+  })
+  .passthrough();
+
+// Direct bot response schema (for single bot)
+export const BotResponseSchema = BotSchema;
+
+// Array of bots schema (for listing bots)
+export const BotsListSchema = z.array(BotSchema);
+
 // User schema
 export const UserSchema = z.object({
   id: z.string(),
@@ -45,7 +135,7 @@ export const GlifSchema = z.object({
           type: z.string(),
           params: z
             .object({
-              label: z.string().optional(),
+              label: z.string().nullable().optional(),
             })
             .and(z.record(z.unknown())),
         })
@@ -91,12 +181,13 @@ export const GlifRunSchema = z.object({
 export const GlifRunResponseSchema = z.object({
   id: z.string(),
   inputs: z.record(z.string()),
-  output: z.string(),
+  output: z.string().nullable(), // Allow null values for output
   outputFull: z
     .object({
       type: z.string(),
     })
-    .and(z.record(z.unknown())),
+    .and(z.record(z.unknown()))
+    .optional(), // Make outputFull optional
 });
 
 // Export types
@@ -125,12 +216,8 @@ export const MeResponseSchema = z.object({
 export type SearchParams = z.infer<typeof SearchParamsSchema>;
 export type MeResponse = z.infer<typeof MeResponseSchema>;
 
-export type ToolDefinition = {
-  name: string;
-  description: string;
-  inputSchema: {
-    type: string;
-    properties: Record<string, unknown>;
-    required: string[];
-  };
-};
+// Bot types
+export type Bot = z.infer<typeof BotSchema>;
+export type BotSkill = z.infer<typeof BotSkillSchema>;
+export type BotResponse = z.infer<typeof BotResponseSchema>;
+export type BotsList = z.infer<typeof BotsListSchema>;

@@ -1,6 +1,6 @@
 {
-  "name": "glif-server",
-  "version": "0.1.0",
+  "name": "glif-mcp-server",
+  "version": "0.9.2",
   "description": "Run AI magic workflows from glif.app",
   "license": "MIT",
   "type": "module",
@@ -13,13 +13,16 @@
   "scripts": {
     "build": "tsc && node -e \"require('fs').chmodSync('build/index.js', '755')\"",
     "prepare": "npm run build",
-    "watch": "tsc --watch",
-    "inspector": "npx @modelcontextprotocol/inspector -e GLIF_API_TOKEN=xxx node build/index.js",
     "typecheck": "tsc --noEmit",
     "lint": "npm run typecheck",
-    "test": "vitest run",
+    "watch": "tsc --watch",
+    "test": "GLIF_API_TOKEN=xxx IGNORE_DISCOVERY_TOOLS=true vitest run",
+    "inspector": "npx @modelcontextprotocol/inspector -e GLIF_API_TOKEN=xxx node build/index.js",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "logs:claude": "tail -f -n 5 ~/Library/Logs/Claude/**glif*.log",
+    "logs:claude_all": "tail -f -n 5 ~/Library/Logs/Claude/**.log",
+    "release": "BRANCH=$(git branch --show-current) && [ \"$BRANCH\" = \"main\" ] || (echo \"Error: Must be on main branch to release\" && exit 1) && VERSION=$(jq -r .version package.json) && REPO=$(gh repo view --json nameWithOwner -q .nameWithOwner) && git tag v$VERSION && git push origin --tags && PREV_TAG=$(git describe --tags --abbrev=0 v$VERSION^ 2>/dev/null || echo '') && NOTES=$(git log --pretty=format:\"- [%h](https://github.com/$REPO/commit/%H) %s\" ${PREV_TAG:+$PREV_TAG..}HEAD) && gh release create v$VERSION --fail-on-no-commits --notes \"$NOTES\""
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.6.1",

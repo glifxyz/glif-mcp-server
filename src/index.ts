@@ -1,10 +1,9 @@
 #!/usr/bin/env node
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { ListToolsRequestSchema } from "@modelcontextprotocol/sdk/types.js";
 import { setupResourceHandlers } from "./resources.js";
 import { setupPromptHandlers } from "./prompts.js";
-import { setupToolHandlers, toolDefinitions } from "./tools.js";
+import { setupToolHandlers } from "./tools/index.js";
 
 async function main() {
   const server = new Server(
@@ -25,11 +24,6 @@ async function main() {
   setupResourceHandlers(server);
   setupPromptHandlers(server);
   setupToolHandlers(server);
-
-  // Register tool definitions
-  server.setRequestHandler(ListToolsRequestSchema, async () => ({
-    tools: toolDefinitions,
-  }));
 
   server.onerror = (error) => console.error("[MCP Error]", error);
 

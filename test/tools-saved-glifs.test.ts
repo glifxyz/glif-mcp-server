@@ -96,8 +96,11 @@ describe("Tools with Saved Glifs", () => {
   };
 
   beforeEach(() => {
-    // Reset mocks
+    // Reset mocks before each test
     vi.resetAllMocks();
+
+    // Set environment variables for test
+    process.env.IGNORE_DISCOVERY_TOOLS = "true";
 
     // Create a new server for each test
     server = new Server(
@@ -119,6 +122,11 @@ describe("Tools with Saved Glifs", () => {
   });
 
   afterEach(() => {
+    // Clean up environment variables
+    delete process.env.IGNORE_DISCOVERY_TOOLS;
+  });
+
+  afterEach(() => {
     vi.clearAllMocks();
   });
 
@@ -132,9 +140,13 @@ describe("Tools with Saved Glifs", () => {
 
       const result = await listToolsHandler({});
 
-      // Check that the result includes both core tools and saved glifs
+      // Check that the result includes core tools, metaskill tools, and saved glifs
       const coreToolsCount = 3; // glif-info, run-glif, list-bots
-      expect(result.tools.length).toBe(coreToolsCount + 2);
+      const metaskillToolsCount = 7; // save_glif_as_tool, remove_glif_tool, etc.
+      const savedGlifsCount = 2; // sampleGlif1, sampleGlif2
+      expect(result.tools.length).toBe(
+        coreToolsCount + metaskillToolsCount + savedGlifsCount
+      );
 
       // Check that the saved glifs are included with correct format
       const savedGlifTools = result.tools.filter(
@@ -157,9 +169,10 @@ describe("Tools with Saved Glifs", () => {
 
       const result = await listToolsHandler({});
 
-      // Check that the result includes only the core tools
+      // Check that the result includes core tools and metaskill tools
       const coreToolsCount = 3; // glif-info, run-glif, list-bots
-      expect(result.tools.length).toBe(coreToolsCount);
+      const metaskillToolsCount = 7; // save_glif_as_tool, remove_glif_tool, etc.
+      expect(result.tools.length).toBe(coreToolsCount + metaskillToolsCount);
     });
   });
 

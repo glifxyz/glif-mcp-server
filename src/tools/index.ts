@@ -134,19 +134,21 @@ export async function getTools(): Promise<{ tools: ToolDefinition[] }> {
   tools.push(...Object.values(CORE_TOOLS).map((t) => t.definition));
 
   // 2. Add DISCOVERY tools (unless IGNORE_DISCOVERY_TOOLS)
-  if (!process.env.IGNORE_DISCOVERY_TOOLS) {
+  if (process.env.IGNORE_DISCOVERY_TOOLS !== "true") {
     tools.push(...Object.values(DISCOVERY_TOOLS).map((t) => t.definition));
   }
 
   // 3. Add METASKILL tools (unless IGNORE_METASKILL_TOOLS)
-  if (!process.env.IGNORE_METASKILL_TOOLS) {
+  if (process.env.IGNORE_METASKILL_TOOLS !== "true") {
     tools.push(...Object.values(METASKILL_TOOLS).map((t) => t.definition));
   }
 
   // 4. Add SAVED_GLIFS tools (unless IGNORE_SAVED_GLIFS)
-  if (!process.env.IGNORE_SAVED_GLIFS) {
+  if (process.env.IGNORE_SAVED_GLIFS !== "true") {
     const savedGlifs = await getSavedGlifs();
-    tools.push(...savedGlifs.map(createToolFromSavedGlif));
+    if (savedGlifs) {
+      tools.push(...savedGlifs.map(createToolFromSavedGlif));
+    }
   }
 
   // 5. Add SERVER_CONFIG_GLIFS tools (always available)
@@ -162,9 +164,9 @@ export function setupToolHandlers(server: Server) {
   // Handle tool calls
   server.setRequestHandler(CallToolRequestSchema, async (request) => {
     // Check if this is a saved glif tool
-    if (!process.env.IGNORE_SAVED_GLIFS) {
+    if (process.env.IGNORE_SAVED_GLIFS !== "true") {
       const savedGlifs = await getSavedGlifs();
-      const savedGlif = savedGlifs.find(
+      const savedGlif = savedGlifs?.find(
         (g) => g.toolName === request.params.name
       );
 
@@ -214,7 +216,7 @@ export function setupToolHandlers(server: Server) {
     }
 
     // Handle discovery tools
-    if (!process.env.IGNORE_DISCOVERY_TOOLS) {
+    if (process.env.IGNORE_DISCOVERY_TOOLS !== "true") {
       const discoveryTool = DISCOVERY_TOOLS[request.params.name];
       if (discoveryTool) {
         return discoveryTool.handler(request);
@@ -222,7 +224,7 @@ export function setupToolHandlers(server: Server) {
     }
 
     // Handle metaskill tools
-    if (!process.env.IGNORE_METASKILL_TOOLS) {
+    if (process.env.IGNORE_METASKILL_TOOLS !== "true") {
       const metaskillTool = METASKILL_TOOLS[request.params.name];
       if (metaskillTool) {
         return metaskillTool.handler(request);

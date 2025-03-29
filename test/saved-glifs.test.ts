@@ -37,6 +37,11 @@ describe("Saved Glifs", () => {
   beforeEach(() => {
     // Reset mocks before each test
     vi.resetAllMocks();
+
+    // Set up default mock implementations
+    vi.mocked(fs.mkdir).mockResolvedValue(undefined);
+    vi.mocked(fs.readFile).mockResolvedValue("[]");
+    vi.mocked(fs.writeFile).mockResolvedValue(undefined);
   });
 
   afterEach(() => {

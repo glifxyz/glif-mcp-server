@@ -1,6 +1,6 @@
-# glif-mcp
+# glif-mcp-server
 
-MCP server for running AI workflows from glif.app
+MCP server for running AI workflows from glif.app. This server provides tools for running glifs, managing bots, and accessing glif metadata through the Model Context Protocol (MCP).
 
 ## Features
 
@@ -13,8 +13,8 @@ MCP server for running AI workflows from glif.app
 First, checkout this code and install dependencies. This assumes you have a recent-ish version of Nodejs:
 
 ```sh
-git clone https://github.com/glifxyz/mcp-glif
-cd mcp-glif
+git clone https://github.com/glifxyz/glif-mcp-server
+cd glif-mcp-server
 npm install
 npm run build
 # there's now a build/index.js file which is what we'll run next
@@ -75,7 +75,7 @@ You can also specify glifs IDs (comma-separated) which will be loaded automatica
 - `run_glif` - Run a glif with the specified ID and inputs
 - `glif_info` - Get detailed information about a glif including input fields
 - `list_featured_glifs` - Get a curated list of featured glifs
-- `search_glifs` (TODO) - J/k this isn't implemented yet
+- `search_glifs` - Search for glifs by name or description
 
 ### Bot Tools
 
@@ -161,7 +161,7 @@ For development with auto-rebuild:
 npm run watch
 ```
 
-To run the test suite (not quite working):
+To run the test suite:
 
 ```sh
 npm run test

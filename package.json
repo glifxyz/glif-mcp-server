@@ -1,6 +1,6 @@
 {
   "name": "glif-mcp-server",
-  "version": "0.1.0",
+  "version": "0.9.1",
   "description": "Run AI magic workflows from glif.app",
   "private": true,
   "type": "module",
@@ -21,7 +21,8 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "logs:claude": "tail -f -n 5 ~/Library/Logs/Claude/**glif*.log",
-    "logs:claude_all": "tail -f -n 5 ~/Library/Logs/Claude/**.log"
+    "logs:claude_all": "tail -f -n 5 ~/Library/Logs/Claude/**.log",
+    "release": "VERSION=$(jq -r .version package.json) && git tag v$VERSION && git push origin --tags && gh release create v$VERSION --fail-on-no-commits --generate-notes"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.6.1",

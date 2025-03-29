@@ -130,34 +130,6 @@ You can list these special tools with `list_saved_glif_tools` and remove any you
 
 Note that Claude Desktop requires a restart to load new tool definitions. Cline & Cursor seem to reload automatically on changes and requery for available tools
 
-## How to explore and use bots
-
-Glif.app hosts a variety of bots that can be used for different tasks. These bots are essentially collections of glifs with specific personalities and capabilities. You can explore and interact with these bots using the bot tools:
-
-An example prompt session:
-
-- what bots are available on glif.app?
-- [toolcall: `list_bots`...]
-- tell me more about the T-Shirt Designer bot
-- [toolcall: `load_bot id=cm3oa7vzp002a7csdww668us4`]
-- i want to use the Create Art skill from this bot
-- [toolcall: `run_glif id=cm3och9dl000313onkn3ailhr inputs=["a futuristic robot on a white background"]`]
-
-This allows you to discover and use the various capabilities of bots directly through the MCP server, without having to visit the Glif website.
-
-You can also save all of a bot's skills as individual tools:
-
-- what skills does the T-Shirt Designer bot have?
-- [toolcall: `load_bot id=cm3oa7vzp002a7csdww668us4`]
-- save all these skills as tools with a prefix
-- [toolcall: `save_bot_skills_as_tools id=cm3oa7vzp002a7csdww668us4 prefix=tshirt_`]
-- now I can use the Create Art skill directly
-- [toolcall: `tshirt_create_art inputs=["a futuristic robot on a white background"]`]
-
-If you want to remove all saved tools and start fresh:
-
-- [toolcall: `remove_all_glif_tools`]
-
 Info about authenticated user's glifs:
 
 - `my_glifs` - current user's published glifs (no drats)
@@ -210,13 +182,11 @@ You can also look at the glif-mcp logs inside the Claude logs directy if you're 
 
 ## MCP registries
 
-
 [![smithery badge](https://smithery.ai/badge/@glifxyz/glif-mcp-server)](https://smithery.ai/server/@glifxyz/glif-mcp-server)
 
 <a href="https://glama.ai/mcp/servers/gwrql5ibq2">
   <img width="380" height="200" src="https://glama.ai/mcp/servers/gwrql5ibq2/badge" alt="Glif MCP server" />
 </a>
-
 
 ## License
 

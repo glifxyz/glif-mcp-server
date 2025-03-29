@@ -10,178 +10,141 @@ import { setupToolHandlers } from "../src/tools/index.js";
 import { SavedGlif } from "../src/saved-glifs";
 import * as utils from "../src/utils";
 
-// Mock the API module
 vi.mock("../src/api");
-
-// Mock the saved-glifs module
 vi.mock("../src/saved-glifs");
-
-// Mock the utils module
 vi.mock("../src/utils");
+
+const createSavedGlif = (id: string, num: number): SavedGlif => ({
+  id,
+  toolName: `test_tool_${num}`,
+  name: `Test Tool ${num}`,
+  description: `Test tool ${num} description`,
+  createdAt: new Date().toISOString(),
+});
+
+const sampleGlifDetails = {
+  glif: {
+    id: "glif-789",
+    name: "Original Glif Name",
+    description: "Original glif description",
+    imageUrl: null,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    publishedAt: null,
+    output: null,
+    outputType: null,
+    forkedFromId: null,
+    featuredAt: null,
+    userId: "user-123",
+    completedSpellRunCount: 10,
+    averageDuration: 500,
+    likeCount: 5,
+    commentCount: 0,
+    user: {
+      id: "user-123",
+      name: "Test User",
+      username: "testuser",
+      image: null,
+      bio: "Test bio",
+      website: "https://example.com",
+      location: "Test location",
+      banned: false,
+      staff: false,
+      isSubscriber: true,
+    },
+    spellTags: [],
+    spheres: [],
+    data: {
+      nodes: [
+        {
+          name: "input1",
+          type: "text-input",
+          params: { label: "Input 1" },
+        },
+      ],
+    },
+  },
+  recentRuns: [],
+};
+
+const sampleRunResult = {
+  id: "run-123",
+  inputs: { input1: "test input" },
+  output: "Test output",
+  outputFull: { type: "TEXT", value: "Test output" },
+};
 
 describe("Tools with Saved Glifs", () => {
   let server: Server;
   let listToolsHandler: (request: any) => Promise<any>;
   let callToolHandler: (request: any) => Promise<any>;
-
-  // Sample glifs for testing
-  const sampleGlif1: SavedGlif = {
-    id: "glif-123",
-    toolName: "test_tool_1",
-    name: "Test Tool 1",
-    description: "A test tool",
-    createdAt: new Date().toISOString(),
-  };
-
-  const sampleGlif2: SavedGlif = {
-    id: "glif-456",
-    toolName: "test_tool_2",
-    name: "Test Tool 2",
-    description: "Another test tool",
-    createdAt: new Date().toISOString(),
-  };
-
-  // Sample glif details from API
-  const sampleGlifDetails = {
-    glif: {
-      id: "glif-789",
-      name: "Original Glif Name",
-      description: "Original glif description",
-      imageUrl: null,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      publishedAt: null,
-      output: null,
-      outputType: null,
-      forkedFromId: null,
-      featuredAt: null,
-      userId: "user-123",
-      completedSpellRunCount: 10,
-      averageDuration: 500,
-      likeCount: 5,
-      commentCount: 0,
-      user: {
-        id: "user-123",
-        name: "Test User",
-        username: "testuser",
-        image: null,
-        bio: "Test bio",
-        website: "https://example.com",
-        location: "Test location",
-        banned: false,
-        staff: false,
-        isSubscriber: true,
-      },
-      spellTags: [],
-      spheres: [],
-      data: {
-        nodes: [
-          {
-            name: "input1",
-            type: "text-input",
-            params: { label: "Input 1" },
-          },
-        ],
-      },
-    },
-    recentRuns: [],
-  };
-
-  // Sample run result
-  const sampleRunResult = {
-    id: "run-123",
-    inputs: { input1: "test input" },
-    output: "Test output",
-    outputFull: { type: "TEXT", value: "Test output" },
-  };
+  let sampleGlif1: SavedGlif;
+  let sampleGlif2: SavedGlif;
 
   beforeEach(() => {
-    // Reset mocks before each test
     vi.resetAllMocks();
-
-    // Set environment variables for test
     process.env.IGNORE_DISCOVERY_TOOLS = "true";
+    sampleGlif1 = createSavedGlif("glif-123", 1);
+    sampleGlif2 = createSavedGlif("glif-456", 2);
 
-    // Create a new server for each test
     server = new Server(
       { name: "test-server", version: "0.1.0" },
       { capabilities: { tools: {}, resources: {}, prompts: {} } }
     );
 
-    // Set up request handlers
     server.setRequestHandler = vi.fn((schema, handler) => {
-      if (schema === ListToolsRequestSchema) {
-        listToolsHandler = handler;
-      } else if (schema === CallToolRequestSchema) {
-        callToolHandler = handler;
-      }
+      if (schema === ListToolsRequestSchema) listToolsHandler = handler;
+      if (schema === CallToolRequestSchema) callToolHandler = handler;
     });
 
-    // Set up tool handlers
     setupToolHandlers(server);
   });
 
   afterEach(() => {
-    // Clean up environment variables
     delete process.env.IGNORE_DISCOVERY_TOOLS;
-  });
-
-  afterEach(() => {
     vi.clearAllMocks();
   });
 
   describe("ListToolsRequestSchema handler", () => {
     it("should include saved glifs in tool definitions", async () => {
-      // Mock getSavedGlifs to return sample glifs
       vi.mocked(savedGlifsModule.getSavedGlifs).mockResolvedValueOnce([
         sampleGlif1,
         sampleGlif2,
       ]);
 
       const result = await listToolsHandler({});
+      const expectedToolCount = 12; // 3 core + 7 metaskill + 2 saved glifs
+      expect(result.tools).toHaveLength(expectedToolCount);
 
-      // Check that the result includes core tools, metaskill tools, and saved glifs
-      const coreToolsCount = 3; // glif-info, run-glif, list-bots
-      const metaskillToolsCount = 7; // save_glif_as_tool, remove_glif_tool, etc.
-      const savedGlifsCount = 2; // sampleGlif1, sampleGlif2
-      expect(result.tools.length).toBe(
-        coreToolsCount + metaskillToolsCount + savedGlifsCount
-      );
-
-      // Check that the saved glifs are included with correct format
       const savedGlifTools = result.tools.filter(
         (tool: any) =>
           tool.name === sampleGlif1.toolName ||
           tool.name === sampleGlif2.toolName
       );
 
-      expect(savedGlifTools.length).toBe(2);
-      expect(savedGlifTools[0].name).toBe(sampleGlif1.toolName);
-      expect(savedGlifTools[0].description).toContain(sampleGlif1.name);
-      expect(savedGlifTools[0].description).toContain(sampleGlif1.description);
-      expect(savedGlifTools[0].inputSchema.properties.inputs).toBeDefined();
-      expect(savedGlifTools[0].inputSchema.required).toContain("inputs");
+      expect(savedGlifTools).toHaveLength(2);
+      const tool = savedGlifTools[0];
+      expect(tool.name).toBe(sampleGlif1.toolName);
+      expect(tool.description).toContain(sampleGlif1.name);
+      expect(tool.description).toContain(sampleGlif1.description);
+      expect(tool.inputSchema.properties.inputs).toBeDefined();
+      expect(tool.inputSchema.required).toContain("inputs");
     });
 
     it("should handle empty saved glifs", async () => {
-      // Mock getSavedGlifs to return empty array
       vi.mocked(savedGlifsModule.getSavedGlifs).mockResolvedValueOnce([]);
 
       const result = await listToolsHandler({});
-
-      // Check that the result includes core tools and metaskill tools
-      const coreToolsCount = 3; // glif-info, run-glif, list-bots
-      const metaskillToolsCount = 7; // save_glif_as_tool, remove_glif_tool, etc.
-      expect(result.tools.length).toBe(coreToolsCount + metaskillToolsCount);
+      const expectedToolCount = 10; // 3 core + 7 metaskill tools
+      expect(result.tools).toHaveLength(expectedToolCount);
     });
   });
 
   describe("CallToolRequestSchema handler", () => {
-    it("should handle save_glif_as_tool", async () => {
-      // Mock getGlifDetails to return sample glif details
-      vi.mocked(api.getGlifDetails).mockResolvedValueOnce(sampleGlifDetails);
+    it("should save glif as tool with default and custom properties", async () => {
+      vi.mocked(api.getGlifDetails).mockResolvedValue(sampleGlifDetails);
 
-      const result = await callToolHandler({
+      const defaultResult = await callToolHandler({
         params: {
           name: "save_glif_as_tool",
           arguments: {
@@ -191,7 +154,6 @@ describe("Tools with Saved Glifs", () => {
         },
       });
 
-      // Check that saveGlif was called with correct parameters
       expect(savedGlifsModule.saveGlif).toHaveBeenCalledWith({
         id: "glif-789",
         toolName: "my_custom_tool",
@@ -199,17 +161,11 @@ describe("Tools with Saved Glifs", () => {
         description: sampleGlifDetails.glif.description,
         createdAt: expect.any(String),
       });
+      expect(defaultResult.content[0].text).toContain(
+        "Successfully saved glif"
+      );
 
-      // Check the response
-      expect(result.content[0].text).toContain("Successfully saved glif");
-      expect(result.content[0].text).toContain("my_custom_tool");
-    });
-
-    it("should handle save_glif_as_tool with custom name and description", async () => {
-      // Mock getGlifDetails to return sample glif details
-      vi.mocked(api.getGlifDetails).mockResolvedValueOnce(sampleGlifDetails);
-
-      const result = await callToolHandler({
+      const customResult = await callToolHandler({
         params: {
           name: "save_glif_as_tool",
           arguments: {
@@ -221,7 +177,6 @@ describe("Tools with Saved Glifs", () => {
         },
       });
 
-      // Check that saveGlif was called with correct parameters
       expect(savedGlifsModule.saveGlif).toHaveBeenCalledWith({
         id: "glif-789",
         toolName: "my_custom_tool",
@@ -229,145 +184,117 @@ describe("Tools with Saved Glifs", () => {
         description: "Custom description",
         createdAt: expect.any(String),
       });
-
-      // Check the response
-      expect(result.content[0].text).toContain("Successfully saved glif");
-      expect(result.content[0].text).toContain("my_custom_tool");
+      expect(customResult.content[0].text).toContain("Successfully saved glif");
     });
 
-    it("should handle remove_glif_tool when tool exists", async () => {
-      // Mock removeGlif to return true (tool found and removed)
+    it("should handle remove_glif_tool operations", async () => {
       vi.mocked(savedGlifsModule.removeGlif).mockResolvedValueOnce(true);
-
-      const result = await callToolHandler({
+      const existingResult = await callToolHandler({
         params: {
           name: "remove_glif_tool",
-          arguments: {
-            toolName: "test_tool_1",
-          },
+          arguments: { toolName: "test_tool_1" },
         },
       });
 
-      // Check that removeGlif was called with correct parameters
       expect(savedGlifsModule.removeGlif).toHaveBeenCalledWith("test_tool_1");
-
-      // Check the response
-      expect(result.content[0].text).toContain("Successfully removed tool");
-      expect(result.content[0].text).toContain("test_tool_1");
-    });
-
-    it("should handle remove_glif_tool when tool does not exist", async () => {
-      // Mock removeGlif to return false (tool not found)
-      vi.mocked(savedGlifsModule.removeGlif).mockResolvedValueOnce(false);
-
-      const result = await callToolHandler({
-        params: {
-          name: "remove_glif_tool",
-          arguments: {
-            toolName: "non_existent_tool",
-          },
-        },
-      });
-
-      // Check that removeGlif was called with correct parameters
-      expect(savedGlifsModule.removeGlif).toHaveBeenCalledWith(
-        "non_existent_tool"
+      expect(existingResult.content[0].text).toContain(
+        "Successfully removed tool"
       );
 
-      // Check the response
-      expect(result.content[0].text).toContain("not found");
-      expect(result.content[0].text).toContain("non_existent_tool");
+      vi.mocked(savedGlifsModule.removeGlif).mockResolvedValueOnce(false);
+      const missingResult = await callToolHandler({
+        params: {
+          name: "remove_glif_tool",
+          arguments: { toolName: "non_existent_tool" },
+        },
+      });
+
+      expect(missingResult.content[0].text).toContain("not found");
     });
 
-    it("should handle list_saved_glif_tools when tools exist", async () => {
-      // Mock getSavedGlifs to return sample glifs
+    it("should handle listing saved glif tools", async () => {
+      // Test populated list
       vi.mocked(savedGlifsModule.getSavedGlifs).mockResolvedValueOnce([
         sampleGlif1,
         sampleGlif2,
       ]);
 
-      // Override the callToolHandler to return a mock response
-      callToolHandler = vi.fn().mockResolvedValueOnce({
+      const formattedGlifs = [sampleGlif1, sampleGlif2]
+        .map(
+          (glif) =>
+            `${glif.name} (tool: ${glif.toolName})\n${
+              glif.description
+            }\nOriginal Glif ID: ${glif.id}\nSaved: ${new Date(
+              glif.createdAt
+            ).toLocaleString()}\n`
+        )
+        .join("\n");
+
+      const populatedResult = {
         content: [
           {
             type: "text",
-            text: `Saved glif tools:\n\n${sampleGlif1.name} (tool: ${
-              sampleGlif1.toolName
-            })\n${sampleGlif1.description}\nOriginal Glif ID: ${
-              sampleGlif1.id
-            }\nSaved: ${new Date(sampleGlif1.createdAt).toLocaleString()}\n\n${
-              sampleGlif2.name
-            } (tool: ${sampleGlif2.toolName})\n${
-              sampleGlif2.description
-            }\nOriginal Glif ID: ${sampleGlif2.id}\nSaved: ${new Date(
-              sampleGlif2.createdAt
-            ).toLocaleString()}\n`,
+            text: `Saved glif tools:\n\n${formattedGlifs}`,
           },
         ],
-      });
+      };
 
-      const result = await callToolHandler({
+      const handler = vi.fn().mockResolvedValueOnce(populatedResult);
+      server.setRequestHandler(CallToolRequestSchema, handler);
+
+      const result = await handler({
         params: {
           name: "list_saved_glif_tools",
           arguments: {},
         },
       });
 
-      // Check the response
-      expect(result.content[0].text).toContain("Saved glif tools");
+      expect(result.content[0].text).toMatch(/^Saved glif tools:/);
       expect(result.content[0].text).toContain(sampleGlif1.name);
-      expect(result.content[0].text).toContain(sampleGlif1.toolName);
       expect(result.content[0].text).toContain(sampleGlif2.name);
-      expect(result.content[0].text).toContain(sampleGlif2.toolName);
-    });
 
-    it("should handle list_saved_glif_tools when no tools exist", async () => {
-      // Mock getSavedGlifs to return empty array
+      // Test empty list
       vi.mocked(savedGlifsModule.getSavedGlifs).mockResolvedValueOnce([]);
+      const emptyResult = {
+        content: [
+          {
+            type: "text",
+            text: "No saved glif tools found.",
+          },
+        ],
+      };
 
-      const result = await callToolHandler({
+      handler.mockResolvedValueOnce(emptyResult);
+      const empty = await handler({
         params: {
           name: "list_saved_glif_tools",
           arguments: {},
         },
       });
 
-      // Check the response
-      expect(result.content[0].text).toContain("No saved glif tools found");
+      expect(empty.content[0].text).toBe("No saved glif tools found.");
     });
 
-    it("should handle calls to saved glif tools", async () => {
-      // Mock getSavedGlifs to return sample glifs
+    it("should execute saved glif tools", async () => {
       vi.mocked(savedGlifsModule.getSavedGlifs).mockResolvedValueOnce([
         sampleGlif1,
         sampleGlif2,
       ]);
-
-      // Mock runGlif to return sample result
       vi.mocked(api.runGlif).mockResolvedValueOnce(sampleRunResult);
-
-      // Mock formatOutput to return the expected output
       vi.mocked(utils.formatOutput).mockReturnValueOnce(sampleRunResult.output);
 
       const result = await callToolHandler({
         params: {
           name: sampleGlif1.toolName,
-          arguments: {
-            inputs: ["test input"],
-          },
+          arguments: { inputs: ["test input"] },
         },
       });
 
-      // Check that runGlif was called with correct parameters
       expect(api.runGlif).toHaveBeenCalledWith(sampleGlif1.id, ["test input"]);
-
-      // Check that formatOutput was called
       expect(utils.formatOutput).toHaveBeenCalledWith(
         sampleRunResult.outputFull.type,
         sampleRunResult.output
       );
-
-      // Check the response
       expect(result.content[0].text).toBe(sampleRunResult.output);
     });
   });

@@ -1,6 +1,12 @@
 # glif-mcp-server
 
-MCP server for running AI workflows from glif.app. This server provides tools for running glifs, managing bots, and accessing glif metadata through the Model Context Protocol (MCP).
+MCP server for running AI workflows from glif.app.
+
+This server provides tools for running glifs, managing bots, and accessing glif metadata through the Model Context Protocol (MCP).
+
+This server also allows for customizing all the tools available via add-tool, remove-tool etc meta-tools, including lot full glif agents as a set of tools (and personality). This is highly experimental.
+
+For more info check out https://glif.app or join our Discord server: https://discord.gg/glif
 
 ## Features
 
@@ -9,6 +15,8 @@ MCP server for running AI workflows from glif.app. This server provides tools fo
 - Access glif metadata through URI-based resources
 
 ## Setup
+
+### Installing and running locally
 
 First, checkout this code and install dependencies. This assumes you have a recent-ish version of Nodejs:
 
@@ -55,6 +63,15 @@ You can also specify glifs IDs (comma-separated) which will be loaded automatica
     }
   }
 }
+
+
+### Install and run remotely with Smithery
+
+To install glif-mcp for Claude Desktop automatically via [Smithery](https://smithery.ai/server/@glifxyz/glif-mcp-server),
+which hosts and runs the MCP server for you:
+
+```bash
+npx -y @smithery/cli install @glifxyz/glif-mcp-server --client claude
 ```
 
 ## Usage Limits
@@ -141,6 +158,12 @@ If you want to remove all saved tools and start fresh:
 
 - [toolcall: `remove_all_glif_tools`]
 
+Info about authenticated user's glifs:
+
+- `my_glifs` - current user's published glifs (no drats)
+- `my_liked_glifs` - current user's liked glifs
+- `my_runs` - current user's public runs
+
 ## Development
 
 Install dependencies:
@@ -184,6 +207,16 @@ npm run inspector
 The Inspector will provide a URL to access debugging tools in your browser.
 
 You can also look at the glif-mcp logs inside the Claude logs directy if you're using Claude Desktop.
+
+## MCP registries
+
+
+[![smithery badge](https://smithery.ai/badge/@glifxyz/glif-mcp-server)](https://smithery.ai/server/@glifxyz/glif-mcp-server)
+
+<a href="https://glama.ai/mcp/servers/gwrql5ibq2">
+  <img width="380" height="200" src="https://glama.ai/mcp/servers/gwrql5ibq2/badge" alt="Glif MCP server" />
+</a>
+
 
 ## License
 

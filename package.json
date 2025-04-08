@@ -1,8 +1,9 @@
 {
-  "name": "glif-mcp-server",
+  "name": "@glifxyz/glif-mcp-server",
   "version": "0.9.3",
   "description": "Run AI magic workflows from glif.app",
   "license": "MIT",
+  "author": "glifxyz",
   "type": "module",
   "bin": {
     "glif-server": "./build/index.js"

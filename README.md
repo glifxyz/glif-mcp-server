@@ -28,7 +28,7 @@ If you have nodejs installed, you can run our [@glifxyz/glif-mcp-server](https:/
      "mcpServers": {
        "glif": {
          "command": "npx",
-         "args": ["-y @glifxyz/glif-mcp-server"],
+         "args": ["-y", "@glifxyz/glif-mcp-server@latest"],
          "env": {
            "GLIF_API_TOKEN": "your-token-here"
          }

@@ -8,8 +8,8 @@ import { setupToolHandlers } from "./tools/index.js";
 async function main() {
   const server = new Server(
     {
-      name: "glif-server",
-      version: "0.1.0",
+      name: "glif-mcp-server",
+      version: "0.9.5",
     },
     {
       capabilities: {
@@ -20,7 +20,6 @@ async function main() {
     }
   );
 
-  // Set up handlers from modular components
   setupResourceHandlers(server);
   setupPromptHandlers(server);
   setupToolHandlers(server);

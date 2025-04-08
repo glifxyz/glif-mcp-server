@@ -4,6 +4,7 @@
   "description": "Run AI magic workflows from glif.app",
   "license": "MIT",
   "author": "glifxyz",
+  "repository": "github:glifxyz/glif-mcp-server",
   "type": "module",
   "bin": "./build/index.js",
   "publishConfig": {

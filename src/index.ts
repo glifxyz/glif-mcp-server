@@ -9,7 +9,7 @@ async function main() {
   const server = new Server(
     {
       name: "glif",
-      version: "0.9.7",
+      version: "0.9.8",
     },
     {
       capabilities: {

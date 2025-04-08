@@ -16,9 +16,30 @@ For more info check out https://glif.app or join our Discord server: https://dis
 
 ## Setup
 
-### Installing and running locally
+### Running via npx (recommended)
 
-First, checkout this code and install dependencies. This assumes you have a recent-ish version of Nodejs:
+If you have nodejs installed, you can run our [@glifxyz/glif-mcp-server](https://www.npmjs.com/package/@glifxyz/glif-mcp-server) package via npx:
+
+1. Get your API token from https://glif.app/settings/api-tokens
+2. Add the server in your Claude Desktop config file. On macOS this is: `~/Library/Application Support/Claude/claude_desktop_config.json`
+
+   ```json
+   {
+     "mcpServers": {
+       "glif": {
+         "command": "npx",
+         "args": ["-y @glifxyz/glif-mcp-server"],
+         "env": {
+           "GLIF_API_TOKEN": "your-token-here"
+         }
+       }
+     }
+   }
+   ```
+
+### Running from a local checkout
+
+First, checkout this code and install dependencies.
 
 ```sh
 git clone https://github.com/glifxyz/glif-mcp-server
@@ -28,10 +49,7 @@ npm run build
 # there's now a build/index.js file which is what we'll run next
 ```
 
-Then configure your MCP client (e.g. Claude Desktop) to load this server
-
-1. Get your API token from https://glif.app/settings/api-tokens
-2. Add the server in your Claude Desktop config file. on macOS this is: `~/Library/Application Support/Claude/claude_desktop_config.json`
+Then configure your MCP client (e.g. Claude Desktop) to load this server from disk.
 
    ```json
    {
@@ -63,9 +81,9 @@ You can also specify glifs IDs (comma-separated) which will be loaded automatica
     }
   }
 }
+```
 
-
-### Install and run remotely with Smithery
+### Run remotely with Smithery
 
 To install glif-mcp for Claude Desktop automatically via [Smithery](https://smithery.ai/server/@glifxyz/glif-mcp-server),
 which hosts and runs the MCP server for you:

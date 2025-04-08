@@ -153,7 +153,7 @@ npm run build
 For development with auto-rebuild:
 
 ```bash
-npm run watch
+npm run dev
 ```
 
 To run the test suite:

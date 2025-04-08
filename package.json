@@ -17,7 +17,7 @@
     "prepare": "npm run build",
     "typecheck": "tsc --noEmit",
     "lint": "npm run typecheck",
-    "watch": "tsc --watch",
+    "dev": "tsc --watch",
     "test": "GLIF_API_TOKEN=xxx IGNORE_DISCOVERY_TOOLS=true vitest run",
     "inspector": "npx @modelcontextprotocol/inspector -e GLIF_API_TOKEN=xxx node build/index.js",
     "test:watch": "vitest",

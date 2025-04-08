@@ -5,8 +5,9 @@
   "license": "MIT",
   "author": "glifxyz",
   "type": "module",
-  "bin": {
-    "glif-server": "./build/index.js"
+  "bin": "./build/index.js",
+  "publishConfig": {
+    "access": "public"
   },
   "files": [
     "build"

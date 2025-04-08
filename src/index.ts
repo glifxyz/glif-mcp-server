@@ -8,7 +8,7 @@ import { setupToolHandlers } from "./tools/index.js";
 async function main() {
   const server = new Server(
     {
-      name: "glif-mcp-server",
+      name: "glif",
       version: "0.9.5",
     },
     {

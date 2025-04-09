@@ -206,6 +206,17 @@ You can also look at the glif-mcp logs inside the Claude logs directy if you're 
   <img width="380" height="200" src="https://glama.ai/mcp/servers/gwrql5ibq2/badge" alt="Glif MCP server" />
 </a>
 
+## Development
+
+### Releasing a new version
+
+1. Edit `package.json` and `src/index.ts` and bump the version number
+2. Run `npm install` to update the versions stored in the lockfile
+3. Commit and push your changes to GitHub and merge to main
+4. If you have [gh](https://cli.github.com/) installed, switch to main and run `npm run release` which will create a git tag for the new version, push that tag to github, and use `gh release create` to publish a new version with an automatically-generated changelog. If you don't have `gh`, you can do the above manually in the GitHub web UI
+5. A GitHub Action will use the `NPM_TOKEN` secret to publish it to NPM
+
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

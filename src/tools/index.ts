@@ -9,6 +9,12 @@ import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { getSavedGlifs, SavedGlif } from "../saved-glifs.js";
 import { GLIF_IDS } from "../config.js";
 
+// Helper to check if an environment variable is truthy
+function isEnvEnabled(name: string): boolean {
+  const value = process.env[name]?.toLowerCase();
+  return value === "true" || value === "1" || value === "yes";
+}
+
 // Types for tool structure
 export type ToolDefinition = {
   name: string;
@@ -44,7 +50,6 @@ export type ToolGroup = {
 // Import core tools
 import * as glifInfo from "./glif-info.js";
 import * as runGlif from "./run-glif.js";
-import * as listBots from "./list-bots.js";
 
 // Import discovery tools
 import * as listFeaturedGlifs from "./list-featured-glifs.js";
@@ -57,6 +62,9 @@ import * as saveGlifAsTool from "./save-glif-as-tool.js";
 import * as removeGlifTool from "./remove-glif-tool.js";
 import * as removeAllGlifTools from "./remove-all-glif-tools.js";
 import * as listSavedGlifTools from "./list-saved-glif-tools.js";
+
+// Bot tools - beta, disabled by default
+import * as listBots from "./list-bots.js";
 import * as saveBotSkillsAsTools from "./save-bot-skills-as-tools.js";
 import * as loadBot from "./load-bot.js";
 import * as showBotInfo from "./show-bot-info.js";
@@ -65,7 +73,6 @@ import * as showBotInfo from "./show-bot-info.js";
 const CORE_TOOLS: ToolGroup = {
   [glifInfo.definition.name]: glifInfo,
   [runGlif.definition.name]: runGlif,
-  [listBots.definition.name]: listBots,
 };
 
 // Will add these as we implement the tools
@@ -75,11 +82,17 @@ const DISCOVERY_TOOLS: ToolGroup = {
   [myGlifs.definition.name]: myGlifs,
   [myGlifUserInfo.definition.name]: myGlifUserInfo,
 };
+
 const METASKILL_TOOLS: ToolGroup = {
   [saveGlifAsTool.definition.name]: saveGlifAsTool,
   [removeGlifTool.definition.name]: removeGlifTool,
   [removeAllGlifTools.definition.name]: removeAllGlifTools,
   [listSavedGlifTools.definition.name]: listSavedGlifTools,
+};
+
+// Bot tools - beta, disabled by default
+const BOT_TOOLS: ToolGroup = {
+  [listBots.definition.name]: listBots,
   [saveBotSkillsAsTools.definition.name]: saveBotSkillsAsTools,
   [loadBot.definition.name]: loadBot,
   [showBotInfo.definition.name]: showBotInfo,
@@ -143,7 +156,12 @@ export async function getTools(): Promise<{ tools: ToolDefinition[] }> {
     tools.push(...Object.values(METASKILL_TOOLS).map((t) => t.definition));
   }
 
-  // 4. Add SAVED_GLIFS tools (unless IGNORE_SAVED_GLIFS)
+  // 4. Add BOT tools (disabled by default, enable with BOT_TOOLS=true)
+  if (isEnvEnabled("BOT_TOOLS")) {
+    tools.push(...Object.values(BOT_TOOLS).map((t) => t.definition));
+  }
+
+  // 5. Add SAVED_GLIFS tools (unless IGNORE_SAVED_GLIFS)
   if (process.env.IGNORE_SAVED_GLIFS !== "true") {
     const savedGlifs = await getSavedGlifs();
     if (savedGlifs) {
@@ -223,11 +241,19 @@ export function setupToolHandlers(server: Server) {
       }
     }
 
-    // Handle metaskill tools
+    // Handle metaskill tools (unless IGNORE_METASKILL_TOOLS)
     if (process.env.IGNORE_METASKILL_TOOLS !== "true") {
       const metaskillTool = METASKILL_TOOLS[request.params.name];
       if (metaskillTool) {
         return metaskillTool.handler(request);
+      }
+    }
+
+    // Handle bot tools (disabled by default, enable with BOT_TOOLS=true)
+    if (isEnvEnabled("BOT_TOOLS")) {
+      const botTool = BOT_TOOLS[request.params.name];
+      if (botTool) {
+        return botTool.handler(request);
       }
     }
 

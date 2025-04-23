@@ -154,6 +154,14 @@ Info about authenticated user's glifs:
 - `my_liked_glifs` - current user's liked glifs
 - `my_runs` - current user's public runs
 
+## MCP registries
+
+[![smithery badge](https://smithery.ai/badge/@glifxyz/glif-mcp-server)](https://smithery.ai/server/@glifxyz/glif-mcp-server)
+
+<a href="https://glama.ai/mcp/servers/gwrql5ibq2">
+  <img width="380" height="200" src="https://glama.ai/mcp/servers/gwrql5ibq2/badge" alt="Glif MCP server" />
+</a>
+
 ## Development
 
 Install dependencies:
@@ -198,16 +206,6 @@ The Inspector will provide a URL to access debugging tools in your browser.
 
 You can also look at the glif-mcp logs inside the Claude logs directy if you're using Claude Desktop.
 
-## MCP registries
-
-[![smithery badge](https://smithery.ai/badge/@glifxyz/glif-mcp-server)](https://smithery.ai/server/@glifxyz/glif-mcp-server)
-
-<a href="https://glama.ai/mcp/servers/gwrql5ibq2">
-  <img width="380" height="200" src="https://glama.ai/mcp/servers/gwrql5ibq2/badge" alt="Glif MCP server" />
-</a>
-
-## Development
-
 ### Releasing a new version
 
 1. Edit `package.json` and `src/index.ts` and bump the version number
@@ -215,7 +213,6 @@ You can also look at the glif-mcp logs inside the Claude logs directy if you're 
 3. Commit and push your changes to GitHub and merge to main
 4. If you have [gh](https://cli.github.com/) installed, switch to main and run `npm run release` which will create a git tag for the new version, push that tag to github, and use `gh release create` to publish a new version with an automatically-generated changelog. If you don't have `gh`, you can do the above manually in the GitHub web UI
 5. A GitHub Action will use the `NPM_TOKEN` secret to publish it to NPM
-
 
 ## License
 

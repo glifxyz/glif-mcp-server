@@ -44,7 +44,6 @@ export type ToolGroup = {
 // Import core tools
 import * as glifInfo from "./glif-info.js";
 import * as runGlif from "./run-glif.js";
-import * as listBots from "./list-bots.js";
 
 // Import discovery tools
 import * as listFeaturedGlifs from "./list-featured-glifs.js";
@@ -57,9 +56,12 @@ import * as saveGlifAsTool from "./save-glif-as-tool.js";
 import * as removeGlifTool from "./remove-glif-tool.js";
 import * as removeAllGlifTools from "./remove-all-glif-tools.js";
 import * as listSavedGlifTools from "./list-saved-glif-tools.js";
-import * as saveBotSkillsAsTools from "./save-bot-skills-as-tools.js";
-import * as loadBot from "./load-bot.js";
-import * as showBotInfo from "./show-bot-info.js";
+
+// Bot tools - beta
+// import * as listBots from "./list-bots.js";
+// import * as saveBotSkillsAsTools from "./save-bot-skills-as-tools.js";
+// import * as loadBot from "./load-bot.js";
+// import * as showBotInfo from "./show-bot-info.js";
 
 // Tool groupings
 const CORE_TOOLS: ToolGroup = {

@@ -241,7 +241,7 @@ export function setupToolHandlers(server: Server) {
       }
     }
 
-    // Handle metaskill tools
+    // Handle metaskill tools (unless IGNORE_METASKILL_TOOLS)
     if (process.env.IGNORE_METASKILL_TOOLS !== "true") {
       const metaskillTool = METASKILL_TOOLS[request.params.name];
       if (metaskillTool) {

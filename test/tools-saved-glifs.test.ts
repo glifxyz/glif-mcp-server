@@ -84,6 +84,7 @@ describe("Tools with Saved Glifs", () => {
   beforeEach(() => {
     vi.resetAllMocks();
     process.env.IGNORE_DISCOVERY_TOOLS = "true";
+    process.env.BOT_TOOLS = "true"; // Enable bot tools for tests
     sampleGlif1 = createSavedGlif("glif-123", 1);
     sampleGlif2 = createSavedGlif("glif-456", 2);
 
@@ -102,6 +103,7 @@ describe("Tools with Saved Glifs", () => {
 
   afterEach(() => {
     delete process.env.IGNORE_DISCOVERY_TOOLS;
+    delete process.env.BOT_TOOLS;
     vi.clearAllMocks();
   });
 

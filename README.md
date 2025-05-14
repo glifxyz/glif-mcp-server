@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/glifxyz-glif-mcp-server-badge.png)](https://mseep.ai/app/glifxyz-glif-mcp-server)
+
 # glif-mcp-server
 
 MCP server for running AI workflows from glif.app.

@@ -103,32 +103,48 @@ npx -y @smithery/cli install @glifxyz/glif-mcp-server --client claude
 - `glifRun://{id}` - Get run details
 - `glifUser://{id}` - Get user profile
 
+## Configuration
+
+Environment variables to control which tool groups are enabled:
+
+- `GLIF_API_TOKEN` - **Required.** Your API token from https://glif.app/settings/api-tokens
+- `GLIF_IDS` - Optional. Comma-separated glif IDs to load as tools automatically
+- `IGNORE_DISCOVERY_TOOLS` - Set to `true` to disable discovery tools (enabled by default)
+- `IGNORE_METASKILL_TOOLS` - Set to `true` to disable metaskill tools (enabled by default) 
+- `IGNORE_SAVED_GLIFS` - Set to `true` to disable saved glif tools (enabled by default)
+- `BOT_TOOLS` - Set to `true` to enable bot tools (disabled by default)
+
 ## Tools
 
-### General Glif Tools
+### Core Tools (always enabled)
 
 - `run_glif` - Run a glif with the specified ID and inputs
 - `glif_info` - Get detailed information about a glif including input fields
+
+### Discovery Tools (enabled by default, disable with `IGNORE_DISCOVERY_TOOLS=true`)
+
 - `list_featured_glifs` - Get a curated list of featured glifs
 - `search_glifs` - Search for glifs by name or description
-
-### Bot Tools
-
-- `list_bots` - Get a list of featured bots and sim templates
-- `load_bot` - Get detailed information about a specific bot, including its skills
-- `save_bot_skills_as_tools` - Save all skills from a bot as individual tools
-
-### User-specific Tools
-
 - `my_glifs` - Get a list of your glifs
 - `my_glif_user_info` - Get detailed information about your user account, recent glifs, and recent runs
 
-### Glif->Tool Tools (metatools)
+### Metaskill Tools (enabled by default, disable with `IGNORE_METASKILL_TOOLS=true`)
 
 - `save_glif_as_tool` - Save a glif as a custom tool
 - `remove_glif_tool` - Remove a saved glif tool
 - `remove_all_glif_tools` - Remove all saved glif tools and return to a pristine state
 - `list_saved_glif_tools` - List all saved glif tools
+
+### Bot Tools (disabled by default, enable with `BOT_TOOLS=true`)
+
+- `list_bots` - Get a list of featured bots and sim templates
+- `load_bot` - Get detailed information about a specific bot, including its skills
+- `save_bot_skills_as_tools` - Save all skills from a bot as individual tools
+- `show_bot_info` - Get detailed information about a specific bot
+
+### Saved Glif Tools (enabled by default, disable with `IGNORE_SAVED_GLIFS=true`)
+
+Dynamic tools created from glifs you've saved using the metaskill tools. Each saved glif becomes its own tool with a custom name and description.
 
 ## How to turn glifs into custom tools
 

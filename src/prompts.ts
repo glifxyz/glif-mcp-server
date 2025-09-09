@@ -6,7 +6,7 @@ import {
 } from "@modelcontextprotocol/sdk/types.js";
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { getGlifDetails, runGlif, searchGlifs } from "./api.js";
-import { formatOutput, handleApiError, logger } from "./utils.js";
+import { formatOutput, handleApiError, logger } from "./utils/utils.js";
 
 /**
  * Available prompts

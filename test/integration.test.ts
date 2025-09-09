@@ -11,11 +11,11 @@ import * as api from "../src/api";
 import * as savedGlifsModule from "../src/saved-glifs";
 import { setupToolHandlers } from "../src/tools/index.js";
 import { SavedGlif } from "../src/saved-glifs";
-import * as utils from "../src/utils";
+import * as utils from "../src/utils/utils.js";
 
 vi.mock("../src/api");
 vi.mock("fs/promises");
-vi.mock("../src/utils");
+vi.mock("../src/utils/utils.js");
 vi.mock("../src/saved-glifs");
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));

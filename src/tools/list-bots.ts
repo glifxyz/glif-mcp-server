@@ -1,10 +1,11 @@
 import { z } from "zod";
-import { CallToolRequestSchema } from "@modelcontextprotocol/sdk/types.js";
+import {
+  parseToolArguments,
+  type ToolRequest,
+} from "../utils/request-parsing.js";
 import { listBots } from "../api.js";
-import { logger } from "../utils.js";
+import { logger } from "../utils/utils.js";
 import type { ToolResponse } from "./index.js";
-
-type CallToolRequest = z.infer<typeof CallToolRequestSchema>;
 
 export const schema = z.object({
   sort: z.enum(["new", "popular", "featured"]).optional(),
@@ -38,9 +39,9 @@ export const definition = {
   },
 };
 
-export async function handler(request: CallToolRequest): Promise<ToolResponse> {
+export async function handler(request: ToolRequest): Promise<ToolResponse> {
   try {
-    const args = schema.parse(request.params.arguments || {});
+    const args = parseToolArguments(request, schema);
 
     const bots = await listBots({
       sort: args.sort,

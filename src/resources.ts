@@ -11,7 +11,7 @@ import {
   handleApiError,
   handleUnauthorized,
   validateWithSchema,
-} from "./utils.js";
+} from "./utils/utils.js";
 
 /**
  * Available resource types

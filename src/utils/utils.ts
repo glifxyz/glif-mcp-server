@@ -127,31 +127,53 @@ export async function createContentBlocks(
   output: string | null,
   outputFull?: { type: string; [key: string]: unknown }
 ): Promise<ContentBlock[]> {
+  console.error("[DEBUG] createContentBlocks called with:", { 
+    output: output?.slice(0, 100) + "...", 
+    outputFull 
+  });
+
   if (!output || !outputFull?.type) {
+    console.error("[DEBUG] Early return: missing output or outputFull.type");
     return [{ type: "text", text: "No output received" }];
   }
 
   const blocks: ContentBlock[] = [];
   const type = outputFull.type.toUpperCase();
+  console.error("[DEBUG] Processing type:", type);
 
   try {
     switch (type) {
       case "IMAGE":
+        console.error("[DEBUG] Processing IMAGE type, checking if isImageUrl:", { 
+          output, 
+          isImage: isImageUrl(output) 
+        });
         if (isImageUrl(output)) {
-          // Convert image URL to base64 for MCP
-          const base64Data = await urlToBase64(output);
-          const mimeType = getMimeType(output);
-          blocks.push({
-            type: "image",
-            data: base64Data,
-            mimeType,
-          });
-          // Also add a text description
-          blocks.push({
-            type: "text",
-            text: `Generated image: ${output}`,
-          });
+          console.error("[DEBUG] Converting image URL to base64...");
+          try {
+            // Convert image URL to base64 for MCP
+            const base64Data = await urlToBase64(output);
+            const mimeType = getMimeType(output);
+            console.error("[DEBUG] Successfully converted image:", { 
+              mimeType, 
+              dataLength: base64Data.length 
+            });
+            blocks.push({
+              type: "image",
+              data: base64Data,
+              mimeType,
+            });
+            // Also add a text description
+            blocks.push({
+              type: "text",
+              text: `Generated image: ${output}`,
+            });
+          } catch (error) {
+            console.error("[DEBUG] Failed to convert image:", error);
+            blocks.push({ type: "text", text: `[Image] ${output}` });
+          }
         } else {
+          console.error("[DEBUG] Not a valid image URL, using fallback");
           // Fallback for non-URL image data
           blocks.push({ type: "text", text: `[Image] ${output}` });
         }

@@ -173,11 +173,14 @@ export async function getTools(): Promise<{ tools: ToolDefinition[] }> {
 }
 
 export function setupToolHandlers(server: Server) {
+  console.error("[DEBUG] Setting up tool handlers V2.0 (MCP multimedia support)");
+  
   // Register tool definitions including saved glifs
   server.setRequestHandler(ListToolsRequestSchema, async () => getTools());
 
   // Handle tool calls
   server.setRequestHandler(CallToolRequestSchema, async (request) => {
+    console.error("[DEBUG] Tool call received:", { name: request.params.name, args: request.params.arguments });
     // Check if this is a saved glif tool
     if (process.env.IGNORE_SAVED_GLIFS !== "true") {
       const savedGlifs = await getSavedGlifs();

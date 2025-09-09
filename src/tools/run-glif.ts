@@ -7,7 +7,8 @@ import { runGlif } from "../api.js";
 import {
   createContentBlocks,
   createStructuredContent,
-} from "../utils/utils.js";
+  truncateBase64InContentBlocks,
+} from "../utils/content-blocks.js";
 import type { ToolResponse } from "./index.js";
 
 export const schema = z.object({
@@ -52,7 +53,7 @@ export async function handler(request: ToolRequest): Promise<ToolResponse> {
 
   // Create MCP-compliant content blocks with multimedia support
   const content = await createContentBlocks(result.output, result.outputFull);
-  console.error("[DEBUG] createContentBlocks result:", content);
+  console.error("[DEBUG] createContentBlocks result:", truncateBase64InContentBlocks(content));
 
   // Create structured content for JSON outputs if applicable
   const structuredContent = createStructuredContent(
@@ -65,7 +66,10 @@ export async function handler(request: ToolRequest): Promise<ToolResponse> {
     content,
     ...(structuredContent && { structuredContent }),
   };
-  console.error("[DEBUG] final response:", response);
+  console.error("[DEBUG] final response:", {
+    ...response,
+    content: truncateBase64InContentBlocks(response.content)
+  });
 
   return response;
 }

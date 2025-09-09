@@ -6,7 +6,9 @@ import {
 } from "@modelcontextprotocol/sdk/types.js";
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { getGlifDetails, runGlif, searchGlifs } from "./api.js";
-import { handleApiError, logger, createContentBlocks } from "./utils/utils.js";
+import { handleApiError, logger } from "./utils/utils.js";
+import { createContentBlocks } from "./utils/content-blocks.js";
+import type { ContentBlock } from "@modelcontextprotocol/sdk/types.js";
 
 /**
  * Available prompts
@@ -29,7 +31,7 @@ async function formatPromptOutput(
 
   // Convert content blocks to text for prompt display
   return contentBlocks
-    .map((block) => {
+    .map((block: ContentBlock) => {
       switch (block.type) {
         case "text":
           return block.text;

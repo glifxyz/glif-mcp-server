@@ -1,0 +1,31 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-07-09/server.schema.json",
+  "name": "app.glif/glif-mcp-server",
+  "description": "Run AI magic workflows from glif.app",
+  "status": "active",
+  "repository": {
+    "url": "https://github.com/glifxyz/glif-mcp-server",
+    "source": "github"
+  },
+  "version": "0.9.9",
+  "packages": [
+    {
+      "registry_type": "npm",
+      "registry_base_url": "https://registry.npmjs.org",
+      "identifier": "@glifxyz/glif-mcp-server",
+      "version": "0.9.9",
+      "transport": {
+        "type": "stdio"
+      },
+      "environment_variables": [
+        {
+          "description": "Your API token from https://glif.app/settings/api-tokens",
+          "is_required": true,
+          "format": "string",
+          "is_secret": true,
+          "name": "GLIF_API_TOKEN"
+        }
+      ]
+    }
+  ]
+}

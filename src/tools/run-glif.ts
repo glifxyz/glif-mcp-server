@@ -4,7 +4,11 @@ import {
   type ToolRequest,
 } from "../utils/request-parsing.js";
 import { runGlif } from "../api.js";
-import { formatOutput } from "../utils/utils.js";
+import {
+  createContentBlocks,
+  createStructuredContent,
+  truncateBase64InContentBlocks,
+} from "../utils/content-blocks.js";
 import type { ToolResponse } from "./index.js";
 
 export const schema = z.object({
@@ -36,26 +40,39 @@ export const definition = {
 
 export async function handler(request: ToolRequest): Promise<ToolResponse> {
   const args = parseToolArguments(request, schema);
+  console.error("[DEBUG] run-glif handler V2.0 (MCP multimedia) called with:", {
+    id: args.id,
+    inputsLength: args.inputs.length,
+  });
+
   const result = await runGlif(args.id, args.inputs);
+  console.error("[DEBUG] runGlif result:", {
+    output: result.output?.slice(0, 100) + "...",
+    outputFull: result.outputFull,
+  });
 
-  // Handle case where outputFull might be undefined or output might be null
-  if (!result.outputFull || result.output === null) {
-    return {
-      content: [
-        {
-          type: "text",
-          text: "No output received from glif run",
-        },
-      ],
-    };
-  }
+  // Create MCP-compliant content blocks with multimedia support
+  const content = await createContentBlocks(result.output, result.outputFull);
+  console.error(
+    "[DEBUG] createContentBlocks result:",
+    truncateBase64InContentBlocks(content)
+  );
 
-  return {
-    content: [
-      {
-        type: "text",
-        text: formatOutput(result.outputFull.type, result.output),
-      },
-    ],
+  // Create structured content for JSON outputs if applicable
+  const structuredContent = createStructuredContent(
+    result.output,
+    result.outputFull
+  );
+  console.error("[DEBUG] structuredContent:", structuredContent);
+
+  const response = {
+    content,
+    ...(structuredContent && { structuredContent }),
   };
+  console.error("[DEBUG] final response:", {
+    ...response,
+    content: truncateBase64InContentBlocks(response.content),
+  });
+
+  return response;
 }

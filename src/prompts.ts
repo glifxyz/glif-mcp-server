@@ -6,7 +6,12 @@ import {
 } from "@modelcontextprotocol/sdk/types.js";
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { getGlifDetails, runGlif, searchGlifs } from "./api.js";
-import { formatOutput, handleApiError, logger } from "./utils/utils.js";
+import { handleApiError, logger } from "./utils/utils.js";
+import {
+  createContentBlocks,
+  type GlifOutputMetadata,
+} from "./utils/content-blocks.js";
+import type { ContentBlock } from "@modelcontextprotocol/sdk/types.js";
 
 /**
  * Available prompts
@@ -17,6 +22,49 @@ const PROMPTS = [
     description: "Show and run the most recent featured glif with fun inputs",
   },
 ];
+
+/**
+ * Format output for prompts (text-based with multimedia descriptions)
+ */
+async function formatPromptOutput(
+  output: string,
+  outputFull: GlifOutputMetadata
+): Promise<string> {
+  const contentBlocks = await createContentBlocks(output, outputFull);
+
+  // Convert content blocks to text for prompt display with consistent formatting
+  const formatContentBlock = (block: ContentBlock): string => {
+    switch (block.type) {
+      case "text":
+        return block.text;
+
+      case "image":
+        return `🖼️ **Image Generated**\n*MIME Type: ${
+          block.mimeType || "unknown"
+        }*\n*Preview: [base64 data, ${block.data?.length || 0} characters]*`;
+
+      case "audio":
+        return `🎧 **Audio Generated**\n*MIME Type: ${
+          block.mimeType || "unknown"
+        }*\n*Preview: [base64 data, ${block.data?.length || 0} characters]*`;
+
+      case "resource":
+        const resourceUri =
+          typeof block.resource === "object" &&
+          block.resource !== null &&
+          "uri" in block.resource
+            ? String(block.resource.uri)
+            : "unknown";
+        return `🔗 **Resource Link**\n*URI: ${resourceUri}*`;
+
+      default:
+        logger.debug(`Unsupported content block type: ${block.type}`);
+        return `[Unsupported content type: ${block.type}]`;
+    }
+  };
+
+  return contentBlocks.map(formatContentBlock).join("\n\n");
+}
 
 /**
  * Generate fun inputs based on field labels/types
@@ -117,7 +165,7 @@ export function setupPromptHandlers(server: Server) {
               .map((f, i) => `${f.params.label ?? f.name}: "${funInputs[i]}"`)
               .join("\n")}\n\nHere's what it created:\n${
               result.output !== null && result.outputFull
-                ? formatOutput(result.outputFull.type, result.output)
+                ? await formatPromptOutput(result.output, result.outputFull)
                 : "No output received"
             }`,
           },

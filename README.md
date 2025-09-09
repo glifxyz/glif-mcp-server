@@ -110,7 +110,7 @@ Environment variables to control which tool groups are enabled:
 - `GLIF_API_TOKEN` - **Required.** Your API token from https://glif.app/settings/api-tokens
 - `GLIF_IDS` - Optional. Comma-separated glif IDs to load as tools automatically
 - `IGNORE_DISCOVERY_TOOLS` - Set to `true` to disable discovery tools (enabled by default)
-- `IGNORE_METASKILL_TOOLS` - Set to `true` to disable metaskill tools (enabled by default) 
+- `IGNORE_METASKILL_TOOLS` - Set to `true` to disable metaskill tools (enabled by default)
 - `IGNORE_SAVED_GLIFS` - Set to `true` to disable saved glif tools (enabled by default)
 - `BOT_TOOLS` - Set to `true` to enable bot tools (disabled by default)
 

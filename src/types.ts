@@ -39,9 +39,7 @@ export const BotSchema = z.strictObject({
   image: z.union([z.url(), z.string(), z.null()]).optional(),
   memory: z.string().nullable().optional(),
   personality: z.string().nullable().optional(),
-  deployedAt: z
-    .union([z.iso.datetime(), z.string(), z.null()])
-    .optional(),
+  deployedAt: z.union([z.iso.datetime(), z.string(), z.null()]).optional(),
   chatResponseGlifId: z.string().nullable().optional(),
   messageCount: z.number().nullable().optional(),
   conversationStarters: z.array(z.unknown()).nullable().optional(),

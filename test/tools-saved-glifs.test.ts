@@ -9,10 +9,12 @@ import * as savedGlifsModule from "../src/saved-glifs";
 import { setupToolHandlers } from "../src/tools/index.js";
 import { SavedGlif } from "../src/saved-glifs";
 import * as utils from "../src/utils/utils.js";
+import * as contentBlocks from "../src/utils/content-blocks.js";
 
 vi.mock("../src/api");
 vi.mock("../src/saved-glifs");
 vi.mock("../src/utils/utils.js");
+vi.mock("../src/utils/content-blocks.js");
 
 const createSavedGlif = (id: string, num: number): SavedGlif => ({
   id,
@@ -283,7 +285,9 @@ describe("Tools with Saved Glifs", () => {
         sampleGlif2,
       ]);
       vi.mocked(api.runGlif).mockResolvedValueOnce(sampleRunResult);
-      vi.mocked(utils.formatOutput).mockReturnValueOnce(sampleRunResult.output);
+      vi.mocked(contentBlocks.createContentBlocks).mockResolvedValueOnce([
+        { type: "text", text: sampleRunResult.output }
+      ]);
 
       const result = await callToolHandler({
         params: {
@@ -293,9 +297,9 @@ describe("Tools with Saved Glifs", () => {
       });
 
       expect(api.runGlif).toHaveBeenCalledWith(sampleGlif1.id, ["test input"]);
-      expect(utils.formatOutput).toHaveBeenCalledWith(
-        sampleRunResult.outputFull.type,
-        sampleRunResult.output
+      expect(contentBlocks.createContentBlocks).toHaveBeenCalledWith(
+        sampleRunResult.output,
+        sampleRunResult.outputFull
       );
       expect(result.content[0].text).toBe(sampleRunResult.output);
     });

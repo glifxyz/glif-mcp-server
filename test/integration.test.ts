@@ -5,8 +5,6 @@ import {
   ListToolsRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
 import * as fs from "fs/promises";
-import path from "path";
-import { fileURLToPath } from "url";
 import * as api from "../src/api";
 import * as savedGlifsModule from "../src/saved-glifs";
 import { setupToolHandlers } from "../src/tools/index.js";
@@ -18,8 +16,6 @@ vi.mock("fs/promises");
 vi.mock("../src/utils/utils.js");
 vi.mock("../src/saved-glifs");
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const SAVED_GLIFS_PATH = path.join(__dirname, "../config/saved-glifs.json");
 
 const createSavedGlif = (id: string, num: number): SavedGlif => ({
   id,

@@ -1,9 +1,5 @@
 import { z } from "zod";
-import { CallToolRequestSchema } from "@modelcontextprotocol/sdk/types.js";
-import type { ToolResponse } from "./index.js";
 import { handler as loadBotHandler } from "./load-bot.js";
-
-type CallToolRequest = z.infer<typeof CallToolRequestSchema>;
 
 export const schema = z.object({
   id: z.string(),

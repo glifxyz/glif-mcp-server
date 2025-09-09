@@ -2,7 +2,7 @@ import { z } from "zod";
 import fs from "fs/promises";
 import path from "path";
 import { fileURLToPath } from "url";
-import { logger, safeJsonParse, validateWithSchema } from "./utils/utils.js";
+import { logger, safeJsonParse } from "./utils/utils.js";
 import { getGlifDetails } from "./api.js";
 
 // Define the schema for saved glifs
@@ -16,7 +16,7 @@ export const SavedGlifSchema = z.object({
     ), // Tool name (for invocation)
   name: z.string(), // Display name
   description: z.string(), // Custom description
-  createdAt: z.string().datetime(), // When it was saved
+  createdAt: z.iso.datetime(), // When it was saved
 });
 
 export type SavedGlif = z.infer<typeof SavedGlifSchema>;

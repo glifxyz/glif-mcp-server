@@ -1,10 +1,7 @@
 import { z } from "zod";
-import { CallToolRequestSchema } from "@modelcontextprotocol/sdk/types.js";
 import { getMyUserInfo, getMyGlifs, getMyRecentRuns } from "../api.js";
 import { formatOutput } from "../utils/utils.js";
 import type { ToolResponse } from "./index.js";
-
-type CallToolRequest = z.infer<typeof CallToolRequestSchema>;
 
 export const schema = z.object({});
 
@@ -19,7 +16,7 @@ export const definition = {
   },
 };
 
-export async function handler(request: CallToolRequest): Promise<ToolResponse> {
+export async function handler(): Promise<ToolResponse> {
   const [user, glifs, recentRuns] = await Promise.all([
     getMyUserInfo(),
     getMyGlifs(),

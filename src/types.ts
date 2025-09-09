@@ -1,88 +1,78 @@
 import { z } from "zod";
 
 // Bot related schemas
-export const SimplifiedGlifSchema = z
-  .object({
-    id: z.string(),
-    name: z.string(),
-    description: z.string().nullable().optional(),
-    user: z
-      .object({
-        id: z.string(),
-        name: z.string(),
-        username: z.string(),
-        image: z.string().url().nullable().optional(),
-        isSubscriber: z.boolean().optional(),
-      })
-      .optional(),
-    averageDuration: z.number().nullable().optional(),
-    inputs: z.record(z.string(), z.string()).optional(),
-  })
-  .passthrough();
+export const SimplifiedGlifSchema = z.strictObject({
+  id: z.string(),
+  name: z.string(),
+  description: z.string().nullable().optional(),
+  user: z
+    .strictObject({
+      id: z.string(),
+      name: z.string(),
+      username: z.string(),
+      image: z.url().nullable().optional(),
+      isSubscriber: z.boolean().optional(),
+    })
+    .optional(),
+  averageDuration: z.number().nullable().optional(),
+  inputs: z.record(z.string(), z.string()).optional(),
+});
 
-export const BotSkillSchema = z
-  .object({
-    id: z.string(),
-    name: z.string(),
-    displayName: z.string().optional(),
-    description: z.string().nullable().optional(),
-    customName: z.string().nullable().optional(),
-    customDescription: z.string().nullable().optional(),
-    usageInstructions: z.string().nullable().optional(),
-    type: z.string().optional(), // Usually "skillGlif"
-    spell: SimplifiedGlifSchema.optional(),
-  })
-  .passthrough();
+export const BotSkillSchema = z.strictObject({
+  id: z.string(),
+  name: z.string(),
+  displayName: z.string().optional(),
+  description: z.string().nullable().optional(),
+  customName: z.string().nullable().optional(),
+  customDescription: z.string().nullable().optional(),
+  usageInstructions: z.string().nullable().optional(),
+  type: z.string().optional(), // Usually "skillGlif"
+  spell: SimplifiedGlifSchema.optional(),
+});
 
-export const BotSchema = z
-  .object({
-    id: z.string(),
-    name: z.string(),
-    username: z.string(),
-    bio: z.string().nullable().optional(),
-    userId: z.string().optional(),
-    image: z.union([z.string().url(), z.string(), z.null()]).optional(),
-    memory: z.string().nullable().optional(),
-    personality: z.string().nullable().optional(),
-    deployedAt: z
-      .union([z.string().datetime(), z.string(), z.null()])
-      .optional(),
-    chatResponseGlifId: z.string().nullable().optional(),
-    messageCount: z.number().nullable().optional(),
-    conversationStarters: z.array(z.unknown()).nullable().optional(),
-    createdAt: z.union([z.string().datetime(), z.string()]).optional(),
-    updatedAt: z.union([z.string().datetime(), z.string()]).optional(),
-    themeCss: z.string().nullable().optional(),
-    user: z
-      .object({
-        id: z.string(),
-        name: z.string(),
-        username: z.string(),
-        image: z.union([z.string().url(), z.string(), z.null()]).optional(),
+export const BotSchema = z.strictObject({
+  id: z.string(),
+  name: z.string(),
+  username: z.string(),
+  bio: z.string().nullable().optional(),
+  userId: z.string().optional(),
+  image: z.union([z.url(), z.string(), z.null()]).optional(),
+  memory: z.string().nullable().optional(),
+  personality: z.string().nullable().optional(),
+  deployedAt: z
+    .union([z.iso.datetime(), z.string(), z.null()])
+    .optional(),
+  chatResponseGlifId: z.string().nullable().optional(),
+  messageCount: z.number().nullable().optional(),
+  conversationStarters: z.array(z.unknown()).nullable().optional(),
+  createdAt: z.union([z.iso.datetime(), z.string()]).optional(),
+  updatedAt: z.union([z.iso.datetime(), z.string()]).optional(),
+  themeCss: z.string().nullable().optional(),
+  user: z
+    .strictObject({
+      id: z.string(),
+      name: z.string(),
+      username: z.string(),
+      image: z.union([z.url(), z.string(), z.null()]).optional(),
+    })
+    .optional(),
+  spellsForBot: z
+    .array(
+      z.strictObject({
+        spell: z.strictObject({
+          id: z.string(),
+          name: z.string(),
+        }),
+        spellId: z.string().optional(),
+        customName: z.string().nullable().optional(),
+        customDescription: z.string().nullable().optional(),
+        usageInstructions: z.string().nullable().optional(),
+        nativeToolName: z.string().nullable().optional(),
       })
-      .optional(),
-    spellsForBot: z
-      .array(
-        z
-          .object({
-            spell: z
-              .object({
-                id: z.string(),
-                name: z.string(),
-              })
-              .passthrough(),
-            spellId: z.string().optional(),
-            customName: z.string().nullable().optional(),
-            customDescription: z.string().nullable().optional(),
-            usageInstructions: z.string().nullable().optional(),
-            nativeToolName: z.string().nullable().optional(),
-          })
-          .passthrough()
-      )
-      .nullable()
-      .optional(),
-  })
-  .passthrough();
+    )
+    .nullable()
+    .optional(),
+});
 
 // Direct bot response schema (for single bot)
 export const BotResponseSchema = BotSchema;
@@ -94,13 +84,13 @@ export const BotsListSchema = z.array(BotSchema);
 export const UserSchema = z.object({
   id: z.string(),
   name: z.string(),
-  image: z.string().url().nullable(),
+  image: z.url().nullable(),
   username: z.string(),
   bio: z.string().optional(),
   website: z.string().optional(),
   location: z.string().optional(),
   banned: z.boolean().optional(),
-  bannedAt: z.string().datetime().nullable().optional(),
+  bannedAt: z.iso.datetime().nullable().optional(),
   rateLimitClass: z.string().optional(),
   staff: z.boolean().optional(),
   isSubscriber: z.boolean().optional(),
@@ -110,15 +100,15 @@ export const UserSchema = z.object({
 export const GlifSchema = z.object({
   id: z.string(),
   name: z.string(),
-  imageUrl: z.string().url().nullable(),
+  imageUrl: z.url().nullable(),
   description: z.string().nullable(),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(),
-  publishedAt: z.string().datetime().nullable(),
+  createdAt: z.iso.datetime(),
+  updatedAt: z.iso.datetime(),
+  publishedAt: z.iso.datetime().nullable(),
   output: z.string().nullable(),
   outputType: z.string().nullable(),
   forkedFromId: z.string().nullable(),
-  featuredAt: z.string().datetime().nullable(),
+  featuredAt: z.iso.datetime().nullable(),
   userId: z.string(),
   completedSpellRunCount: z.number().optional(),
   averageDuration: z.number().nullable(),
@@ -147,13 +137,13 @@ export const GlifSchema = z.object({
 // Glif run schema
 export const GlifRunSchema = z.object({
   id: z.string(),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(),
+  createdAt: z.iso.datetime(),
+  updatedAt: z.iso.datetime(),
   output: z.string().nullable(),
   outputType: z.string().nullable(),
   userId: z.string(),
-  startedAt: z.string().datetime(),
-  completedAt: z.string().datetime().nullable(),
+  startedAt: z.iso.datetime(),
+  completedAt: z.iso.datetime().nullable(),
   totalDuration: z.number().nullable(),
   public: z.boolean().optional(),
   clientType: z.string().optional(),
@@ -161,7 +151,7 @@ export const GlifRunSchema = z.object({
   spellId: z.string(),
   outputImageWidth: z.number().nullable(),
   outputImageHeight: z.number().nullable(),
-  deletionReason: z.string().nullable(),
+  deletionReason: z.string().nullable().optional(),
   deleted: z.boolean().optional(),
   totalSellingPriceCredits: z.string().nullable().optional(),
   likeCount: z.number().optional(),

@@ -24,7 +24,7 @@ const PROMPTS = [
 function generateFunInput(field: {
   name: string;
   type: string;
-  params: { label?: string | null } & Record<string, unknown>;
+  params: { label?: string | null | undefined } & Record<string, unknown>;
 }): string {
   const label = (
     typeof field.params.label === "string" ? field.params.label : field.name
@@ -84,7 +84,7 @@ export function setupPromptHandlers(server: Server) {
       }
 
       // Get detailed info including input fields
-      const { glif, recentRuns } = await getGlifDetails(mostRecent.id);
+      const { glif } = await getGlifDetails(mostRecent.id);
 
       // Extract input fields and generate fun inputs based on field names/types
       const inputFields =

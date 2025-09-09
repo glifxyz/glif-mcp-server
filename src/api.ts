@@ -1,26 +1,21 @@
 import wretch from "wretch";
 import QueryStringAddon from "wretch/addons/queryString";
-import type { WretchError } from "wretch";
 import { z } from "zod";
 import {
   GlifRunResponseSchema,
   GlifSchema,
   GlifRunSchema,
   SearchParamsSchema,
-  UserSchema,
   MeResponseSchema,
-  BotSchema,
   BotResponseSchema,
   BotsListSchema,
   type Glif,
   type GlifRun,
   type GlifRunResponse,
   type User,
-  type MeResponse,
   type Bot,
 } from "./types.js";
 import {
-  formatOutput,
   handleApiError,
   handleUnauthorized,
   logger,
@@ -143,11 +138,15 @@ export async function getGlifDetails(id: string): Promise<{
       }),
     ]);
 
-    const glif = validateWithSchema(
+    const glifArray = validateWithSchema(
       z.array(GlifSchema),
       glifData,
       "getGlifDetails - glifs validation"
-    )[0];
+    );
+    const glif = glifArray[0];
+    if (!glif) {
+      throw new Error("No glif found in response");
+    }
 
     const recentRuns = validateWithSchema(
       z.array(GlifRunSchema),
@@ -214,10 +213,7 @@ export async function getMyGlifs(): Promise<Glif[]> {
 //   });
 // }
 
-export async function createGlif(
-  name: string,
-  description: string
-): Promise<Glif> {
+export async function createGlif(): Promise<Glif> {
   // TODO: Coming soon!
   throw new Error("Create glif functionality coming soon!");
 }
@@ -266,7 +262,14 @@ export async function listBots(
 
 export async function loadBot(id: string): Promise<Bot> {
   const result = await getBots({ id });
-  return Array.isArray(result) ? result[0] : result;
+  if (Array.isArray(result)) {
+    const bot = result[0];
+    if (!bot) {
+      throw new Error("No bot found");
+    }
+    return bot;
+  }
+  return result;
 }
 
 export function searchBots(query: string) {

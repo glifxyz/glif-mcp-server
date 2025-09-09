@@ -2,6 +2,7 @@
   "name": "@glifxyz/glif-mcp-server",
   "version": "0.9.9",
   "description": "Run AI magic workflows from glif.app",
+  "mcpName": "app.glif/glif-mcp-server",
   "license": "MIT",
   "author": "glifxyz",
   "repository": "github:glifxyz/glif-mcp-server",
@@ -19,13 +20,12 @@
     "typecheck": "tsc --noEmit",
     "lint": "npm run typecheck",
     "dev": "tsc --watch",
-    "test": "GLIF_API_TOKEN=xxx IGNORE_DISCOVERY_TOOLS=true vitest run",
+    "test": "GLIF_API_TOKEN=xxx vitest run",
     "inspector": "npx @modelcontextprotocol/inspector -e GLIF_API_TOKEN=xxx node build/index.js",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "logs:claude": "tail -f -n 5 ~/Library/Logs/Claude/**glif*.log",
-    "logs:claude_all": "tail -f -n 5 ~/Library/Logs/Claude/**.log",
-    "release": "BRANCH=$(git branch --show-current) && [ \"$BRANCH\" = \"main\" ] || (echo \"Error: Must be on main branch to release\" && exit 1) && VERSION=$(jq -r .version package.json) && REPO=$(gh repo view --json nameWithOwner -q .nameWithOwner) && git tag v$VERSION && git push origin --tags && PREV_TAG=$(git describe --tags --abbrev=0 v$VERSION^ 2>/dev/null || echo '') && NOTES=$(git log --pretty=format:\"- [%h](https://github.com/$REPO/commit/%H) %s\" ${PREV_TAG:+$PREV_TAG..}HEAD) && gh release create v$VERSION --fail-on-no-commits --notes \"$NOTES\""
+    "release": "scripts/release.sh"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.17.5",

@@ -224,11 +224,33 @@ You can also look at the glif-mcp logs inside the Claude logs directy if you're 
 
 ### Releasing a new version
 
-1. Edit `package.json` and `src/index.ts` and bump the version number
-2. Run `npm install` to update the versions stored in the lockfile
-3. Commit and push your changes to GitHub and merge to main
-4. If you have [gh](https://cli.github.com/) installed, switch to main and run `npm run release` which will create a git tag for the new version, push that tag to github, and use `gh release create` to publish a new version with an automatically-generated changelog. If you don't have `gh`, you can do the above manually in the GitHub web UI
-5. A GitHub Action will use the `NPM_TOKEN` secret to publish it to NPM
+The release process is now automated with proper version synchronization between `package.json` and `server.json`:
+
+1. **Bump version**: Edit `package.json` and bump the version number
+2. **Update dependencies**: Run `npm install` to update the lockfile
+3. **Commit changes**: Commit and push your changes to GitHub and merge to main
+4. **Release**: Switch to main branch and run `npm run release`
+
+The release script will automatically:
+- ✅ Verify you're on the main branch with a clean working directory
+- 🔄 Sync versions between `package.json` and `server.json`  
+- 🧪 Run tests and build the project
+- 🔍 Run type checking
+- 🏷️ Create and push a git tag
+- 📝 Generate a changelog and create a GitHub release
+- 🌐 Publish to the MCP registry (if configured)
+- 📤 NPM publication happens via GitHub Actions
+
+#### Additional release commands:
+
+- `npm run release:dry-run` - See what version would be released
+- `npm run sync-versions` - Manually sync versions between package.json and server.json
+- `npm run mcp:publish` - Manually publish to MCP registry
+
+#### Requirements:
+
+- [GitHub CLI (gh)](https://cli.github.com/) must be installed and authenticated
+- [MCP Publisher CLI](https://github.com/modelcontextprotocol/registry) for MCP registry publishing
 
 ## License
 

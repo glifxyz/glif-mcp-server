@@ -6,10 +6,10 @@ import type { ToolResponse, ToolDefinition } from "../tools/index.js";
 /**
  * Base tool configuration for consistent tool creation
  */
-export interface BaseToolConfig<T extends z.ZodType> {
+export interface BaseToolConfig {
   name: string;
   description: string;
-  schema: T;
+  schema: z.ZodType;
   properties: Record<string, unknown>;
   required?: string[];
 }
@@ -17,18 +17,18 @@ export interface BaseToolConfig<T extends z.ZodType> {
 /**
  * Handler function type for tool implementations
  */
-export type ToolHandlerFn<T> = (args: T) => Promise<ToolResponse>;
+export type ToolHandlerFn = (args: any) => Promise<ToolResponse>;
 
 /**
  * Creates a standardized tool definition and handler with consistent error handling
  */
-export function createTool<T extends z.ZodType>(
-  config: BaseToolConfig<T>,
-  handlerFn: ToolHandlerFn<z.infer<T>>
+export function createTool(
+  config: BaseToolConfig,
+  handlerFn: ToolHandlerFn
 ): {
   definition: ToolDefinition;
   handler: (request: ToolRequest) => Promise<ToolResponse>;
-  schema: T;
+  schema: z.ZodType;
 } {
   const definition: ToolDefinition = {
     name: config.name,
@@ -45,7 +45,7 @@ export function createTool<T extends z.ZodType>(
       const args = parseToolArguments(request, config.schema);
       return await handlerFn(args);
     } catch (error) {
-      return handleApiError(error, config.name);
+      handleApiError(error, config.name);
     }
   };
 

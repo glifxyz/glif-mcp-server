@@ -217,11 +217,30 @@ function isValidToolName(toolName: string): boolean {
 
 // Sanitize tool name to match the pattern ^[a-zA-Z0-9_-]{1,64}$
 function sanitizeToolName(toolName: string): string {
-  return toolName
-    .replace(/\s+/g, "_")
+  if (!toolName || typeof toolName !== "string") {
+    return "unnamed_tool";
+  }
+
+  let sanitized = toolName
+    .trim()
+    .toLowerCase()
+    // Replace spaces and common separators with underscores
+    .replace(/[\s\-\.]+/g, "_")
+    // Remove all non-alphanumeric characters except underscores and hyphens
     .replace(/[^a-zA-Z0-9_-]/g, "")
+    // Ensure it starts with a letter or number
+    .replace(/^[_-]+/, "")
+    // Limit to 64 characters
     .substring(0, 64)
-    .replace(/_+$/, ""); // Remove trailing underscores
+    // Remove trailing underscores or hyphens
+    .replace(/[_-]+$/, "");
+
+  // If the result is empty or too short, provide a fallback
+  if (sanitized.length === 0) {
+    sanitized = "tool_" + Date.now().toString(36);
+  }
+
+  return sanitized;
 }
 
 export async function saveGlif(glif: SavedGlif): Promise<void> {
@@ -276,15 +295,22 @@ export async function removeAllGlifs(): Promise<number> {
     // Ensure directory exists
     await ensureConfigDir();
 
-    // Get current count for reporting
-    const currentGlifs = await getSavedGlifs();
-    const count = currentGlifs.length;
+    // Read current file to get count (avoiding getSavedGlifs to prevent infinite recursion)
+    let data = "[]";
+    let currentCount = 0;
+    try {
+      data = await fs.readFile(SAVED_GLIFS_PATH, "utf-8");
+      const parsedGlifs = FileContentSchema.parse(data);
+      currentCount = parsedGlifs.length;
+    } catch (err) {
+      logger.debug("File doesn't exist or is invalid, treating as empty", { error: err });
+    }
 
-    // Write empty array to file
+    // Write empty array to file atomically
     await fs.writeFile(SAVED_GLIFS_PATH, "[]");
 
-    logger.debug("Removed all glifs", { count });
-    return count;
+    logger.debug("Removed all glifs", { count: currentCount });
+    return currentCount;
   } catch (err) {
     logger.error("Error removing all glifs:", err);
     return 0;

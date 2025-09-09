@@ -13,8 +13,6 @@ import * as utils from "../src/utils/utils.js";
 
 vi.mock("../src/api");
 vi.mock("fs/promises");
-vi.mock("../src/utils/utils.js");
-vi.mock("../src/saved-glifs");
 
 const createSavedGlif = (id: string, num: number): SavedGlif => ({
   id,
@@ -127,7 +125,6 @@ describe("Integration Tests for Saved Glifs", () => {
     });
 
     vi.mocked(fs.readFile).mockResolvedValue(JSON.stringify([savedGlif]));
-    vi.mocked(utils.formatOutput).mockReturnValue(sampleRunResult.output);
     vi.spyOn(savedGlifsModule, "getSavedGlifs").mockResolvedValue([savedGlif]);
 
     const toolsResult = await listToolsHandler({});

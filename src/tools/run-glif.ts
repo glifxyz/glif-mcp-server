@@ -39,12 +39,15 @@ export const definition = {
 
 export async function handler(request: ToolRequest): Promise<ToolResponse> {
   const args = parseToolArguments(request, schema);
-  console.error("[DEBUG] run-glif handler V2.0 (MCP multimedia) called with:", { id: args.id, inputsLength: args.inputs.length });
-  
+  console.error("[DEBUG] run-glif handler V2.0 (MCP multimedia) called with:", {
+    id: args.id,
+    inputsLength: args.inputs.length,
+  });
+
   const result = await runGlif(args.id, args.inputs);
-  console.error("[DEBUG] runGlif result:", { 
-    output: result.output?.slice(0, 100) + "...", 
-    outputFull: result.outputFull 
+  console.error("[DEBUG] runGlif result:", {
+    output: result.output?.slice(0, 100) + "...",
+    outputFull: result.outputFull,
   });
 
   // Create MCP-compliant content blocks with multimedia support
@@ -52,7 +55,10 @@ export async function handler(request: ToolRequest): Promise<ToolResponse> {
   console.error("[DEBUG] createContentBlocks result:", content);
 
   // Create structured content for JSON outputs if applicable
-  const structuredContent = createStructuredContent(result.output, result.outputFull);
+  const structuredContent = createStructuredContent(
+    result.output,
+    result.outputFull
+  );
   console.error("[DEBUG] structuredContent:", structuredContent);
 
   const response = {

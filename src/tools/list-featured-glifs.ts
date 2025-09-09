@@ -1,9 +1,6 @@
 import { z } from "zod";
-import { CallToolRequestSchema } from "@modelcontextprotocol/sdk/types.js";
 import { searchGlifs } from "../api.js";
 import type { ToolResponse } from "./index.js";
-
-type CallToolRequest = z.infer<typeof CallToolRequestSchema>;
 
 export const schema = z.object({});
 
@@ -17,7 +14,7 @@ export const definition = {
   },
 };
 
-export async function handler(request: CallToolRequest): Promise<ToolResponse> {
+export async function handler(): Promise<ToolResponse> {
   const glifs = await searchGlifs({ featured: true });
   const formattedGlifs = glifs
     .map(

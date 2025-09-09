@@ -1,7 +1,6 @@
 import { z } from "zod";
 import { getSavedGlifs } from "../saved-glifs.js";
 import { logger } from "../utils/utils.js";
-import { parseToolArguments, type ToolRequest } from "../utils/request-parsing.js";
 import type { ToolResponse } from "./index.js";
 
 export const schema = z.object({});
@@ -16,8 +15,7 @@ export const definition = {
   },
 };
 
-export async function handler(request: ToolRequest): Promise<ToolResponse> {
-  const args = parseToolArguments(request, schema);
+export async function handler(): Promise<ToolResponse> {
   const savedGlifs = await getSavedGlifs();
 
   // Ensure savedGlifs is a valid array with content

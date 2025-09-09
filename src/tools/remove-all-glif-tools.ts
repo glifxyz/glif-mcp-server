@@ -1,10 +1,7 @@
 import { z } from "zod";
-import { CallToolRequestSchema } from "@modelcontextprotocol/sdk/types.js";
 import { removeAllGlifs } from "../saved-glifs.js";
 import { logger } from "../utils/utils.js";
 import type { ToolResponse } from "./index.js";
-
-type CallToolRequest = z.infer<typeof CallToolRequestSchema>;
 
 export const schema = z.object({});
 
@@ -18,7 +15,7 @@ export const definition = {
   },
 };
 
-export async function handler(request: CallToolRequest): Promise<ToolResponse> {
+export async function handler(): Promise<ToolResponse> {
   try {
     const count = await removeAllGlifs();
     return {

@@ -207,9 +207,11 @@ export function setupToolHandlers(server: Server) {
 
     // Check if this is a server config glif tool
     const glifIdMatch = request.params.name.match(/^glif_(.+)$/);
+    const glifId = glifIdMatch?.[1];
     if (
       glifIdMatch &&
-      GLIF_IDS.includes(glifIdMatch[1]) &&
+      glifId &&
+      GLIF_IDS.includes(glifId) &&
       request.params.arguments
     ) {
       const args = z
@@ -220,7 +222,7 @@ export function setupToolHandlers(server: Server) {
         params: {
           ...request.params,
           arguments: {
-            id: glifIdMatch[1],
+            id: glifId,
             inputs: args.inputs,
           },
         },

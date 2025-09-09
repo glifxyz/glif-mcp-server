@@ -43,11 +43,17 @@ export async function handler(request: ToolRequest): Promise<ToolResponse> {
   try {
     const args = parseToolArguments(request, schema);
 
-    const bots = await listBots({
-      sort: args.sort,
-      creator: args.username,
-      searchQuery: args.searchQuery,
-    });
+    const params: {
+      sort?: "new" | "popular" | "featured";
+      creator?: string;
+      searchQuery?: string;
+    } = {};
+    
+    if (args.sort) params.sort = args.sort;
+    if (args.username) params.creator = args.username;
+    if (args.searchQuery) params.searchQuery = args.searchQuery;
+    
+    const bots = await listBots(params);
 
     // Format the bot list
     const formattedBots = bots

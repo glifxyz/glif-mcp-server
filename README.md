@@ -224,11 +224,31 @@ You can also look at the glif-mcp logs inside the Claude logs directy if you're 
 
 ### Releasing a new version
 
-1. Edit `package.json` and `src/index.ts` and bump the version number
-2. Run `npm install` to update the versions stored in the lockfile
-3. Commit and push your changes to GitHub and merge to main
-4. If you have [gh](https://cli.github.com/) installed, switch to main and run `npm run release` which will create a git tag for the new version, push that tag to github, and use `gh release create` to publish a new version with an automatically-generated changelog. If you don't have `gh`, you can do the above manually in the GitHub web UI
-5. A GitHub Action will use the `NPM_TOKEN` secret to publish it to NPM
+1. **Bump version**: Edit `package.json` and bump the version number
+2. **Sync MCP config**: Run `npm run sync-versions` to update `server.json` 
+3. **Update dependencies**: Run `npm install` to update the lockfile
+4. **Commit changes**: Commit and push your changes to GitHub and merge to main
+5. **Release**: Switch to main branch and run `npm run release`
+
+The release script will:
+- ✅ Verify you're on the main branch
+- 🏷️ Create and push a git tag
+- 📝 Generate a changelog and create a GitHub release
+
+GitHub Actions will then automatically:
+- 📤 Publish to NPM registry
+- 🕐 Wait for NPM package to be available
+- 🌐 Publish to MCP registry
+
+
+#### Requirements:
+
+- [GitHub CLI (gh)](https://cli.github.com/) must be installed and authenticated
+- jq
+- GitHub repository secrets configured:
+  - `NPM_TOKEN` - For NPM publishing
+  - MCP Registry tokens too probably (TODO)
+
 
 ## License
 

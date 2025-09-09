@@ -16,3 +16,33 @@ jobs:
       - run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+
+  publish-mcp:
+    needs: publish-npm
+    runs-on: ubuntu-latest
+    if: ${{ always() && needs.publish-npm.result == 'success' }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install MCP Publisher
+        run: |
+          curl -L "https://github.com/modelcontextprotocol/registry/releases/download/v1.0.0/mcp-publisher_1.0.0_linux_amd64.tar.gz" | tar xz
+          sudo mv mcp-publisher /usr/local/bin/
+      - name: Wait for NPM package availability
+        run: |
+          PACKAGE_NAME=$(jq -r .name package.json)
+          VERSION=$(jq -r .version package.json)
+          echo "Waiting for $PACKAGE_NAME@$VERSION to be available on NPM..."
+          for i in {1..12}; do
+            if curl -f -s "https://registry.npmjs.org/$PACKAGE_NAME/$VERSION" >/dev/null; then
+              echo "Package is available on NPM"
+              break
+            fi
+            echo "Package not yet available, waiting 30s... (attempt $i/12)"
+            sleep 30
+          done
+      - name: Publish to MCP Registry
+        run: mcp-publisher publish
+        env:
+          # Add your MCP registry authentication here
+          # For GitHub auth, this should work automatically in GitHub Actions
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -224,33 +224,33 @@ You can also look at the glif-mcp logs inside the Claude logs directy if you're 
 
 ### Releasing a new version
 
-The release process is now automated with proper version synchronization between `package.json` and `server.json`:
-
 1. **Bump version**: Edit `package.json` and bump the version number
-2. **Update dependencies**: Run `npm install` to update the lockfile
-3. **Commit changes**: Commit and push your changes to GitHub and merge to main
-4. **Release**: Switch to main branch and run `npm run release`
+2. **Sync MCP config**: Run `npm run sync-versions` to update `server.json` 
+3. **Update dependencies**: Run `npm install` to update the lockfile
+4. **Commit changes**: Commit and push your changes to GitHub and merge to main
+5. **Release**: Switch to main branch and run `npm run release`
 
-The release script will automatically:
-- ✅ Verify you're on the main branch with a clean working directory
-- 🔄 Sync versions between `package.json` and `server.json`  
-- 🧪 Run tests and build the project
-- 🔍 Run type checking
+The release script will:
+- ✅ Verify you're on the main branch
 - 🏷️ Create and push a git tag
 - 📝 Generate a changelog and create a GitHub release
-- 🌐 Publish to the MCP registry (if configured)
-- 📤 NPM publication happens via GitHub Actions
 
-#### Additional release commands:
+**GitHub Actions will then automatically:**
+- 📤 Publish to NPM registry
+- 🕐 Wait for NPM package to be available
+- 🌐 Publish to MCP registry (after NPM publication succeeds)
 
-- `npm run release:dry-run` - See what version would be released
-- `npm run sync-versions` - Manually sync versions between package.json and server.json
+#### Manual commands:
+
+- `npm run sync-versions` - Sync versions between package.json and server.json
 - `npm run mcp:publish` - Manually publish to MCP registry
+- `npm run mcp:init` - Initialize MCP registry configuration
 
 #### Requirements:
 
 - [GitHub CLI (gh)](https://cli.github.com/) must be installed and authenticated
-- [MCP Publisher CLI](https://github.com/modelcontextprotocol/registry) for MCP registry publishing
+- GitHub repository secrets configured:
+  - `NPM_TOKEN` - For NPM publishing
 
 ## License
 

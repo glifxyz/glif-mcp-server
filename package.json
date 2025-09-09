@@ -25,7 +25,8 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "logs:claude": "tail -f -n 5 ~/Library/Logs/Claude/**glif*.log",
-    "release": "scripts/release.sh"
+    "release": "BRANCH=$(git branch --show-current) && [ \"$BRANCH\" = \"main\" ] || (echo \"Error: Must be on main branch to release\" && exit 1) && VERSION=$(jq -r .version package.json) && REPO=$(gh repo view --json nameWithOwner -q .nameWithOwner) && git tag v$VERSION && git push origin --tags && PREV_TAG=$(git describe --tags --abbrev=0 v$VERSION^ 2>/dev/null || echo '') && NOTES=$(git log --pretty=format:\"- [%h](https://github.com/$REPO/commit/%H) %s\" ${PREV_TAG:+$PREV_TAG..}HEAD) && gh release create v$VERSION --fail-on-no-commits --notes \"$NOTES\"",
+    "sync-versions": "jq --arg v $(jq -r .version package.json) --arg pkg $(jq -r .name package.json) '.version=$v | .packages=(.packages|map(if .registry_type==\"npm\" and .identifier==$pkg then .version=$v else . end))' server.json > server.json.tmp && mv server.json.tmp server.json && echo '✅ Versions synced'"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.17.5",

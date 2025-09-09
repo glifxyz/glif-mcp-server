@@ -1,15 +1,31 @@
 import type { ContentBlock } from "@modelcontextprotocol/sdk/types.js";
-import { getMimeType, isImageUrl, isAudioUrl, isVideoUrl, urlToBase64 } from "./utils.js";
+import {
+  getMimeType,
+  isImageUrl,
+  isAudioUrl,
+  isVideoUrl,
+  urlToBase64,
+} from "./utils.js";
+
+/**
+ * Type for glif output metadata with better type safety
+ */
+export interface GlifOutputMetadata {
+  type: "IMAGE" | "AUDIO" | "VIDEO" | "JSON" | "HTML" | "TEXT" | string;
+  [key: string]: unknown;
+}
 
 /**
  * Truncate base64 data in content blocks for cleaner logging
  */
-export function truncateBase64InContentBlocks(blocks: ContentBlock[]): ContentBlock[] {
-  return blocks.map(block => {
-    if ((block.type === 'image' || block.type === 'audio') && 'data' in block) {
+export function truncateBase64InContentBlocks(
+  blocks: ContentBlock[]
+): ContentBlock[] {
+  return blocks.map((block) => {
+    if ((block.type === "image" || block.type === "audio") && "data" in block) {
       return {
         ...block,
-        data: block.data ? '[base64_encoded_data_hidden]' : block.data
+        data: block.data ? "[base64_encoded_data_hidden]" : block.data,
       };
     }
     return block;
@@ -26,10 +42,11 @@ async function createMultimediaBlocks(
 ): Promise<ContentBlock[]> {
   const blocks: ContentBlock[] = [];
   const mimeType = getMimeType(output);
-  const capitalizedType = mediaType.charAt(0).toUpperCase() + mediaType.slice(1);
-  
+  const capitalizedType =
+    mediaType.charAt(0).toUpperCase() + mediaType.slice(1);
+
   console.error(`[DEBUG] Adding multiple formats for ${mediaType}...`);
-  
+
   // 1. Resource link for MCP-compliant clients
   blocks.push({
     type: "resource",
@@ -39,7 +56,7 @@ async function createMultimediaBlocks(
       mimeType,
     },
   });
-  
+
   // 2. Base64 embedded content for immediate display/playback (images and audio only)
   if (mediaType === "image" || mediaType === "audio") {
     try {
@@ -52,20 +69,41 @@ async function createMultimediaBlocks(
       } as ContentBlock);
       console.error(`[DEBUG] Successfully added base64 ${mediaType}`);
     } catch (error) {
-      console.error(`[DEBUG] Failed to convert ${mediaType} to base64:`, error);
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      console.error(`[DEBUG] Failed to convert ${mediaType} to base64:`, {
+        error: errorMsg,
+        url: output,
+        mediaType,
+      });
+
+      // Log specific error types for monitoring
+      if (errorMsg.includes("timeout")) {
+        console.error(
+          `[WARNING] Network timeout for ${mediaType} URL: ${output}`
+        );
+      } else if (errorMsg.includes("too large")) {
+        console.error(
+          `[WARNING] File size exceeded for ${mediaType} URL: ${output}`
+        );
+      } else if (errorMsg.includes("Private/local IP")) {
+        console.error(
+          `[SECURITY] SSRF attempt blocked for ${mediaType} URL: ${output}`
+        );
+      }
     }
   }
-  
+
   // 3. Text format for maximum compatibility
-  const textContent = mediaType === "image" 
-    ? `![Generated ${capitalizedType}](${output})`
-    : `${emoji || "📄"} ${capitalizedType}: ${output}`;
-  
+  const textContent =
+    mediaType === "image"
+      ? `![Generated ${capitalizedType}](${output})`
+      : `${emoji || "📄"} ${capitalizedType}: ${output}`;
+
   blocks.push({
     type: "text",
     text: textContent,
   });
-  
+
   return blocks;
 }
 
@@ -74,7 +112,7 @@ async function createMultimediaBlocks(
  */
 export async function createContentBlocks(
   output: string | null,
-  outputFull?: { type: string; [key: string]: unknown }
+  outputFull?: GlifOutputMetadata
 ): Promise<ContentBlock[]> {
   console.error("[DEBUG] createContentBlocks called with:", {
     output: output?.slice(0, 100) + "...",
@@ -93,12 +131,15 @@ export async function createContentBlocks(
   try {
     switch (type) {
       case "IMAGE":
-        console.error("[DEBUG] Processing IMAGE type, checking if isImageUrl:", {
-          output,
-          isImage: isImageUrl(output),
-        });
+        console.error(
+          "[DEBUG] Processing IMAGE type, checking if isImageUrl:",
+          {
+            output,
+            isImage: isImageUrl(output),
+          }
+        );
         if (isImageUrl(output)) {
-          blocks.push(...await createMultimediaBlocks(output, "image"));
+          blocks.push(...(await createMultimediaBlocks(output, "image")));
         } else {
           console.error("[DEBUG] Not a valid image URL, using fallback");
           blocks.push({ type: "text", text: `[Image] ${output}` });
@@ -107,7 +148,7 @@ export async function createContentBlocks(
 
       case "AUDIO":
         if (isAudioUrl(output)) {
-          blocks.push(...await createMultimediaBlocks(output, "audio", "🔊"));
+          blocks.push(...(await createMultimediaBlocks(output, "audio", "🔊")));
         } else {
           blocks.push({ type: "text", text: `[Audio] ${output}` });
         }
@@ -115,7 +156,7 @@ export async function createContentBlocks(
 
       case "VIDEO":
         if (isVideoUrl(output)) {
-          blocks.push(...await createMultimediaBlocks(output, "video", "🎥"));
+          blocks.push(...(await createMultimediaBlocks(output, "video", "🎥")));
         } else {
           blocks.push({ type: "text", text: `[Video] ${output}` });
         }
@@ -158,7 +199,7 @@ export async function createContentBlocks(
  */
 export function createStructuredContent(
   output: string | null,
-  outputFull?: { type: string; [key: string]: unknown }
+  outputFull?: GlifOutputMetadata
 ): Record<string, unknown> | null {
   // Only create structured content for JSON outputs
   if (outputFull?.type?.toUpperCase() === "JSON" && output) {

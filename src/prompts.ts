@@ -7,7 +7,10 @@ import {
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { getGlifDetails, runGlif, searchGlifs } from "./api.js";
 import { handleApiError, logger } from "./utils/utils.js";
-import { createContentBlocks } from "./utils/content-blocks.js";
+import {
+  createContentBlocks,
+  type GlifOutputMetadata,
+} from "./utils/content-blocks.js";
 import type { ContentBlock } from "@modelcontextprotocol/sdk/types.js";
 
 /**
@@ -25,29 +28,42 @@ const PROMPTS = [
  */
 async function formatPromptOutput(
   output: string,
-  outputFull: { type: string; [key: string]: unknown }
+  outputFull: GlifOutputMetadata
 ): Promise<string> {
   const contentBlocks = await createContentBlocks(output, outputFull);
 
-  // Convert content blocks to text for prompt display
-  return contentBlocks
-    .map((block: ContentBlock) => {
-      switch (block.type) {
-        case "text":
-          return block.text;
-        case "image":
-          return `🖼️ **Image Generated**\n*MIME Type: ${
-            block.mimeType
-          }*\n*Data: ${block.data.slice(0, 50)}...*`;
-        case "audio":
-          return `🎧 **Audio Generated**\n*MIME Type: ${
-            block.mimeType
-          }*\n*Data: ${block.data.slice(0, 50)}...*`;
-        default:
-          return "[Unknown content type]";
-      }
-    })
-    .join("\n\n");
+  // Convert content blocks to text for prompt display with consistent formatting
+  const formatContentBlock = (block: ContentBlock): string => {
+    switch (block.type) {
+      case "text":
+        return block.text;
+
+      case "image":
+        return `🖼️ **Image Generated**\n*MIME Type: ${
+          block.mimeType || "unknown"
+        }*\n*Preview: [base64 data, ${block.data?.length || 0} characters]*`;
+
+      case "audio":
+        return `🎧 **Audio Generated**\n*MIME Type: ${
+          block.mimeType || "unknown"
+        }*\n*Preview: [base64 data, ${block.data?.length || 0} characters]*`;
+
+      case "resource":
+        const resourceUri =
+          typeof block.resource === "object" &&
+          block.resource !== null &&
+          "uri" in block.resource
+            ? String(block.resource.uri)
+            : "unknown";
+        return `🔗 **Resource Link**\n*URI: ${resourceUri}*`;
+
+      default:
+        logger.debug(`Unsupported content block type: ${block.type}`);
+        return `[Unsupported content type: ${block.type}]`;
+    }
+  };
+
+  return contentBlocks.map(formatContentBlock).join("\n\n");
 }
 
 /**

@@ -53,7 +53,10 @@ export async function handler(request: ToolRequest): Promise<ToolResponse> {
 
   // Create MCP-compliant content blocks with multimedia support
   const content = await createContentBlocks(result.output, result.outputFull);
-  console.error("[DEBUG] createContentBlocks result:", truncateBase64InContentBlocks(content));
+  console.error(
+    "[DEBUG] createContentBlocks result:",
+    truncateBase64InContentBlocks(content)
+  );
 
   // Create structured content for JSON outputs if applicable
   const structuredContent = createStructuredContent(
@@ -68,7 +71,7 @@ export async function handler(request: ToolRequest): Promise<ToolResponse> {
   };
   console.error("[DEBUG] final response:", {
     ...response,
-    content: truncateBase64InContentBlocks(response.content)
+    content: truncateBase64InContentBlocks(response.content),
   });
 
   return response;

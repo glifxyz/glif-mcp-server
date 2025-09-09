@@ -1,10 +1,11 @@
 import { z } from "zod";
-import { CallToolRequestSchema } from "@modelcontextprotocol/sdk/types.js";
 import { getGlifDetails } from "../api.js";
-import { formatOutput } from "../utils.js";
+import { formatOutput } from "../utils/utils.js";
+import {
+  parseToolArguments,
+  type ToolRequest,
+} from "../utils/request-parsing.js";
 import type { ToolResponse } from "./index.js";
-
-type CallToolRequest = z.infer<typeof CallToolRequestSchema>;
 
 export const schema = z.object({
   id: z.string(),
@@ -25,8 +26,8 @@ export const definition = {
   },
 };
 
-export async function handler(request: CallToolRequest): Promise<ToolResponse> {
-  const args = schema.parse(request.params.arguments);
+export async function handler(request: ToolRequest): Promise<ToolResponse> {
+  const args = parseToolArguments(request, schema);
   const { glif, recentRuns } = await getGlifDetails(args.id);
 
   // Extract input field names from glif data

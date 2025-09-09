@@ -1,9 +1,10 @@
 import { z } from "zod";
-import { CallToolRequestSchema } from "@modelcontextprotocol/sdk/types.js";
+import {
+  parseToolArguments,
+  type ToolRequest,
+} from "../utils/request-parsing.js";
 import { searchGlifs } from "../api.js";
 import type { ToolResponse } from "./index.js";
-
-type CallToolRequest = z.infer<typeof CallToolRequestSchema>;
 
 export const schema = z.object({
   query: z.string(),
@@ -24,8 +25,8 @@ export const definition = {
   },
 };
 
-export async function handler(request: CallToolRequest): Promise<ToolResponse> {
-  const args = schema.parse(request.params.arguments);
+export async function handler(request: ToolRequest): Promise<ToolResponse> {
+  const args = parseToolArguments(request, schema);
   const glifs = await searchGlifs({ q: args.query });
   const formattedGlifs = glifs
     .map(

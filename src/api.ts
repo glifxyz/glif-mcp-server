@@ -25,7 +25,7 @@ import {
   handleUnauthorized,
   logger,
   validateWithSchema,
-} from "./utils.js";
+} from "./utils/utils.js";
 
 const API_TOKEN = process.env.GLIF_API_TOKEN;
 if (!API_TOKEN) {
@@ -273,4 +273,4 @@ export function searchBots(query: string) {
   return getBots({ searchQuery: query });
 }
 
-// formatOutput is now imported from utils.js
+// formatOutput is now imported from utils/utils.js

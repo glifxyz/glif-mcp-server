@@ -1,11 +1,12 @@
 import { z } from "zod";
-import { CallToolRequestSchema } from "@modelcontextprotocol/sdk/types.js";
+import {
+  parseToolArguments,
+  type ToolRequest,
+} from "../utils/request-parsing.js";
 import { loadBot } from "../api.js";
 import { saveGlif } from "../saved-glifs.js";
-import { logger } from "../utils.js";
+import { logger } from "../utils/utils.js";
 import type { ToolResponse } from "./index.js";
-
-type CallToolRequest = z.infer<typeof CallToolRequestSchema>;
 
 export const schema = z.object({
   id: z.string(),
@@ -31,9 +32,9 @@ export const definition = {
   },
 };
 
-export async function handler(request: CallToolRequest): Promise<ToolResponse> {
+export async function handler(request: ToolRequest): Promise<ToolResponse> {
   try {
-    const args = schema.parse(request.params.arguments);
+    const args = parseToolArguments(request, schema);
     const bot = await loadBot(args.id);
 
     if (!bot.spellsForBot || bot.spellsForBot.length === 0) {

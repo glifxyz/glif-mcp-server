@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { CallToolRequestSchema } from "@modelcontextprotocol/sdk/types.js";
 import { getMyUserInfo, getMyGlifs, getMyRecentRuns } from "../api.js";
-import { formatOutput } from "../utils.js";
+import { formatOutput } from "../utils/utils.js";
 import type { ToolResponse } from "./index.js";
 
 type CallToolRequest = z.infer<typeof CallToolRequestSchema>;

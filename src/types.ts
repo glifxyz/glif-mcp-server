@@ -16,7 +16,7 @@ export const SimplifiedGlifSchema = z
       })
       .optional(),
     averageDuration: z.number().nullable().optional(),
-    inputs: z.record(z.string()).optional(),
+    inputs: z.record(z.string(), z.string()).optional(),
   })
   .passthrough();
 
@@ -137,7 +137,7 @@ export const GlifSchema = z.object({
             .object({
               label: z.string().nullable().optional(),
             })
-            .and(z.record(z.unknown())),
+            .and(z.record(z.string(), z.unknown())),
         })
       ),
     })
@@ -157,7 +157,7 @@ export const GlifRunSchema = z.object({
   totalDuration: z.number().nullable(),
   public: z.boolean().optional(),
   clientType: z.string().optional(),
-  inputs: z.record(z.unknown()).optional(),
+  inputs: z.record(z.string(), z.unknown()).optional(),
   spellId: z.string(),
   outputImageWidth: z.number().nullable(),
   outputImageHeight: z.number().nullable(),
@@ -180,13 +180,13 @@ export const GlifRunSchema = z.object({
 // Glif run response schema
 export const GlifRunResponseSchema = z.object({
   id: z.string(),
-  inputs: z.record(z.string()),
+  inputs: z.record(z.string(), z.string()),
   output: z.string().nullable(), // Allow null values for output
   outputFull: z
     .object({
       type: z.string(),
     })
-    .and(z.record(z.unknown()))
+    .and(z.record(z.string(), z.unknown()))
     .optional(), // Make outputFull optional
 });
 

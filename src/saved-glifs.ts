@@ -2,7 +2,7 @@ import { z } from "zod";
 import fs from "fs/promises";
 import path from "path";
 import { fileURLToPath } from "url";
-import { logger, safeJsonParse, validateWithSchema } from "./utils.js";
+import { logger, safeJsonParse, validateWithSchema } from "./utils/utils.js";
 import { getGlifDetails } from "./api.js";
 
 // Define the schema for saved glifs

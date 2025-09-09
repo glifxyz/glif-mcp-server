@@ -1,10 +1,8 @@
 import { z } from "zod";
-import { CallToolRequestSchema } from "@modelcontextprotocol/sdk/types.js";
 import { getSavedGlifs } from "../saved-glifs.js";
-import { logger } from "../utils.js";
+import { logger } from "../utils/utils.js";
+import { parseToolArguments, type ToolRequest } from "../utils/request-parsing.js";
 import type { ToolResponse } from "./index.js";
-
-type CallToolRequest = z.infer<typeof CallToolRequestSchema>;
 
 export const schema = z.object({});
 
@@ -18,7 +16,8 @@ export const definition = {
   },
 };
 
-export async function handler(request: CallToolRequest): Promise<ToolResponse> {
+export async function handler(request: ToolRequest): Promise<ToolResponse> {
+  const args = parseToolArguments(request, schema);
   const savedGlifs = await getSavedGlifs();
 
   // Ensure savedGlifs is a valid array with content

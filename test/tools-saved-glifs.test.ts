@@ -8,11 +8,11 @@ import * as api from "../src/api";
 import * as savedGlifsModule from "../src/saved-glifs";
 import { setupToolHandlers } from "../src/tools/index.js";
 import { SavedGlif } from "../src/saved-glifs";
-import * as utils from "../src/utils";
+import * as utils from "../src/utils/utils.js";
 
 vi.mock("../src/api");
 vi.mock("../src/saved-glifs");
-vi.mock("../src/utils");
+vi.mock("../src/utils/utils.js");
 
 const createSavedGlif = (id: string, num: number): SavedGlif => ({
   id,

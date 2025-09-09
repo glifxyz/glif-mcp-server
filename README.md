@@ -235,22 +235,20 @@ The release script will:
 - 🏷️ Create and push a git tag
 - 📝 Generate a changelog and create a GitHub release
 
-**GitHub Actions will then automatically:**
+GitHub Actions will then automatically:
 - 📤 Publish to NPM registry
 - 🕐 Wait for NPM package to be available
-- 🌐 Publish to MCP registry (after NPM publication succeeds)
+- 🌐 Publish to MCP registry
 
-#### Manual commands:
-
-- `npm run sync-versions` - Sync versions between package.json and server.json
-- `npm run mcp:publish` - Manually publish to MCP registry
-- `npm run mcp:init` - Initialize MCP registry configuration
 
 #### Requirements:
 
 - [GitHub CLI (gh)](https://cli.github.com/) must be installed and authenticated
+- jq
 - GitHub repository secrets configured:
   - `NPM_TOKEN` - For NPM publishing
+  - MCP Registry tokens too probably (TODO)
+
 
 ## License
 

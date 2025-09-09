@@ -186,8 +186,6 @@ export async function getMyRecentRuns(): Promise<GlifRun[]> {
   const userId = cachedUserId ?? (await getMyUserInfo()).id;
   logger.debug("getMyRecentRuns", { userId });
 
-  const unused = "whatevr";
-
   return apiRequest<GlifRun[]>("/runs", "get", {
     queryParams: { userId },
     schema: z.array(GlifRunSchema),

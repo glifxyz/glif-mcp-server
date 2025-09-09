@@ -4,6 +4,7 @@ import {
   ListToolsRequestSchema,
   ErrorCode,
   McpError,
+  type CallToolResult,
 } from "@modelcontextprotocol/sdk/types.js";
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { getSavedGlifs, SavedGlif } from "../saved-glifs.js";
@@ -26,12 +27,8 @@ export type ToolDefinition = {
   };
 };
 
-export type ToolResponse = {
-  content: Array<{
-    type: string;
-    text: string;
-  }>;
-};
+// Use the official MCP ContentBlock types for multimedia support
+export type ToolResponse = CallToolResult;
 
 export type ToolHandler = (
   request: z.infer<typeof CallToolRequestSchema>

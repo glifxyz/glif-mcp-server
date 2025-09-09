@@ -4,7 +4,10 @@ import {
   type ToolRequest,
 } from "../utils/request-parsing.js";
 import { runGlif } from "../api.js";
-import { formatOutput } from "../utils/utils.js";
+import {
+  createContentBlocks,
+  createStructuredContent,
+} from "../utils/utils.js";
 import type { ToolResponse } from "./index.js";
 
 export const schema = z.object({
@@ -38,24 +41,14 @@ export async function handler(request: ToolRequest): Promise<ToolResponse> {
   const args = parseToolArguments(request, schema);
   const result = await runGlif(args.id, args.inputs);
 
-  // Handle case where outputFull might be undefined or output might be null
-  if (!result.outputFull || result.output === null) {
-    return {
-      content: [
-        {
-          type: "text",
-          text: "No output received from glif run",
-        },
-      ],
-    };
-  }
+  // Create MCP-compliant content blocks with multimedia support
+  const content = await createContentBlocks(result.output, result.outputFull);
+
+  // Create structured content for JSON outputs if applicable
+  const structuredContent = createStructuredContent(result.output, result.outputFull);
 
   return {
-    content: [
-      {
-        type: "text",
-        text: formatOutput(result.outputFull.type, result.output),
-      },
-    ],
+    content,
+    ...(structuredContent && { structuredContent }),
   };
 }

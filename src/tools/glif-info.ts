@@ -1,6 +1,5 @@
 import { z } from "zod";
 import { getGlifDetails } from "../api.js";
-import { formatOutput } from "../utils/utils.js";
 import {
   parseToolArguments,
   type ToolRequest,
@@ -57,11 +56,7 @@ export async function handler(request: ToolRequest): Promise<ToolResponse> {
       (run) =>
         `Time: ${new Date(run.createdAt).toLocaleString()}
 Duration: ${run.totalDuration}ms
-Output: ${
-          run.output
-            ? formatOutput(run.outputType ?? "TEXT", run.output)
-            : "No output"
-        }
+Output: ${run.output || "No output"}
 By: ${run.user.name} (@${run.user.username})
 ${
   run.inputs

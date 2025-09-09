@@ -48,11 +48,11 @@ export async function handler(request: ToolRequest): Promise<ToolResponse> {
       creator?: string;
       searchQuery?: string;
     } = {};
-    
+
     if (args.sort) params.sort = args.sort;
     if (args.username) params.creator = args.username;
     if (args.searchQuery) params.searchQuery = args.searchQuery;
-    
+
     const bots = await listBots(params);
 
     // Format the bot list

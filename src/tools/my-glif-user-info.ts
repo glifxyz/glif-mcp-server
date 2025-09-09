@@ -1,6 +1,5 @@
 import { z } from "zod";
 import { getMyUserInfo, getMyGlifs, getMyRecentRuns } from "../api.js";
-import { formatOutput } from "../utils/utils.js";
 import type { ToolResponse } from "./index.js";
 
 export const schema = z.object({});
@@ -53,9 +52,7 @@ export async function handler(): Promise<ToolResponse> {
           `- ${run.spell.name}\n  Time: ${new Date(
             run.createdAt
           ).toLocaleString()}\n  Duration: ${run.totalDuration}ms\n  Output: ${
-            run.output
-              ? formatOutput(run.outputType ?? "TEXT", run.output)
-              : "No output"
+            run.output || "No output"
           }`
       ),
   ].filter(Boolean);

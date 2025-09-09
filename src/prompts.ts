@@ -6,7 +6,7 @@ import {
 } from "@modelcontextprotocol/sdk/types.js";
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { getGlifDetails, runGlif, searchGlifs } from "./api.js";
-import { formatOutput, handleApiError, logger } from "./utils/utils.js";
+import { handleApiError, logger, createContentBlocks } from "./utils/utils.js";
 
 /**
  * Available prompts
@@ -17,6 +17,36 @@ const PROMPTS = [
     description: "Show and run the most recent featured glif with fun inputs",
   },
 ];
+
+/**
+ * Format output for prompts (text-based with multimedia descriptions)
+ */
+async function formatPromptOutput(
+  output: string,
+  outputFull: { type: string; [key: string]: unknown }
+): Promise<string> {
+  const contentBlocks = await createContentBlocks(output, outputFull);
+
+  // Convert content blocks to text for prompt display
+  return contentBlocks
+    .map((block) => {
+      switch (block.type) {
+        case "text":
+          return block.text;
+        case "image":
+          return `🖼️ **Image Generated**\n*MIME Type: ${
+            block.mimeType
+          }*\n*Data: ${block.data.slice(0, 50)}...*`;
+        case "audio":
+          return `🎧 **Audio Generated**\n*MIME Type: ${
+            block.mimeType
+          }*\n*Data: ${block.data.slice(0, 50)}...*`;
+        default:
+          return "[Unknown content type]";
+      }
+    })
+    .join("\n\n");
+}
 
 /**
  * Generate fun inputs based on field labels/types
@@ -117,7 +147,7 @@ export function setupPromptHandlers(server: Server) {
               .map((f, i) => `${f.params.label ?? f.name}: "${funInputs[i]}"`)
               .join("\n")}\n\nHere's what it created:\n${
               result.output !== null && result.outputFull
-                ? formatOutput(result.outputFull.type, result.output)
+                ? await formatPromptOutput(result.output, result.outputFull)
                 : "No output received"
             }`,
           },

@@ -16,7 +16,6 @@ vi.mock("fs/promises");
 vi.mock("../src/utils/utils.js");
 vi.mock("../src/saved-glifs");
 
-
 const createSavedGlif = (id: string, num: number): SavedGlif => ({
   id,
   toolName: `test_tool_${num}`,

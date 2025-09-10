@@ -1,20 +1,25 @@
 import { z } from "zod";
-import {
-  parseToolArguments,
-  type ToolRequest,
-} from "../utils/request-parsing.js";
 import { searchGlifs } from "../api.js";
-import type { ToolResponse } from "./index.js";
+import { createTool, createTextResponse } from "../utils/tool-factory.js";
+import { formatGlifSearchResults } from "../utils/glif-formatting.js";
 
-export const schema = z.object({
+const schema = z.object({
   query: z.string(),
 });
 
-export const definition = {
-  name: "search_glifs",
-  description: "Search for glifs by query string",
-  inputSchema: {
-    type: "object",
+async function searchGlifsHandler(args: { query: string }): Promise<any> {
+  const glifs = await searchGlifs({ q: args.query });
+  const formattedGlifs = formatGlifSearchResults(glifs);
+
+  return createTextResponse(`Search results for "${args.query}":\n\n${formattedGlifs}`);
+}
+
+// Export the tool using the factory pattern
+export const { definition, handler, schema: exportedSchema } = createTool(
+  {
+    name: "search_glifs",
+    description: "Search for glifs by query string",
+    schema,
     properties: {
       query: {
         type: "string",
@@ -23,24 +28,8 @@ export const definition = {
     },
     required: ["query"],
   },
-};
+  searchGlifsHandler
+);
 
-export async function handler(request: ToolRequest): Promise<ToolResponse> {
-  const args = parseToolArguments(request, schema);
-  const glifs = await searchGlifs({ q: args.query });
-  const formattedGlifs = glifs
-    .map(
-      (glif) =>
-        `${glif.name} (${glif.id})\n${glif.description}\nBy: ${glif.user.name}\nRuns: ${glif.completedSpellRunCount}\n`
-    )
-    .join("\n");
-
-  return {
-    content: [
-      {
-        type: "text",
-        text: `Search results for "${args.query}":\n\n${formattedGlifs}`,
-      },
-    ],
-  };
-}
+// For backward compatibility
+export { exportedSchema as schema };

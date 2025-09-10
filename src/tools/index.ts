@@ -9,12 +9,7 @@ import {
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { getSavedGlifs, SavedGlif } from "../saved-glifs.js";
 import { GLIF_IDS } from "../config.js";
-
-// Helper to check if an environment variable is truthy
-function isEnvEnabled(name: string): boolean {
-  const value = process.env[name]?.toLowerCase();
-  return value === "true" || value === "1" || value === "yes";
-}
+import { env } from "../utils/env.js";
 
 // Types for tool structure
 export type ToolDefinition = {
@@ -143,23 +138,23 @@ export async function getTools(): Promise<{ tools: ToolDefinition[] }> {
   // 1. Add CORE tools (always available)
   tools.push(...Object.values(CORE_TOOLS).map((t) => t.definition));
 
-  // 2. Add DISCOVERY tools (unless IGNORE_DISCOVERY_TOOLS)
-  if (process.env.IGNORE_DISCOVERY_TOOLS !== "true") {
+  // 2. Add DISCOVERY tools (unless disabled)
+  if (env.discovery.enabled()) {
     tools.push(...Object.values(DISCOVERY_TOOLS).map((t) => t.definition));
   }
 
-  // 3. Add METASKILL tools (unless IGNORE_METASKILL_TOOLS)
-  if (process.env.IGNORE_METASKILL_TOOLS !== "true") {
+  // 3. Add METASKILL tools (unless disabled)
+  if (env.metaskill.enabled()) {
     tools.push(...Object.values(METASKILL_TOOLS).map((t) => t.definition));
   }
 
-  // 4. Add BOT tools (disabled by default, enable with BOT_TOOLS=true)
-  if (isEnvEnabled("BOT_TOOLS")) {
+  // 4. Add BOT tools (disabled by default)
+  if (env.bots.enabled()) {
     tools.push(...Object.values(BOT_TOOLS).map((t) => t.definition));
   }
 
-  // 5. Add SAVED_GLIFS tools (unless IGNORE_SAVED_GLIFS)
-  if (process.env.IGNORE_SAVED_GLIFS !== "true") {
+  // 5. Add SAVED_GLIFS tools (unless disabled)
+  if (env.savedGlifs.enabled()) {
     const savedGlifs = await getSavedGlifs();
     if (savedGlifs) {
       tools.push(...savedGlifs.map(createToolFromSavedGlif));
@@ -187,7 +182,7 @@ export function setupToolHandlers(server: Server) {
       args: request.params.arguments,
     });
     // Check if this is a saved glif tool
-    if (process.env.IGNORE_SAVED_GLIFS !== "true") {
+    if (env.savedGlifs.enabled()) {
       const savedGlifs = await getSavedGlifs();
       const savedGlif = savedGlifs?.find(
         (g) => g.toolName === request.params.name
@@ -241,23 +236,23 @@ export function setupToolHandlers(server: Server) {
     }
 
     // Handle discovery tools
-    if (process.env.IGNORE_DISCOVERY_TOOLS !== "true") {
+    if (env.discovery.enabled()) {
       const discoveryTool = DISCOVERY_TOOLS[request.params.name];
       if (discoveryTool) {
         return discoveryTool.handler(request);
       }
     }
 
-    // Handle metaskill tools (unless IGNORE_METASKILL_TOOLS)
-    if (process.env.IGNORE_METASKILL_TOOLS !== "true") {
+    // Handle metaskill tools
+    if (env.metaskill.enabled()) {
       const metaskillTool = METASKILL_TOOLS[request.params.name];
       if (metaskillTool) {
         return metaskillTool.handler(request);
       }
     }
 
-    // Handle bot tools (disabled by default, enable with BOT_TOOLS=true)
-    if (isEnvEnabled("BOT_TOOLS")) {
+    // Handle bot tools
+    if (env.bots.enabled()) {
       const botTool = BOT_TOOLS[request.params.name];
       if (botTool) {
         return botTool.handler(request);

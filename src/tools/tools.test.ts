@@ -4,17 +4,17 @@ import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
-import * as api from "../src/api";
-import * as savedGlifsModule from "../src/saved-glifs";
-import { setupToolHandlers } from "../src/tools/index.js";
-import { SavedGlif } from "../src/saved-glifs";
-import * as utils from "../src/utils/utils.js";
-import * as contentBlocks from "../src/utils/content-blocks.js";
+import * as api from "../api.js";
+import * as savedGlifsModule from "../saved-glifs.js";
+import { setupToolHandlers } from "./index.js";
+import { SavedGlif } from "../saved-glifs.js";
+import * as utils from "../utils/utils.js";
+import * as contentBlocks from "../utils/content-blocks.js";
 
-vi.mock("../src/api");
-vi.mock("../src/saved-glifs");
-vi.mock("../src/utils/utils.js");
-vi.mock("../src/utils/content-blocks.js");
+vi.mock("../api.js");
+vi.mock("../saved-glifs.js");
+vi.mock("../utils/utils.js");
+vi.mock("../utils/content-blocks.js");
 
 const createSavedGlif = (id: string, num: number): SavedGlif => ({
   id,
@@ -286,7 +286,7 @@ describe("Tools with Saved Glifs", () => {
       ]);
       vi.mocked(api.runGlif).mockResolvedValueOnce(sampleRunResult);
       vi.mocked(contentBlocks.createContentBlocks).mockResolvedValueOnce([
-        { type: "text", text: sampleRunResult.output }
+        { type: "text", text: sampleRunResult.output },
       ]);
 
       const result = await callToolHandler({

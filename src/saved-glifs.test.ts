@@ -7,7 +7,7 @@ import {
   saveGlif,
   removeGlif,
   SavedGlif,
-} from "../src/saved-glifs";
+} from "./saved-glifs.js";
 
 vi.mock("fs/promises");
 

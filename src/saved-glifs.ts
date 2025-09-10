@@ -303,7 +303,9 @@ export async function removeAllGlifs(): Promise<number> {
       const parsedGlifs = FileContentSchema.parse(data);
       currentCount = parsedGlifs.length;
     } catch (err) {
-      logger.debug("File doesn't exist or is invalid, treating as empty", { error: err });
+      logger.debug("File doesn't exist or is invalid, treating as empty", {
+        error: err,
+      });
     }
 
     // Write empty array to file atomically

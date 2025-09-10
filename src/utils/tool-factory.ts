@@ -4,9 +4,9 @@ import { handleApiError } from "./utils.js";
 import type { ToolResponse, ToolDefinition } from "../tools/index.js";
 
 /**
- * Base tool configuration for consistent tool creation
+ * Tool factory configuration for creating standardized tools
  */
-export interface BaseToolConfig {
+export interface ToolConfig {
   name: string;
   description: string;
   schema: z.ZodType;
@@ -20,16 +20,19 @@ export interface BaseToolConfig {
 export type ToolHandlerFn = (args: any) => Promise<ToolResponse>;
 
 /**
- * Creates a standardized tool definition and handler with consistent error handling
+ * Complete tool with definition, handler, and schema
  */
-export function createTool(
-  config: BaseToolConfig,
-  handlerFn: ToolHandlerFn
-): {
+export interface Tool {
   definition: ToolDefinition;
   handler: (request: ToolRequest) => Promise<ToolResponse>;
   schema: z.ZodType;
-} {
+}
+
+/**
+ * Creates a standardized tool with consistent error handling and structure
+ * Eliminates the need for repetitive tool definition boilerplate
+ */
+export function createTool(config: ToolConfig, handlerFn: ToolHandlerFn): Tool {
   const definition: ToolDefinition = {
     name: config.name,
     description: config.description,
@@ -73,10 +76,22 @@ export function createTextResponse(text: string): ToolResponse {
 /**
  * Creates a formatted list response for tools
  */
-export function createListResponse(items: string[], title?: string): ToolResponse {
-  const text = title
-    ? `${title}\n\n${items.join("\n")}`
-    : items.join("\n");
+export function createListResponse(
+  items: string[],
+  title?: string
+): ToolResponse {
+  const text = title ? `${title}\n\n${items.join("\n")}` : items.join("\n");
 
   return createTextResponse(text);
+}
+
+/**
+ * Creates an error response with consistent formatting
+ */
+export function createErrorResponse(
+  error: unknown,
+  context: string
+): ToolResponse {
+  const errorMsg = error instanceof Error ? error.message : String(error);
+  return createTextResponse(`Error in ${context}: ${errorMsg}`);
 }

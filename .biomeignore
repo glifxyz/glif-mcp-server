@@ -1,0 +1,28 @@
+# Build outputs
+build/
+dist/
+
+# Dependencies
+node_modules/
+
+# Coverage reports
+coverage/
+
+# TypeScript declaration files
+*.d.ts
+
+# Environment files
+.env*
+
+# Logs
+*.log
+logs/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db

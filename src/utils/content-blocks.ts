@@ -34,6 +34,7 @@ export function truncateBase64InContentBlocks(
 
 /**
  * Create content blocks for multimedia URLs with multiple format support
+ * Returns up to 3 content blocks: resource_link, base64 (if applicable), and text fallback
  */
 async function createMultimediaBlocks(
   output: string,
@@ -49,12 +50,10 @@ async function createMultimediaBlocks(
 
   // 1. Resource link for MCP-compliant clients
   blocks.push({
-    type: "resource",
-    resource: {
-      uri: output,
-      text: `Generated ${mediaType}: ${output}`,
-      mimeType,
-    },
+    type: "resource_link",
+    uri: output,
+    name: `Generated ${capitalizedType}`,
+    mimeType,
   });
 
   // 2. Base64 embedded content for immediate display/playback (images and audio only)
@@ -62,11 +61,19 @@ async function createMultimediaBlocks(
     try {
       console.error(`[DEBUG] Converting ${mediaType} to base64...`);
       const base64Data = await urlToBase64(output);
-      blocks.push({
-        type: mediaType,
-        data: base64Data,
-        mimeType,
-      } as ContentBlock);
+      if (mediaType === "image") {
+        blocks.push({
+          type: "image",
+          data: base64Data,
+          mimeType,
+        });
+      } else if (mediaType === "audio") {
+        blocks.push({
+          type: "audio",
+          data: base64Data,
+          mimeType,
+        });
+      }
       console.error(`[DEBUG] Successfully added base64 ${mediaType}`);
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : String(error);
@@ -76,18 +83,26 @@ async function createMultimediaBlocks(
         mediaType,
       });
 
-      // Log specific error types for monitoring
+      // Log specific error types for monitoring and user feedback
       if (errorMsg.includes("timeout")) {
         console.error(
           `[WARNING] Network timeout for ${mediaType} URL: ${output}`
         );
       } else if (errorMsg.includes("too large")) {
         console.error(
-          `[WARNING] File size exceeded for ${mediaType} URL: ${output}`
+          `[WARNING] File size exceeded (max 10MB) for ${mediaType} URL: ${output}`
         );
       } else if (errorMsg.includes("Private/local IP")) {
         console.error(
           `[SECURITY] SSRF attempt blocked for ${mediaType} URL: ${output}`
+        );
+      } else if (errorMsg.includes("HTTP")) {
+        console.error(
+          `[WARNING] HTTP error fetching ${mediaType} from: ${output}`
+        );
+      } else {
+        console.error(
+          `[WARNING] Unknown error fetching ${mediaType} from: ${output} - ${errorMsg}`
         );
       }
     }
@@ -163,14 +178,43 @@ export async function createContentBlocks(
         break;
 
       case "JSON":
-        // For JSON, output raw data to preserve structure for LLM consumption
-        // Don't wrap in code blocks as it pollutes the data
+        // For JSON, provide both structured and text formats for maximum compatibility
+        // Add resource_link if this appears to be an API endpoint or data resource
+        if (output.startsWith("http")) {
+          blocks.push({
+            type: "resource_link",
+            uri: output,
+            name: "JSON Data",
+            mimeType: "application/json",
+          });
+        }
+        
+        // Always include text format with raw JSON for LLM consumption
         blocks.push({ type: "text", text: output });
         break;
 
       case "HTML":
-        // For HTML, output raw content to preserve structure for LLM consumption
-        // Don't wrap in code blocks as it pollutes the data
+        // For HTML, provide rich content blocks for better client support
+        // Add resource_link if this appears to be a web page URL
+        if (output.startsWith("http")) {
+          blocks.push({
+            type: "resource_link",
+            uri: output,
+            name: "Web Page",
+            mimeType: "text/html",
+          });
+        } else {
+          // For HTML content, add resource_link with data URI for rich clients
+          const dataUri = `data:text/html;charset=utf-8,${encodeURIComponent(output)}`;
+          blocks.push({
+            type: "resource_link", 
+            uri: dataUri,
+            name: "Generated HTML",
+            mimeType: "text/html",
+          });
+        }
+        
+        // Always include text format with raw HTML for LLM consumption
         blocks.push({ type: "text", text: output });
         break;
 
@@ -180,13 +224,17 @@ export async function createContentBlocks(
         break;
     }
   } catch (error) {
-    console.error(`Error creating content blocks for ${type}:`, error);
-    // Fallback to text output
+    const errorMsg = error instanceof Error ? error.message : String(error);
+    console.error(`Error creating content blocks for ${type}:`, {
+      error: errorMsg,
+      output: output?.slice(0, 100),
+      type,
+    });
+    
+    // Provide user-friendly fallback without exposing internal errors
     blocks.push({
       type: "text",
-      text: `[${type}] ${output}\n\n⚠️ Error processing multimedia content: ${
-        error instanceof Error ? error.message : String(error)
-      }`,
+      text: `[${type}] ${output}\n\n⚠️ Could not process multimedia content. The URL may be inaccessible or the file format unsupported.`,
     });
   }
 
@@ -206,10 +254,21 @@ export function createStructuredContent(
     try {
       const parsed = JSON.parse(output);
       if (typeof parsed === "object" && parsed !== null) {
-        return parsed as Record<string, unknown>;
+        // For arrays, wrap in an object to maintain MCP compatibility
+        if (Array.isArray(parsed)) {
+          return { data: parsed };
+        }
+        // Ensure we only return objects, not other types
+        if (typeof parsed === "object" && !Array.isArray(parsed)) {
+          return parsed;
+        }
+        return null;
       }
-    } catch {
-      // Invalid JSON, don't create structured content
+    } catch (parseError) {
+      console.error("[DEBUG] Failed to parse JSON for structured content:", {
+        error: parseError instanceof Error ? parseError.message : String(parseError),
+        output: output.slice(0, 200),
+      });
     }
   }
 

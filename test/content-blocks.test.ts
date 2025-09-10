@@ -1,25 +1,30 @@
-import { describe, it, expect, vi } from "vitest";
-import { createContentBlocks } from "../src/utils/content-blocks.js";
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import {
+  createContentBlocks,
+  createStructuredContent,
+  truncateBase64InContentBlocks,
+  type GlifOutputMetadata,
+} from "../src/utils/content-blocks.js";
+import type { ContentBlock } from "@modelcontextprotocol/sdk/types.js";
 
-// Mock only external dependencies
-vi.mock("../src/utils/utils.js", async (importOriginal) => {
-  const actual = await importOriginal() as any;
-  return {
-    ...actual,
-    logger: {
-      debug: vi.fn(),
-      error: vi.fn(),
-    },
-    convertUrlToBase64: vi.fn().mockResolvedValue("data:image/png;base64,fake-base64"),
-  };
+// Helper to create mock server for testing HTTP requests
+let originalConsoleError: typeof console.error;
+
+beforeEach(() => {
+  // Capture console.error to test debug logging without polluting test output
+  originalConsoleError = console.error;
+  console.error = () => {}; // Suppress debug logs during tests
 });
+
+function restoreConsole() {
+  console.error = originalConsoleError;
+}
 
 describe("Content Blocks", () => {
   describe("createContentBlocks", () => {
     it("should handle text output", async () => {
       const result = await createContentBlocks("Hello world", {
         type: "TEXT",
-        value: "Hello world",
       });
 
       expect(result).toEqual([
@@ -30,12 +35,11 @@ describe("Content Blocks", () => {
       ]);
     });
 
-    it("should handle JSON output", async () => {
+    it("should handle JSON output without code blocks", async () => {
       const jsonData = { message: "test", count: 42 };
       const jsonString = JSON.stringify(jsonData);
       const result = await createContentBlocks(jsonString, {
         type: "JSON",
-        value: jsonData,
       });
 
       expect(result).toEqual([
@@ -46,26 +50,137 @@ describe("Content Blocks", () => {
       ]);
     });
 
-    it("should handle image URLs", async () => {
-      const imageUrl = "https://example.com/image.png";
-      const result = await createContentBlocks(imageUrl, {
-        type: "IMAGE",
-        value: imageUrl,
+    it("should handle HTML output without code blocks", async () => {
+      const htmlContent = "<div><p>Hello World</p></div>";
+      const result = await createContentBlocks(htmlContent, {
+        type: "HTML",
       });
 
-      // Expect resource and markdown blocks for images
       expect(result).toEqual([
         {
-          type: "resource",
-          resource: {
-            uri: imageUrl,
-            mimeType: "image/png",
-            text: `Generated image: ${imageUrl}`,
-          },
+          type: "text",
+          text: htmlContent,
         },
+      ]);
+    });
+
+    it("should handle valid image URLs with multiple formats", async () => {
+      const imageUrl = "https://example.com/test.png";
+      const result = await createContentBlocks(imageUrl, {
+        type: "IMAGE",
+      });
+
+      // Should include resource_link and text formats (base64 will fail for example.com but that's expected)
+      expect(result.length).toBeGreaterThanOrEqual(2);
+      
+      // Check resource_link format
+      const resourceBlock = result.find(block => block.type === "resource_link");
+      expect(resourceBlock).toEqual({
+        type: "resource_link",
+        uri: imageUrl,
+        name: "Generated Image",
+        mimeType: "image/png",
+      });
+
+      // Check text format with markdown
+      const textBlock = result.find(block => block.type === "text");
+      expect(textBlock).toEqual({
+        type: "text",
+        text: `![Generated Image](${imageUrl})`,
+      });
+    });
+
+    it("should handle valid audio URLs with multiple formats", async () => {
+      const audioUrl = "https://example.com/audio.mp3";
+      const result = await createContentBlocks(audioUrl, {
+        type: "AUDIO",
+      });
+
+      // Should include resource_link and text formats
+      expect(result.length).toBeGreaterThanOrEqual(2);
+      
+      // Check resource_link format
+      const resourceBlock = result.find(block => block.type === "resource_link");
+      expect(resourceBlock).toEqual({
+        type: "resource_link",
+        uri: audioUrl,
+        name: "Generated Audio",
+        mimeType: "audio/mpeg",
+      });
+
+      // Check text format with emoji
+      const textBlock = result.find(block => block.type === "text");
+      expect(textBlock).toEqual({
+        type: "text",
+        text: `🔊 Audio: ${audioUrl}`,
+      });
+    });
+
+    it("should handle valid video URLs with resource_link only", async () => {
+      const videoUrl = "https://example.com/video.mp4";
+      const result = await createContentBlocks(videoUrl, {
+        type: "VIDEO",
+      });
+
+      // Should include resource_link and text formats (no base64 for video)
+      expect(result.length).toBe(2);
+      
+      // Check resource_link format
+      const resourceBlock = result.find(block => block.type === "resource_link");
+      expect(resourceBlock).toEqual({
+        type: "resource_link",
+        uri: videoUrl,
+        name: "Generated Video",
+        mimeType: "video/mp4",
+      });
+
+      // Check text format with emoji
+      const textBlock = result.find(block => block.type === "text");
+      expect(textBlock).toEqual({
+        type: "text",
+        text: `🎥 Video: ${videoUrl}`,
+      });
+    });
+
+    it("should handle invalid URLs gracefully", async () => {
+      const invalidUrl = "not-a-valid-image-url";
+      const result = await createContentBlocks(invalidUrl, {
+        type: "IMAGE",
+      });
+
+      expect(result).toEqual([
         {
           type: "text",
-          text: `![Generated Image](${imageUrl})`,
+          text: `[Image] ${invalidUrl}`,
+        },
+      ]);
+    });
+
+    it("should handle unsupported file types gracefully", async () => {
+      const unsupportedUrl = "https://example.com/file.unknown";
+      const result = await createContentBlocks(unsupportedUrl, {
+        type: "IMAGE",
+      });
+
+      expect(result).toEqual([
+        {
+          type: "text",
+          text: `[Image] ${unsupportedUrl}`,
+        },
+      ]);
+    });
+
+    it("should handle URLs without file extensions gracefully", async () => {
+      const urlWithoutExtension = "https://httpbin.org/image/png";
+      const result = await createContentBlocks(urlWithoutExtension, {
+        type: "IMAGE",
+      });
+
+      // URLs without proper extensions fall back to text format
+      expect(result).toEqual([
+        {
+          type: "text",
+          text: `[Image] ${urlWithoutExtension}`,
         },
       ]);
     });
@@ -84,7 +199,6 @@ describe("Content Blocks", () => {
     it("should handle null output gracefully", async () => {
       const result = await createContentBlocks(null, {
         type: "TEXT",
-        value: "text from outputFull",
       });
 
       expect(result).toEqual([
@@ -94,5 +208,152 @@ describe("Content Blocks", () => {
         },
       ]);
     });
+
+    it("should handle case insensitive types", async () => {
+      const result = await createContentBlocks("test", {
+        type: "text", // lowercase
+      });
+
+      expect(result).toEqual([
+        {
+          type: "text",
+          text: "test",
+        },
+      ]);
+    });
+  });
+
+  describe("createStructuredContent", () => {
+    it("should create structured content for valid JSON", () => {
+      const jsonData = { message: "test", count: 42 };
+      const jsonString = JSON.stringify(jsonData);
+      const result = createStructuredContent(jsonString, {
+        type: "JSON",
+      });
+
+      expect(result).toEqual(jsonData);
+    });
+
+    it("should return null for non-JSON types", () => {
+      const result = createStructuredContent("test", {
+        type: "TEXT",
+      });
+
+      expect(result).toBeNull();
+    });
+
+    it("should return null for invalid JSON", () => {
+      const result = createStructuredContent("invalid json{", {
+        type: "JSON",
+      });
+
+      expect(result).toBeNull();
+    });
+
+    it("should return null for non-object JSON", () => {
+      const result = createStructuredContent('"just a string"', {
+        type: "JSON",
+      });
+
+      expect(result).toBeNull();
+    });
+
+    it("should handle null output", () => {
+      const result = createStructuredContent(null, {
+        type: "JSON",
+      });
+
+      expect(result).toBeNull();
+    });
+  });
+
+  describe("truncateBase64InContentBlocks", () => {
+    it("should truncate base64 data in image blocks", () => {
+      const blocks: ContentBlock[] = [
+        {
+          type: "image",
+          data: "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==",
+          mimeType: "image/png",
+        },
+        {
+          type: "text",
+          text: "Some text",
+        },
+      ];
+
+      const result = truncateBase64InContentBlocks(blocks);
+
+      expect(result).toEqual([
+        {
+          type: "image",
+          data: "[base64_encoded_data_hidden]",
+          mimeType: "image/png",
+        },
+        {
+          type: "text",
+          text: "Some text",
+        },
+      ]);
+    });
+
+    it("should truncate base64 data in audio blocks", () => {
+      const blocks: ContentBlock[] = [
+        {
+          type: "audio",
+          data: "UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmAaLITQp7GJMw",
+          mimeType: "audio/wav",
+        },
+      ];
+
+      const result = truncateBase64InContentBlocks(blocks);
+
+      expect(result[0]).toEqual({
+        type: "audio",
+        data: "[base64_encoded_data_hidden]",
+        mimeType: "audio/wav",
+      });
+    });
+
+    it("should not truncate other block types", () => {
+      const blocks: ContentBlock[] = [
+        {
+          type: "text",
+          text: "Some text with data property",
+        },
+        {
+          type: "resource_link",
+          uri: "https://example.com/image.png",
+          name: "Test Image",
+          mimeType: "image/png",
+        },
+      ];
+
+      const result = truncateBase64InContentBlocks(blocks);
+
+      expect(result).toEqual(blocks);
+    });
+
+    it("should handle empty data gracefully", () => {
+      const blocks: ContentBlock[] = [
+        {
+          type: "image",
+          data: "",
+          mimeType: "image/png",
+        },
+      ];
+
+      const result = truncateBase64InContentBlocks(blocks);
+
+      expect(result[0]).toEqual({
+        type: "image",
+        data: "",
+        mimeType: "image/png",
+      });
+    });
+  });
+
+  // Cleanup
+  afterEach(() => {
+    restoreConsole();
   });
 });

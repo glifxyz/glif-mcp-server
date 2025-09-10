@@ -34,6 +34,7 @@ export function truncateBase64InContentBlocks(
 
 /**
  * Create content blocks for multimedia URLs with multiple format support
+ * Returns up to 3 content blocks: resource_link, base64 (if applicable), and text fallback
  */
 async function createMultimediaBlocks(
   output: string,
@@ -49,12 +50,10 @@ async function createMultimediaBlocks(
 
   // 1. Resource link for MCP-compliant clients
   blocks.push({
-    type: "resource",
-    resource: {
-      uri: output,
-      text: `Generated ${mediaType}: ${output}`,
-      mimeType,
-    },
+    type: "resource_link",
+    uri: output,
+    name: `Generated ${capitalizedType}`,
+    mimeType,
   });
 
   // 2. Base64 embedded content for immediate display/playback (images and audio only)
@@ -76,18 +75,26 @@ async function createMultimediaBlocks(
         mediaType,
       });
 
-      // Log specific error types for monitoring
+      // Log specific error types for monitoring and user feedback
       if (errorMsg.includes("timeout")) {
         console.error(
           `[WARNING] Network timeout for ${mediaType} URL: ${output}`
         );
       } else if (errorMsg.includes("too large")) {
         console.error(
-          `[WARNING] File size exceeded for ${mediaType} URL: ${output}`
+          `[WARNING] File size exceeded (max 10MB) for ${mediaType} URL: ${output}`
         );
       } else if (errorMsg.includes("Private/local IP")) {
         console.error(
           `[SECURITY] SSRF attempt blocked for ${mediaType} URL: ${output}`
+        );
+      } else if (errorMsg.includes("HTTP")) {
+        console.error(
+          `[WARNING] HTTP error fetching ${mediaType} from: ${output}`
+        );
+      } else {
+        console.error(
+          `[WARNING] Unknown error fetching ${mediaType} from: ${output} - ${errorMsg}`
         );
       }
     }
@@ -180,13 +187,17 @@ export async function createContentBlocks(
         break;
     }
   } catch (error) {
-    console.error(`Error creating content blocks for ${type}:`, error);
-    // Fallback to text output
+    const errorMsg = error instanceof Error ? error.message : String(error);
+    console.error(`Error creating content blocks for ${type}:`, {
+      error: errorMsg,
+      output: output?.slice(0, 100),
+      type,
+    });
+    
+    // Provide user-friendly fallback without exposing internal errors
     blocks.push({
       type: "text",
-      text: `[${type}] ${output}\n\n⚠️ Error processing multimedia content: ${
-        error instanceof Error ? error.message : String(error)
-      }`,
+      text: `[${type}] ${output}\n\n⚠️ Could not process multimedia content. The URL may be inaccessible or the file format unsupported.`,
     });
   }
 
@@ -205,11 +216,14 @@ export function createStructuredContent(
   if (outputFull?.type?.toUpperCase() === "JSON" && output) {
     try {
       const parsed = JSON.parse(output);
-      if (typeof parsed === "object" && parsed !== null) {
+      if (typeof parsed === "object" && parsed !== null && !Array.isArray(parsed)) {
         return parsed as Record<string, unknown>;
       }
-    } catch {
-      // Invalid JSON, don't create structured content
+    } catch (parseError) {
+      console.error("[DEBUG] Failed to parse JSON for structured content:", {
+        error: parseError instanceof Error ? parseError.message : String(parseError),
+        output: output.slice(0, 200),
+      });
     }
   }
 

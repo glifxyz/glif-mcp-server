@@ -188,7 +188,6 @@ export async function createContentBlocks(
             mimeType: "application/json",
           });
         }
-
         // Always include text format with raw JSON for LLM consumption
         blocks.push({ type: "text", text: output });
         break;
@@ -215,7 +214,6 @@ export async function createContentBlocks(
             mimeType: "text/html",
           });
         }
-
         // Always include text format with raw HTML for LLM consumption
         blocks.push({ type: "text", text: output });
         break;
@@ -232,7 +230,6 @@ export async function createContentBlocks(
       output: output?.slice(0, 100),
       type,
     });
-
     // Provide user-friendly fallback without exposing internal errors
     blocks.push({
       type: "text",

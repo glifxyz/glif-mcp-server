@@ -21,23 +21,6 @@ export const logger = {
 };
 
 /**
- * Format API output based on type (legacy text-only function)
- * @deprecated Use createContentBlocks instead for multimedia support
- */
-export function formatOutput(type: string, output: string): string {
-  switch (type) {
-    case "IMAGE":
-      return `[Image] ${output} ![](${output})`;
-    case "VIDEO":
-      return `[Video] ${output}`;
-    case "AUDIO":
-      return `[Audio] ${output}`;
-    default:
-      return output;
-  }
-}
-
-/**
  * Validate URL for security and protocol compliance
  */
 function validateUrl(url: string): void {

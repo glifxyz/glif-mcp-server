@@ -275,5 +275,3 @@ export async function loadBot(id: string): Promise<Bot> {
 export function searchBots(query: string) {
   return getBots({ searchQuery: query });
 }
-
-// formatOutput is now imported from utils/utils.js

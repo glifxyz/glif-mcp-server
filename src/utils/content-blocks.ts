@@ -61,11 +61,19 @@ async function createMultimediaBlocks(
     try {
       console.error(`[DEBUG] Converting ${mediaType} to base64...`);
       const base64Data = await urlToBase64(output);
-      blocks.push({
-        type: mediaType,
-        data: base64Data,
-        mimeType,
-      } as ContentBlock);
+      if (mediaType === "image") {
+        blocks.push({
+          type: "image",
+          data: base64Data,
+          mimeType,
+        });
+      } else if (mediaType === "audio") {
+        blocks.push({
+          type: "audio",
+          data: base64Data,
+          mimeType,
+        });
+      }
       console.error(`[DEBUG] Successfully added base64 ${mediaType}`);
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : String(error);
@@ -170,14 +178,43 @@ export async function createContentBlocks(
         break;
 
       case "JSON":
-        // For JSON, output raw data to preserve structure for LLM consumption
-        // Don't wrap in code blocks as it pollutes the data
+        // For JSON, provide both structured and text formats for maximum compatibility
+        // Add resource_link if this appears to be an API endpoint or data resource
+        if (output.startsWith("http")) {
+          blocks.push({
+            type: "resource_link",
+            uri: output,
+            name: "JSON Data",
+            mimeType: "application/json",
+          });
+        }
+        
+        // Always include text format with raw JSON for LLM consumption
         blocks.push({ type: "text", text: output });
         break;
 
       case "HTML":
-        // For HTML, output raw content to preserve structure for LLM consumption
-        // Don't wrap in code blocks as it pollutes the data
+        // For HTML, provide rich content blocks for better client support
+        // Add resource_link if this appears to be a web page URL
+        if (output.startsWith("http")) {
+          blocks.push({
+            type: "resource_link",
+            uri: output,
+            name: "Web Page",
+            mimeType: "text/html",
+          });
+        } else {
+          // For HTML content, add resource_link with data URI for rich clients
+          const dataUri = `data:text/html;charset=utf-8,${encodeURIComponent(output)}`;
+          blocks.push({
+            type: "resource_link", 
+            uri: dataUri,
+            name: "Generated HTML",
+            mimeType: "text/html",
+          });
+        }
+        
+        // Always include text format with raw HTML for LLM consumption
         blocks.push({ type: "text", text: output });
         break;
 
@@ -216,8 +253,16 @@ export function createStructuredContent(
   if (outputFull?.type?.toUpperCase() === "JSON" && output) {
     try {
       const parsed = JSON.parse(output);
-      if (typeof parsed === "object" && parsed !== null && !Array.isArray(parsed)) {
-        return parsed as Record<string, unknown>;
+      if (typeof parsed === "object" && parsed !== null) {
+        // For arrays, wrap in an object to maintain MCP compatibility
+        if (Array.isArray(parsed)) {
+          return { data: parsed };
+        }
+        // Ensure we only return objects, not other types
+        if (typeof parsed === "object" && !Array.isArray(parsed)) {
+          return parsed;
+        }
+        return null;
       }
     } catch (parseError) {
       console.error("[DEBUG] Failed to parse JSON for structured content:", {

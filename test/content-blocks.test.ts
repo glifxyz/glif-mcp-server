@@ -35,7 +35,7 @@ describe("Content Blocks", () => {
       ]);
     });
 
-    it("should handle JSON output without code blocks", async () => {
+    it("should handle JSON data output without code blocks", async () => {
       const jsonData = { message: "test", count: 42 };
       const jsonString = JSON.stringify(jsonData);
       const result = await createContentBlocks(jsonString, {
@@ -50,16 +50,65 @@ describe("Content Blocks", () => {
       ]);
     });
 
-    it("should handle HTML output without code blocks", async () => {
+    it("should handle JSON URL with resource_link", async () => {
+      const jsonUrl = "https://api.example.com/data.json";
+      const result = await createContentBlocks(jsonUrl, {
+        type: "JSON",
+      });
+
+      expect(result).toEqual([
+        {
+          type: "resource_link",
+          uri: jsonUrl,
+          name: "JSON Data",
+          mimeType: "application/json",
+        },
+        {
+          type: "text",
+          text: jsonUrl,
+        },
+      ]);
+    });
+
+    it("should handle HTML content with data URI resource_link", async () => {
       const htmlContent = "<div><p>Hello World</p></div>";
       const result = await createContentBlocks(htmlContent, {
         type: "HTML",
       });
 
+      expect(result.length).toBe(2);
+      
+      // Check resource_link with data URI
+      const resourceBlock = result.find(block => block.type === "resource_link");
+      expect(resourceBlock?.type).toBe("resource_link");
+      expect(resourceBlock?.name).toBe("Generated HTML");
+      expect(resourceBlock?.mimeType).toBe("text/html");
+      expect(resourceBlock?.uri).toMatch(/^data:text\/html;charset=utf-8,/);
+      
+      // Check text format
+      const textBlock = result.find(block => block.type === "text");
+      expect(textBlock).toEqual({
+        type: "text",
+        text: htmlContent,
+      });
+    });
+
+    it("should handle HTML URL with resource_link", async () => {
+      const htmlUrl = "https://example.com/page.html";
+      const result = await createContentBlocks(htmlUrl, {
+        type: "HTML",
+      });
+
       expect(result).toEqual([
         {
+          type: "resource_link",
+          uri: htmlUrl,
+          name: "Web Page",
+          mimeType: "text/html",
+        },
+        {
           type: "text",
-          text: htmlContent,
+          text: htmlUrl,
         },
       ]);
     });
@@ -250,7 +299,17 @@ describe("Content Blocks", () => {
       expect(result).toBeNull();
     });
 
-    it("should return null for non-object JSON", () => {
+    it("should create structured content for JSON arrays", () => {
+      const arrayData = [{ id: 1, name: "test" }, { id: 2, name: "test2" }];
+      const arrayString = JSON.stringify(arrayData);
+      const result = createStructuredContent(arrayString, {
+        type: "JSON",
+      });
+
+      expect(result).toEqual({ data: arrayData });
+    });
+
+    it("should return null for primitive JSON values", () => {
       const result = createStructuredContent('"just a string"', {
         type: "JSON",
       });

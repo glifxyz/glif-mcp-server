@@ -188,7 +188,7 @@ export async function createContentBlocks(
             mimeType: "application/json",
           });
         }
-        
+
         // Always include text format with raw JSON for LLM consumption
         blocks.push({ type: "text", text: output });
         break;
@@ -205,15 +205,17 @@ export async function createContentBlocks(
           });
         } else {
           // For HTML content, add resource_link with data URI for rich clients
-          const dataUri = `data:text/html;charset=utf-8,${encodeURIComponent(output)}`;
+          const dataUri = `data:text/html;charset=utf-8,${encodeURIComponent(
+            output
+          )}`;
           blocks.push({
-            type: "resource_link", 
+            type: "resource_link",
             uri: dataUri,
             name: "Generated HTML",
             mimeType: "text/html",
           });
         }
-        
+
         // Always include text format with raw HTML for LLM consumption
         blocks.push({ type: "text", text: output });
         break;
@@ -230,7 +232,7 @@ export async function createContentBlocks(
       output: output?.slice(0, 100),
       type,
     });
-    
+
     // Provide user-friendly fallback without exposing internal errors
     blocks.push({
       type: "text",
@@ -266,7 +268,8 @@ export function createStructuredContent(
       }
     } catch (parseError) {
       console.error("[DEBUG] Failed to parse JSON for structured content:", {
-        error: parseError instanceof Error ? parseError.message : String(parseError),
+        error:
+          parseError instanceof Error ? parseError.message : String(parseError),
         output: output.slice(0, 200),
       });
     }

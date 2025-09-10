@@ -1,34 +1,32 @@
 import { z } from "zod";
 import { searchGlifs } from "../api.js";
-import type { ToolResponse } from "./index.js";
+import { createTool, createTextResponse } from "../utils/tool-factory.js";
+import { formatFeaturedGlifs } from "../utils/glif-formatting.js";
 
-export const schema = z.object({});
+const schema = z.object({});
 
-export const definition = {
-  name: "list_featured_glifs",
-  description: "Get a curated list of featured glifs",
-  inputSchema: {
-    type: "object",
+async function listFeaturedGlifsHandler(): Promise<any> {
+  const glifs = await searchGlifs({ featured: true });
+  const formattedGlifs = formatFeaturedGlifs(glifs);
+
+  return createTextResponse(`Featured glifs:\n\n${formattedGlifs}`);
+}
+
+// Export the tool using the factory pattern
+export const {
+  definition,
+  handler,
+  schema: exportedSchema,
+} = createTool(
+  {
+    name: "list_featured_glifs",
+    description: "Get a curated list of featured glifs",
+    schema,
     properties: {},
     required: [],
   },
-};
+  listFeaturedGlifsHandler
+);
 
-export async function handler(): Promise<ToolResponse> {
-  const glifs = await searchGlifs({ featured: true });
-  const formattedGlifs = glifs
-    .map(
-      (glif) =>
-        `${glif.name} (${glif.id})\n${glif.description}\nBy: ${glif.user.name}\nRuns: ${glif.completedSpellRunCount}\n`
-    )
-    .join("\n");
-
-  return {
-    content: [
-      {
-        type: "text",
-        text: `Featured glifs:\n\n${formattedGlifs}`,
-      },
-    ],
-  };
-}
+// For backward compatibility
+export { exportedSchema as schema };

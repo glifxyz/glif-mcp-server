@@ -5,13 +5,13 @@ import {
   ListToolsRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
 import * as fs from "fs/promises";
-import * as api from "../src/api";
-import * as savedGlifsModule from "../src/saved-glifs";
-import { setupToolHandlers } from "../src/tools/index.js";
-import { SavedGlif } from "../src/saved-glifs";
-import * as utils from "../src/utils/utils.js";
+import * as api from "./api.js";
+import * as savedGlifsModule from "./saved-glifs.js";
+import { setupToolHandlers } from "./tools/index.js";
+import { SavedGlif } from "./saved-glifs.js";
+import * as utils from "./utils/utils.js";
 
-vi.mock("../src/api");
+vi.mock("./api.js");
 vi.mock("fs/promises");
 
 const createSavedGlif = (id: string, num: number): SavedGlif => ({

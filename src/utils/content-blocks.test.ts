@@ -4,7 +4,7 @@ import {
   createStructuredContent,
   truncateBase64InContentBlocks,
   type GlifOutputMetadata,
-} from "../src/utils/content-blocks.js";
+} from "./content-blocks.js";
 import type { ContentBlock } from "@modelcontextprotocol/sdk/types.js";
 
 // Helper to create mock server for testing HTTP requests
@@ -77,16 +77,18 @@ describe("Content Blocks", () => {
       });
 
       expect(result.length).toBe(2);
-      
+
       // Check resource_link with data URI
-      const resourceBlock = result.find(block => block.type === "resource_link");
+      const resourceBlock = result.find(
+        (block) => block.type === "resource_link"
+      );
       expect(resourceBlock?.type).toBe("resource_link");
       expect(resourceBlock?.name).toBe("Generated HTML");
       expect(resourceBlock?.mimeType).toBe("text/html");
       expect(resourceBlock?.uri).toMatch(/^data:text\/html;charset=utf-8,/);
-      
+
       // Check text format
-      const textBlock = result.find(block => block.type === "text");
+      const textBlock = result.find((block) => block.type === "text");
       expect(textBlock).toEqual({
         type: "text",
         text: htmlContent,
@@ -121,9 +123,11 @@ describe("Content Blocks", () => {
 
       // Should include resource_link and text formats (base64 will fail for example.com but that's expected)
       expect(result.length).toBeGreaterThanOrEqual(2);
-      
+
       // Check resource_link format
-      const resourceBlock = result.find(block => block.type === "resource_link");
+      const resourceBlock = result.find(
+        (block) => block.type === "resource_link"
+      );
       expect(resourceBlock).toEqual({
         type: "resource_link",
         uri: imageUrl,
@@ -132,7 +136,7 @@ describe("Content Blocks", () => {
       });
 
       // Check text format with markdown
-      const textBlock = result.find(block => block.type === "text");
+      const textBlock = result.find((block) => block.type === "text");
       expect(textBlock).toEqual({
         type: "text",
         text: `![Generated Image](${imageUrl})`,
@@ -147,9 +151,11 @@ describe("Content Blocks", () => {
 
       // Should include resource_link and text formats
       expect(result.length).toBeGreaterThanOrEqual(2);
-      
+
       // Check resource_link format
-      const resourceBlock = result.find(block => block.type === "resource_link");
+      const resourceBlock = result.find(
+        (block) => block.type === "resource_link"
+      );
       expect(resourceBlock).toEqual({
         type: "resource_link",
         uri: audioUrl,
@@ -158,12 +164,12 @@ describe("Content Blocks", () => {
       });
 
       // Check text format with emoji
-      const textBlock = result.find(block => block.type === "text");
+      const textBlock = result.find((block) => block.type === "text");
       expect(textBlock).toEqual({
         type: "text",
         text: `🔊 Audio: ${audioUrl}`,
       });
-    });
+    }, 10000);
 
     it("should handle valid video URLs with resource_link only", async () => {
       const videoUrl = "https://example.com/video.mp4";
@@ -173,9 +179,11 @@ describe("Content Blocks", () => {
 
       // Should include resource_link and text formats (no base64 for video)
       expect(result.length).toBe(2);
-      
+
       // Check resource_link format
-      const resourceBlock = result.find(block => block.type === "resource_link");
+      const resourceBlock = result.find(
+        (block) => block.type === "resource_link"
+      );
       expect(resourceBlock).toEqual({
         type: "resource_link",
         uri: videoUrl,
@@ -184,7 +192,7 @@ describe("Content Blocks", () => {
       });
 
       // Check text format with emoji
-      const textBlock = result.find(block => block.type === "text");
+      const textBlock = result.find((block) => block.type === "text");
       expect(textBlock).toEqual({
         type: "text",
         text: `🎥 Video: ${videoUrl}`,
@@ -300,7 +308,10 @@ describe("Content Blocks", () => {
     });
 
     it("should create structured content for JSON arrays", () => {
-      const arrayData = [{ id: 1, name: "test" }, { id: 2, name: "test2" }];
+      const arrayData = [
+        { id: 1, name: "test" },
+        { id: 2, name: "test2" },
+      ];
       const arrayString = JSON.stringify(arrayData);
       const result = createStructuredContent(arrayString, {
         type: "JSON",

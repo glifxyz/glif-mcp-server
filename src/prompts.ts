@@ -1,17 +1,17 @@
+import type { Server } from "@modelcontextprotocol/sdk/server/index.js";
+import type { ContentBlock } from "@modelcontextprotocol/sdk/types.js";
 import {
   ErrorCode,
   GetPromptRequestSchema,
   ListPromptsRequestSchema,
   McpError,
 } from "@modelcontextprotocol/sdk/types.js";
-import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { getGlifDetails, runGlif, searchGlifs } from "./api.js";
-import { handleApiError, logger } from "./utils/utils.js";
 import {
   createContentBlocks,
   type GlifOutputMetadata,
 } from "./utils/content-blocks.js";
-import type { ContentBlock } from "@modelcontextprotocol/sdk/types.js";
+import { handleApiError, logger } from "./utils/utils.js";
 
 /**
  * Available prompts
@@ -48,7 +48,7 @@ async function formatPromptOutput(
           block.mimeType || "unknown"
         }*\n*Preview: [base64 data, ${block.data?.length || 0} characters]*`;
 
-      case "resource":
+      case "resource": {
         const resourceUri =
           typeof block.resource === "object" &&
           block.resource !== null &&
@@ -56,6 +56,7 @@ async function formatPromptOutput(
             ? String(block.resource.uri)
             : "unknown";
         return `🔗 **Resource Link**\n*URI: ${resourceUri}*`;
+      }
 
       default:
         logger.debug(`Unsupported content block type: ${block.type}`);

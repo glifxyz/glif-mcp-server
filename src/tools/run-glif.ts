@@ -1,14 +1,14 @@
 import { z } from "zod";
-import {
-  parseToolArguments,
-  type ToolRequest,
-} from "../utils/request-parsing.js";
 import { runGlif } from "../api.js";
 import {
   createContentBlocks,
   createStructuredContent,
   truncateBase64InContentBlocks,
 } from "../utils/content-blocks.js";
+import {
+  parseToolArguments,
+  type ToolRequest,
+} from "../utils/request-parsing.js";
 import type { ToolResponse } from "./index.js";
 
 export const schema = z.object({

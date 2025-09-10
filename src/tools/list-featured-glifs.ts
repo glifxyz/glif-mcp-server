@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { searchGlifs } from "../api.js";
-import { createTool, createTextResponse } from "../utils/tool-factory.js";
 import { formatFeaturedGlifs } from "../utils/glif-formatting.js";
+import { createTextResponse, createTool } from "../utils/tool-factory.js";
 
 const schema = z.object({});
 

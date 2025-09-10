@@ -2,18 +2,18 @@ import wretch from "wretch";
 import QueryStringAddon from "wretch/addons/queryString";
 import { z } from "zod";
 import {
-  GlifRunResponseSchema,
-  GlifSchema,
-  GlifRunSchema,
-  SearchParamsSchema,
-  MeResponseSchema,
+  type Bot,
   BotResponseSchema,
   BotsListSchema,
   type Glif,
   type GlifRun,
   type GlifRunResponse,
+  GlifRunResponseSchema,
+  GlifRunSchema,
+  GlifSchema,
+  MeResponseSchema,
+  type SearchParamsSchema,
   type User,
-  type Bot,
 } from "./types.js";
 import {
   handleApiError,

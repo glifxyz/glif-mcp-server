@@ -1,6 +1,6 @@
 import { ErrorCode, McpError } from "@modelcontextprotocol/sdk/types.js";
 import type { WretchError } from "wretch";
-import { z } from "zod";
+import type { z } from "zod";
 
 /**
  * Standardized logging utility with different log levels

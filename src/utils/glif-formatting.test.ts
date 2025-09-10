@@ -1,13 +1,13 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
+import type { Glif } from "../types.js";
 import {
+  formatFeaturedGlifs,
   formatGlif,
   formatGlifList,
   formatGlifSearchResults,
   formatMyGlifs,
-  formatFeaturedGlifs,
   type GlifFormatOptions,
 } from "./glif-formatting.js";
-import type { Glif } from "../types.js";
 
 const createMockGlif = (overrides: Partial<Glif> = {}): Glif => ({
   id: "test-glif-123",

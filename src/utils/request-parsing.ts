@@ -1,5 +1,5 @@
-import { z } from "zod";
 import { CallToolRequestSchema } from "@modelcontextprotocol/sdk/types.js";
+import { z } from "zod";
 
 // Full MCP protocol request from production usage
 export type McpToolRequest = z.infer<typeof CallToolRequestSchema>;

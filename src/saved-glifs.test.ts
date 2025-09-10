@@ -1,12 +1,12 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import * as fs from "fs/promises";
 import path from "path";
 import { fileURLToPath } from "url";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   getSavedGlifs,
-  saveGlif,
   removeGlif,
-  SavedGlif,
+  type SavedGlif,
+  saveGlif,
 } from "./saved-glifs.js";
 
 vi.mock("fs/promises");

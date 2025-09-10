@@ -1,9 +1,9 @@
 import { z } from "zod";
+import { listBots } from "../api.js";
 import {
   parseToolArguments,
   type ToolRequest,
 } from "../utils/request-parsing.js";
-import { listBots } from "../api.js";
 import { logger } from "../utils/utils.js";
 import type { ToolResponse } from "./index.js";
 

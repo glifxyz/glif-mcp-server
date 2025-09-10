@@ -1,10 +1,10 @@
 import { z } from "zod";
+import { getGlifDetails } from "../api.js";
+import { saveGlif } from "../saved-glifs.js";
 import {
   parseToolArguments,
   type ToolRequest,
 } from "../utils/request-parsing.js";
-import { getGlifDetails } from "../api.js";
-import { saveGlif } from "../saved-glifs.js";
 import type { ToolResponse } from "./index.js";
 
 export const schema = z.object({

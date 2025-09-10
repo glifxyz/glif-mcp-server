@@ -47,7 +47,7 @@ export async function handler(request: ToolRequest): Promise<ToolResponse> {
 
   const result = await runGlif(args.id, args.inputs);
   console.error("[DEBUG] runGlif result:", {
-    output: result.output?.slice(0, 100) + "...",
+    output: `${result.output?.slice(0, 100)}...`,
     outputFull: result.outputFull,
   });
 

@@ -2,10 +2,11 @@ import { z } from "zod";
 import { searchGlifs } from "../api.js";
 import { formatFeaturedGlifs } from "../utils/glif-formatting.js";
 import { createTextResponse, createTool } from "../utils/tool-factory.js";
+import type { ToolResponse } from "./index.js";
 
 const schema = z.object({});
 
-async function listFeaturedGlifsHandler(): Promise<any> {
+async function listFeaturedGlifsHandler(): Promise<ToolResponse> {
   const glifs = await searchGlifs({ featured: true });
   const formattedGlifs = formatFeaturedGlifs(glifs);
 

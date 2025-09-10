@@ -11,7 +11,7 @@ import {
 
 // Mock dependencies
 vi.mock("./request-parsing.js", () => ({
-  parseToolArguments: vi.fn((request, schema) => {
+  parseToolArguments: vi.fn((request, _schema) => {
     // Simple mock that just returns the arguments
     return request.params.arguments;
   }),

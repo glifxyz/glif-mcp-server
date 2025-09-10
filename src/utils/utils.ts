@@ -91,7 +91,7 @@ export async function urlToBase64(url: string): Promise<string> {
 
       // Check content length
       const contentLength = response.headers.get("content-length");
-      if (contentLength && parseInt(contentLength) > 10485760) {
+      if (contentLength && parseInt(contentLength, 10) > 10485760) {
         // 10MB
         throw new Error(`File too large: ${contentLength} bytes (max 10MB)`);
       }

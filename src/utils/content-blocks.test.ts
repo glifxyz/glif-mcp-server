@@ -3,7 +3,6 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import {
   createContentBlocks,
   createStructuredContent,
-  type GlifOutputMetadata,
   truncateBase64InContentBlocks,
 } from "./content-blocks.js";
 

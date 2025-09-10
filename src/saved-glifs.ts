@@ -237,7 +237,7 @@ function sanitizeToolName(toolName: string): string {
 
   // If the result is empty or too short, provide a fallback
   if (sanitized.length === 0) {
-    sanitized = "tool_" + Date.now().toString(36);
+    sanitized = `tool_${Date.now().toString(36)}`;
   }
 
   return sanitized;

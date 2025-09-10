@@ -68,7 +68,7 @@ async function apiRequest<T>(
     }
     logger.info("apiRequest", { endpoint, method, queryParams, body });
 
-    let response;
+    let response: unknown;
     switch (method) {
       case "get":
         response = await request.get().unauthorized(handleUnauthorized).json();

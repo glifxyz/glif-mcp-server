@@ -9,7 +9,6 @@ import * as api from "./api.js";
 import type { SavedGlif } from "./saved-glifs.js";
 import * as savedGlifsModule from "./saved-glifs.js";
 import { setupToolHandlers } from "./tools/index.js";
-import * as utils from "./utils/utils.js";
 
 vi.mock("./api.js");
 vi.mock("fs/promises");

@@ -114,8 +114,8 @@ export function setupPromptHandlers(server: Server) {
         .filter((g) => g.featuredAt)
         .sort(
           (a, b) =>
-            new Date(b.featuredAt!).getTime() -
-            new Date(a.featuredAt!).getTime()
+            new Date(b.featuredAt ?? 0).getTime() -
+            new Date(a.featuredAt ?? 0).getTime()
         )[0];
 
       if (!mostRecent) {
@@ -161,7 +161,7 @@ export function setupPromptHandlers(server: Server) {
             }\nDescription: ${glif.description}\nBy: ${glif.user.name} (@${
               glif.user.username
             })\nFeatured: ${new Date(
-              glif.featuredAt!
+              glif.featuredAt ?? 0
             ).toLocaleString()}\n\nIt takes these inputs:\n${inputFields
               .map((f, i) => `${f.params.label ?? f.name}: "${funInputs[i]}"`)
               .join("\n")}\n\nHere's what it created:\n${

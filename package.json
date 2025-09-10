@@ -16,11 +16,11 @@
   "scripts": {
     "build": "tsc && node -e \"require('fs').chmodSync('build/index.js', '755')\"",
     "prepare": "npm run build",
+    "dev": "tsc --watch",
     "typecheck": "tsc --noEmit",
     "format": "biome format --write .",
     "lint": "npm run typecheck && biome check .",
     "lint:fix": "npm run typecheck && biome check --write .",
-    "dev": "tsc --watch",
     "test": "GLIF_API_TOKEN=xxx IGNORE_DISCOVERY_TOOLS=true vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",

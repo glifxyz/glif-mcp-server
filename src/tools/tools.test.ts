@@ -8,7 +8,6 @@ import * as api from "../api.js";
 import type { SavedGlif } from "../saved-glifs.js";
 import * as savedGlifsModule from "../saved-glifs.js";
 import * as contentBlocks from "../utils/content-blocks.js";
-import * as utils from "../utils/utils.js";
 import { setupToolHandlers } from "./index.js";
 
 vi.mock("../api.js");

@@ -1,18 +1,17 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import {
-  urlToBase64,
-  getMimeType,
-  isImageUrl,
-  isAudioUrl,
-  isVideoUrl,
-  formatOutput,
-  handleApiError,
-  safeJsonParse,
-  validateWithSchema,
-  logger,
-} from "./utils.js";
+import { ErrorCode, McpError } from "@modelcontextprotocol/sdk/types.js";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
-import { McpError, ErrorCode } from "@modelcontextprotocol/sdk/types.js";
+import {
+  getMimeType,
+  handleApiError,
+  isAudioUrl,
+  isImageUrl,
+  isVideoUrl,
+  logger,
+  safeJsonParse,
+  urlToBase64,
+  validateWithSchema,
+} from "./utils.js";
 
 // Mock fetch globally
 const mockFetch = vi.fn();
@@ -209,22 +208,6 @@ describe("Utils", () => {
       expect(isVideoUrl("https://example.com/clip.webm")).toBe(true);
       expect(isVideoUrl("https://example.com/audio.mp3")).toBe(false);
       expect(isVideoUrl("https://example.com/image.png")).toBe(false);
-    });
-  });
-
-  describe("formatOutput (legacy function)", () => {
-    it("should format different output types correctly", () => {
-      expect(formatOutput("IMAGE", "https://example.com/image.png")).toBe(
-        "[Image] https://example.com/image.png ![](https://example.com/image.png)"
-      );
-      expect(formatOutput("VIDEO", "https://example.com/video.mp4")).toBe(
-        "[Video] https://example.com/video.mp4"
-      );
-      expect(formatOutput("AUDIO", "https://example.com/audio.mp3")).toBe(
-        "[Audio] https://example.com/audio.mp3"
-      );
-      expect(formatOutput("TEXT", "Hello world")).toBe("Hello world");
-      expect(formatOutput("UNKNOWN", "Some content")).toBe("Some content");
     });
   });
 

@@ -2,18 +2,18 @@ import wretch from "wretch";
 import QueryStringAddon from "wretch/addons/queryString";
 import { z } from "zod";
 import {
-  GlifRunResponseSchema,
-  GlifSchema,
-  GlifRunSchema,
-  SearchParamsSchema,
-  MeResponseSchema,
+  type Bot,
   BotResponseSchema,
   BotsListSchema,
   type Glif,
   type GlifRun,
   type GlifRunResponse,
+  GlifRunResponseSchema,
+  GlifRunSchema,
+  GlifSchema,
+  MeResponseSchema,
+  type SearchParamsSchema,
   type User,
-  type Bot,
 } from "./types.js";
 import {
   handleApiError,
@@ -68,7 +68,7 @@ async function apiRequest<T>(
     }
     logger.info("apiRequest", { endpoint, method, queryParams, body });
 
-    let response;
+    let response: unknown;
     switch (method) {
       case "get":
         response = await request.get().unauthorized(handleUnauthorized).json();
@@ -275,5 +275,3 @@ export async function loadBot(id: string): Promise<Bot> {
 export function searchBots(query: string) {
   return getBots({ searchQuery: query });
 }
-
-// formatOutput is now imported from utils/utils.js

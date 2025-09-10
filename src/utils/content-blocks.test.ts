@@ -1,11 +1,10 @@
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import type { ContentBlock } from "@modelcontextprotocol/sdk/types.js";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import {
   createContentBlocks,
   createStructuredContent,
   truncateBase64InContentBlocks,
-  type GlifOutputMetadata,
 } from "./content-blocks.js";
-import type { ContentBlock } from "@modelcontextprotocol/sdk/types.js";
 
 // Helper to create mock server for testing HTTP requests
 let originalConsoleError: typeof console.error;

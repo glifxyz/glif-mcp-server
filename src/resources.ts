@@ -1,12 +1,12 @@
+import type { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import {
   ErrorCode,
   ListResourcesRequestSchema,
   McpError,
   ReadResourceRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
-import { Server } from "@modelcontextprotocol/sdk/server/index.js";
+import { getGlifDetails, glifApi } from "./api.js";
 import { GlifRunSchema, UserSchema } from "./types.js";
-import { glifApi, getGlifDetails } from "./api.js";
 import {
   handleApiError,
   handleUnauthorized,

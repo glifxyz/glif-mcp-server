@@ -37,7 +37,7 @@ export async function handler(): Promise<ToolResponse> {
         let dateStr = "Unknown date";
         try {
           dateStr = new Date(glif.createdAt).toLocaleString();
-        } catch (err) {
+        } catch (_err) {
           // Use fallback if date is invalid
         }
 

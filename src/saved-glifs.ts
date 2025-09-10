@@ -1,9 +1,9 @@
-import { z } from "zod";
 import fs from "fs/promises";
 import path from "path";
 import { fileURLToPath } from "url";
-import { logger, safeJsonParse } from "./utils/utils.js";
+import { z } from "zod";
 import { getGlifDetails } from "./api.js";
+import { logger, safeJsonParse } from "./utils/utils.js";
 
 // Define the schema for saved glifs
 export const SavedGlifSchema = z.object({
@@ -225,7 +225,7 @@ function sanitizeToolName(toolName: string): string {
     .trim()
     .toLowerCase()
     // Replace spaces and common separators with underscores
-    .replace(/[\s\-\.]+/g, "_")
+    .replace(/[\s\-.]+/g, "_")
     // Remove all non-alphanumeric characters except underscores and hyphens
     .replace(/[^a-zA-Z0-9_-]/g, "")
     // Ensure it starts with a letter or number
@@ -237,7 +237,7 @@ function sanitizeToolName(toolName: string): string {
 
   // If the result is empty or too short, provide a fallback
   if (sanitized.length === 0) {
-    sanitized = "tool_" + Date.now().toString(36);
+    sanitized = `tool_${Date.now().toString(36)}`;
   }
 
   return sanitized;

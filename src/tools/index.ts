@@ -1,14 +1,14 @@
-import { z } from "zod";
+import type { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import {
   CallToolRequestSchema,
-  ListToolsRequestSchema,
-  ErrorCode,
-  McpError,
   type CallToolResult,
+  ErrorCode,
+  ListToolsRequestSchema,
+  McpError,
 } from "@modelcontextprotocol/sdk/types.js";
-import { Server } from "@modelcontextprotocol/sdk/server/index.js";
-import { getSavedGlifs, SavedGlif } from "../saved-glifs.js";
+import { z } from "zod";
 import { GLIF_IDS } from "../config.js";
+import { getSavedGlifs, type SavedGlif } from "../saved-glifs.js";
 import { env } from "../utils/env.js";
 
 // Types for tool structure
@@ -41,24 +41,22 @@ export type ToolGroup = {
 
 // Import core tools
 import * as glifInfo from "./glif-info.js";
-import * as runGlif from "./run-glif.js";
+// Bot tools - beta, disabled by default
+import * as listBots from "./list-bots.js";
 
 // Import discovery tools
 import * as listFeaturedGlifs from "./list-featured-glifs.js";
-import * as searchGlifs from "./search-glifs.js";
-import * as myGlifs from "./my-glifs.js";
+import * as listSavedGlifTools from "./list-saved-glif-tools.js";
+import * as loadBot from "./load-bot.js";
 import * as myGlifUserInfo from "./my-glif-user-info.js";
-
+import * as myGlifs from "./my-glifs.js";
+import * as removeAllGlifTools from "./remove-all-glif-tools.js";
+import * as removeGlifTool from "./remove-glif-tool.js";
+import * as runGlif from "./run-glif.js";
+import * as saveBotSkillsAsTools from "./save-bot-skills-as-tools.js";
 // Import metaskill tools
 import * as saveGlifAsTool from "./save-glif-as-tool.js";
-import * as removeGlifTool from "./remove-glif-tool.js";
-import * as removeAllGlifTools from "./remove-all-glif-tools.js";
-import * as listSavedGlifTools from "./list-saved-glif-tools.js";
-
-// Bot tools - beta, disabled by default
-import * as listBots from "./list-bots.js";
-import * as saveBotSkillsAsTools from "./save-bot-skills-as-tools.js";
-import * as loadBot from "./load-bot.js";
+import * as searchGlifs from "./search-glifs.js";
 import * as showBotInfo from "./show-bot-info.js";
 
 // Tool groupings

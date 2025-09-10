@@ -1,6 +1,6 @@
 import { ErrorCode, McpError } from "@modelcontextprotocol/sdk/types.js";
 import type { WretchError } from "wretch";
-import { z } from "zod";
+import type { z } from "zod";
 
 /**
  * Standardized logging utility with different log levels
@@ -19,23 +19,6 @@ export const logger = {
     }
   },
 };
-
-/**
- * Format API output based on type (legacy text-only function)
- * @deprecated Use createContentBlocks instead for multimedia support
- */
-export function formatOutput(type: string, output: string): string {
-  switch (type) {
-    case "IMAGE":
-      return `[Image] ${output} ![](${output})`;
-    case "VIDEO":
-      return `[Video] ${output}`;
-    case "AUDIO":
-      return `[Audio] ${output}`;
-    default:
-      return output;
-  }
-}
 
 /**
  * Validate URL for security and protocol compliance
@@ -91,7 +74,7 @@ export async function urlToBase64(url: string): Promise<string> {
 
       // Check content length
       const contentLength = response.headers.get("content-length");
-      if (contentLength && parseInt(contentLength) > 10485760) {
+      if (contentLength && parseInt(contentLength, 10) > 10485760) {
         // 10MB
         throw new Error(`File too large: ${contentLength} bytes (max 10MB)`);
       }

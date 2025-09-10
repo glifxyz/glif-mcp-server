@@ -1,17 +1,17 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { z } from "zod";
+import type { ToolRequest } from "./request-parsing.js";
 import {
-  createTool,
-  createTextResponse,
-  createListResponse,
   createErrorResponse,
+  createListResponse,
+  createTextResponse,
+  createTool,
   type ToolConfig,
 } from "./tool-factory.js";
-import type { ToolRequest } from "./request-parsing.js";
 
 // Mock dependencies
 vi.mock("./request-parsing.js", () => ({
-  parseToolArguments: vi.fn((request, schema) => {
+  parseToolArguments: vi.fn((request, _schema) => {
     // Simple mock that just returns the arguments
     return request.params.arguments;
   }),

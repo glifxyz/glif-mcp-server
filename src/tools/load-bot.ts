@@ -1,10 +1,10 @@
 import { z } from "zod";
+import { loadBot } from "../api.js";
+import { saveGlif } from "../saved-glifs.js";
 import {
   parseToolArguments,
   type ToolRequest,
 } from "../utils/request-parsing.js";
-import { loadBot } from "../api.js";
-import { saveGlif } from "../saved-glifs.js";
 import { logger } from "../utils/utils.js";
 import type { ToolResponse } from "./index.js";
 

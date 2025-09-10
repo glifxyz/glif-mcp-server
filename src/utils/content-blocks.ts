@@ -1,8 +1,8 @@
 import type { ContentBlock } from "@modelcontextprotocol/sdk/types.js";
 import {
   getMimeType,
-  isImageUrl,
   isAudioUrl,
+  isImageUrl,
   isVideoUrl,
   urlToBase64,
 } from "./utils.js";
@@ -130,7 +130,7 @@ export async function createContentBlocks(
   outputFull?: GlifOutputMetadata
 ): Promise<ContentBlock[]> {
   console.error("[DEBUG] createContentBlocks called with:", {
-    output: output?.slice(0, 100) + "...",
+    output: `${output?.slice(0, 100)}...`,
     outputFull,
   });
 
@@ -218,7 +218,6 @@ export async function createContentBlocks(
         blocks.push({ type: "text", text: output });
         break;
 
-      case "TEXT":
       default:
         blocks.push({ type: "text", text: output });
         break;

@@ -1,15 +1,14 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
 import * as fs from "fs/promises";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import * as api from "./api.js";
+import type { SavedGlif } from "./saved-glifs.js";
 import * as savedGlifsModule from "./saved-glifs.js";
 import { setupToolHandlers } from "./tools/index.js";
-import { SavedGlif } from "./saved-glifs.js";
-import * as utils from "./utils/utils.js";
 
 vi.mock("./api.js");
 vi.mock("fs/promises");

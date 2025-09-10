@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { getMyUserInfo, getMyGlifs, getMyRecentRuns } from "../api.js";
+import { getMyGlifs, getMyRecentRuns, getMyUserInfo } from "../api.js";
 import type { ToolResponse } from "./index.js";
 
 export const schema = z.object({});

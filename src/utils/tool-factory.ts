@@ -1,7 +1,7 @@
-import { z } from "zod";
+import type { z } from "zod";
+import type { ToolDefinition, ToolResponse } from "../tools/index.js";
 import { parseToolArguments, type ToolRequest } from "./request-parsing.js";
 import { handleApiError } from "./utils.js";
-import type { ToolResponse, ToolDefinition } from "../tools/index.js";
 
 /**
  * Tool factory configuration for creating standardized tools
@@ -17,7 +17,9 @@ export interface ToolConfig {
 /**
  * Handler function type for tool implementations
  */
-export type ToolHandlerFn = (args: any) => Promise<ToolResponse>;
+export type ToolHandlerFn = (
+  args: Record<string, unknown>
+) => Promise<ToolResponse>;
 
 /**
  * Complete tool with definition, handler, and schema
@@ -45,7 +47,10 @@ export function createTool(config: ToolConfig, handlerFn: ToolHandlerFn): Tool {
 
   const handler = async (request: ToolRequest): Promise<ToolResponse> => {
     try {
-      const args = parseToolArguments(request, config.schema);
+      const args = parseToolArguments(request, config.schema) as Record<
+        string,
+        unknown
+      >;
       return await handlerFn(args);
     } catch (error) {
       handleApiError(error, config.name);

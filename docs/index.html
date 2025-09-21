@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Glif MCP Server - Run AI Workflows from glif.app</title>
+    <meta name="description" content="MCP server for running AI workflows from glif.app with Claude and other AI assistants">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #10b981;
+            --bg: #ffffff;
+            --bg-secondary: #f9fafb;
+            --text: #111827;
+            --text-secondary: #6b7280;
+            --border: #e5e7eb;
+            --radius: 0.5rem;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #111827;
+                --bg-secondary: #1f2937;
+                --text: #f9fafb;
+                --text-secondary: #9ca3af;
+                --border: #374151;
+            }
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        header {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            padding: 1.5rem 0;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+            color: var(--text);
+            font-weight: 600;
+            font-size: 1.25rem;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 1.5rem;
+            align-items: center;
+        }
+
+        .nav-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+        }
+
+        .hero {
+            padding: 4rem 0;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+        }
+
+        .hero h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            line-height: 1.2;
+        }
+
+        .hero p {
+            font-size: 1.25rem;
+            opacity: 0.9;
+            margin-bottom: 2rem;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--radius);
+            text-decoration: none;
+            font-weight: 500;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .btn-primary {
+            background: white;
+            color: var(--primary);
+        }
+
+        .btn-secondary {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+
+        .section {
+            padding: 3rem 0;
+        }
+
+        .section h2 {
+            font-size: 2rem;
+            margin-bottom: 2rem;
+            color: var(--text);
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .feature {
+            background: var(--bg-secondary);
+            padding: 1.5rem;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+        }
+
+        .feature h3 {
+            color: var(--primary);
+            margin-bottom: 0.75rem;
+        }
+
+        .feature p {
+            color: var(--text-secondary);
+        }
+
+        .code-block {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+
+        .code-block pre {
+            margin: 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.875rem;
+        }
+
+        .tools-list {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .tool-category {
+            background: var(--bg-secondary);
+            padding: 1.5rem;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+        }
+
+        .tool-category h3 {
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+
+        .tool-category ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .tool-category li {
+            padding: 0.5rem 0;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .tool-category li strong {
+            color: var(--text);
+            margin-right: 0.5rem;
+        }
+
+        footer {
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border);
+            padding: 2rem 0;
+            margin-top: 4rem;
+        }
+
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            background: var(--secondary);
+            color: white;
+            border-radius: 999px;
+            font-size: 0.875rem;
+            margin-left: 0.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2rem;
+            }
+
+            .hero p {
+                font-size: 1.1rem;
+            }
+
+            .section h2 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <a href="/" class="logo">
+                    <span>🎨</span>
+                    <span>Glif MCP Server</span>
+                </a>
+                <nav class="nav-links">
+                    <a href="https://github.com/glifxyz/glif-mcp-server">GitHub</a>
+                    <a href="https://glif.app">Glif.app</a>
+                    <a href="https://discord.gg/glif">Discord</a>
+                    <a href="https://www.npmjs.com/package/@glifxyz/glif-mcp-server">NPM</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <section class="hero">
+        <div class="container">
+            <h1>Run AI Workflows from glif.app</h1>
+            <p>MCP server that brings the power of Glif's AI workflows to Claude and other AI assistants</p>
+            <div class="buttons">
+                <a href="https://github.com/glifxyz/glif-mcp-server#setup" class="btn btn-primary">Get Started</a>
+                <a href="https://glif.app" class="btn btn-secondary">Explore Glifs</a>
+            </div>
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="container">
+            <h2>🚀 Quick Install</h2>
+            <div class="code-block">
+                <pre>{
+  "mcpServers": {
+    "glif": {
+      "command": "npx",
+      "args": ["-y", "@glifxyz/glif-mcp-server@latest"],
+      "env": {
+        "GLIF_API_TOKEN": "your-token-here"
+      }
+    }
+  }
+}</pre>
+            </div>
+            <p style="margin-top: 1rem; color: var(--text-secondary);">
+                Add this to your Claude Desktop config at <code>~/Library/Application Support/Claude/claude_desktop_config.json</code>
+            </p>
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="container">
+            <h2>✨ Key Features</h2>
+            <div class="feature-grid">
+                <div class="feature">
+                    <h3>🎯 Run Any Glif</h3>
+                    <p>Execute AI workflows directly from your assistant with simple commands</p>
+                </div>
+                <div class="feature">
+                    <h3>🔧 Custom Tools</h3>
+                    <p>Turn your favorite glifs into reusable tools with custom names and descriptions</p>
+                </div>
+                <div class="feature">
+                    <h3>🔍 Discovery</h3>
+                    <p>Search and explore featured glifs to find the perfect workflow for your needs</p>
+                </div>
+                <div class="feature">
+                    <h3>📊 Rich Metadata</h3>
+                    <p>Access detailed information about glifs, runs, and user profiles</p>
+                </div>
+                <div class="feature">
+                    <h3>🤖 Bot Integration</h3>
+                    <p>Load and use AI bots with specialized skills as individual tools</p>
+                </div>
+                <div class="feature">
+                    <h3>⚡ MCP Protocol</h3>
+                    <p>Built on the Model Context Protocol for seamless integration</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="container">
+            <h2>🛠 Available Tools</h2>
+            <div class="tools-list">
+                <div class="tool-category">
+                    <h3>Core Tools</h3>
+                    <ul>
+                        <li><strong>run_glif:</strong> Run a glif with specified ID and inputs</li>
+                        <li><strong>glif_info:</strong> Get detailed information about a glif including input fields</li>
+                    </ul>
+                </div>
+
+                <div class="tool-category">
+                    <h3>Discovery Tools <span class="badge">Default ON</span></h3>
+                    <ul>
+                        <li><strong>list_featured_glifs:</strong> Get a curated list of featured glifs</li>
+                        <li><strong>search_glifs:</strong> Search for glifs by name or description</li>
+                        <li><strong>my_glifs:</strong> Get a list of your published glifs</li>
+                        <li><strong>my_glif_user_info:</strong> Get detailed information about your account</li>
+                    </ul>
+                </div>
+
+                <div class="tool-category">
+                    <h3>Metaskill Tools <span class="badge">Default ON</span></h3>
+                    <ul>
+                        <li><strong>save_glif_as_tool:</strong> Save a glif as a custom named tool</li>
+                        <li><strong>remove_glif_tool:</strong> Remove a saved glif tool</li>
+                        <li><strong>remove_all_glif_tools:</strong> Return to pristine state</li>
+                        <li><strong>list_saved_glif_tools:</strong> List all saved glif tools</li>
+                    </ul>
+                </div>
+
+                <div class="tool-category">
+                    <h3>Bot Tools <span class="badge">Beta</span></h3>
+                    <ul>
+                        <li><strong>list_bots:</strong> Get featured bots and sim templates</li>
+                        <li><strong>load_bot:</strong> Get detailed bot information including skills</li>
+                        <li><strong>save_bot_skills_as_tools:</strong> Save bot skills as individual tools</li>
+                        <li><strong>show_bot_info:</strong> Get specific bot information</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="container">
+            <h2>🎯 Example Usage</h2>
+            <div class="code-block">
+                <pre>// Turn a glif into a reusable tool
+User: "Make the 1970s sci-fi book cover generator into a tool called scifi_book_image"
+Assistant: [Creates custom tool from glif]
+
+// Use the new tool
+User: "Create a sci-fi book cover of a space station orbiting Mars"
+Assistant: [Executes the scifi_book_image tool with your prompt]</pre>
+            </div>
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="container">
+            <h2>📦 Installation Options</h2>
+            <div class="feature-grid">
+                <div class="feature">
+                    <h3>NPX (Recommended)</h3>
+                    <p>Run directly via npx without local installation. Always uses the latest version.</p>
+                </div>
+                <div class="feature">
+                    <h3>Local Development</h3>
+                    <p>Clone the repository and run from source for development and customization.</p>
+                </div>
+                <div class="feature">
+                    <h3>Smithery</h3>
+                    <p>Automatic cloud hosting with one-click installation for Claude Desktop.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div>
+                    <p>&copy; 2024 Glif MCP Server | MIT License</p>
+                </div>
+                <div class="nav-links">
+                    <a href="https://github.com/glifxyz/glif-mcp-server">GitHub</a>
+                    <a href="https://glif.app">Glif.app</a>
+                    <a href="https://discord.gg/glif">Discord</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

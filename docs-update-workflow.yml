@@ -1,0 +1,335 @@
+name: Auto-Update Documentation
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  analyze-and-update-docs:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Analyze Changes
+        id: analyze
+        run: |
+          echo "Analyzing changes for documentation updates..."
+
+          # Get list of changed files
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            CHANGED_FILES=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }})
+          else
+            CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD)
+          fi
+
+          echo "Changed files:"
+          echo "$CHANGED_FILES"
+
+          # Check if documentation updates are needed
+          NEEDS_UPDATE=false
+          UPDATE_README=false
+          UPDATE_SITE=false
+          UPDATE_TOOLS=false
+
+          # Check for tool changes
+          if echo "$CHANGED_FILES" | grep -q "src/tools/"; then
+            UPDATE_TOOLS=true
+            NEEDS_UPDATE=true
+            echo "Tool definitions changed - documentation update needed"
+          fi
+
+          # Check for API changes
+          if echo "$CHANGED_FILES" | grep -q "src/api\|src/index.ts"; then
+            UPDATE_README=true
+            UPDATE_SITE=true
+            NEEDS_UPDATE=true
+            echo "API changes detected - README and site update needed"
+          fi
+
+          # Check for configuration changes
+          if echo "$CHANGED_FILES" | grep -q "package.json\|src/config.ts"; then
+            UPDATE_README=true
+            NEEDS_UPDATE=true
+            echo "Configuration changes detected - README update needed"
+          fi
+
+          echo "needs_update=$NEEDS_UPDATE" >> $GITHUB_OUTPUT
+          echo "update_readme=$UPDATE_README" >> $GITHUB_OUTPUT
+          echo "update_site=$UPDATE_SITE" >> $GITHUB_OUTPUT
+          echo "update_tools=$UPDATE_TOOLS" >> $GITHUB_OUTPUT
+
+      - name: Generate Documentation Updates
+        if: steps.analyze.outputs.needs_update == 'true'
+        run: |
+          # Create a script to extract and format tool documentation
+          cat > extract_tools.js << 'EOF'
+          const fs = require('fs');
+          const path = require('path');
+
+          function extractToolInfo(filePath) {
+            const content = fs.readFileSync(filePath, 'utf8');
+            const nameMatch = content.match(/name:\s*["']([^"']+)["']/);
+            const descMatch = content.match(/description:\s*["']([^"']+)["']/);
+
+            if (nameMatch && descMatch) {
+              return {
+                name: nameMatch[1],
+                description: descMatch[1]
+              };
+            }
+            return null;
+          }
+
+          function generateToolDocs() {
+            const toolsDir = './src/tools';
+            const files = fs.readdirSync(toolsDir);
+            const tools = {
+              core: [],
+              discovery: [],
+              metaskill: [],
+              bot: []
+            };
+
+            // Read the index.ts to understand tool categorization
+            const indexContent = fs.readFileSync(path.join(toolsDir, 'index.ts'), 'utf8');
+
+            files.forEach(file => {
+              if (file.endsWith('.ts') && !file.endsWith('.test.ts') && file !== 'index.ts') {
+                const tool = extractToolInfo(path.join(toolsDir, file));
+                if (tool) {
+                  // Categorize based on tool name patterns
+                  if (tool.name === 'run_glif' || tool.name === 'glif_info') {
+                    tools.core.push(tool);
+                  } else if (tool.name.includes('bot')) {
+                    tools.bot.push(tool);
+                  } else if (tool.name.includes('save') || tool.name.includes('remove') || tool.name.includes('list_saved')) {
+                    tools.metaskill.push(tool);
+                  } else {
+                    tools.discovery.push(tool);
+                  }
+                }
+              }
+            });
+
+            return tools;
+          }
+
+          console.log(JSON.stringify(generateToolDocs(), null, 2));
+          EOF
+
+          node extract_tools.js > tools.json
+
+      - name: Update README
+        if: steps.analyze.outputs.update_readme == 'true'
+        run: |
+          echo "Updating README with latest tool information..."
+
+          # Create update script
+          cat > update_readme.js << 'EOF'
+          const fs = require('fs');
+
+          const tools = JSON.parse(fs.readFileSync('tools.json', 'utf8'));
+          let readme = fs.readFileSync('README.md', 'utf8');
+
+          // Update Core Tools section
+          let coreSection = "### Core Tools (always enabled)\n\n";
+          tools.core.forEach(tool => {
+            coreSection += `- \`${tool.name}\` - ${tool.description}\n`;
+          });
+
+          // Update Discovery Tools section
+          let discoverySection = "\n### Discovery Tools (enabled by default, disable with \`IGNORE_DISCOVERY_TOOLS=true\`)\n\n";
+          tools.discovery.forEach(tool => {
+            discoverySection += `- \`${tool.name}\` - ${tool.description}\n`;
+          });
+
+          // Update Metaskill Tools section
+          let metaskillSection = "\n### Metaskill Tools (enabled by default, disable with \`IGNORE_METASKILL_TOOLS=true\`)\n\n";
+          tools.metaskill.forEach(tool => {
+            metaskillSection += `- \`${tool.name}\` - ${tool.description}\n`;
+          });
+
+          // Update Bot Tools section
+          let botSection = "\n### Bot Tools (disabled by default, enable with \`BOT_TOOLS=true\`)\n\n";
+          tools.bot.forEach(tool => {
+            botSection += `- \`${tool.name}\` - ${tool.description}\n`;
+          });
+
+          // Replace the tools section in README
+          const toolsSectionStart = readme.indexOf('## Tools');
+          const nextSectionStart = readme.indexOf('\n## ', toolsSectionStart + 1);
+
+          if (toolsSectionStart !== -1 && nextSectionStart !== -1) {
+            const newToolsSection = `## Tools\n\n${coreSection}${discoverySection}${metaskillSection}${botSection}\n### Saved Glif Tools (enabled by default, disable with \`IGNORE_SAVED_GLIFS=true\`)\n\nDynamic tools created from glifs you've saved using the metaskill tools. Each saved glif becomes its own tool with a custom name and description.\n`;
+
+            readme = readme.substring(0, toolsSectionStart) + newToolsSection + readme.substring(nextSectionStart);
+
+            fs.writeFileSync('README.md', readme);
+            console.log('README updated successfully');
+          }
+          EOF
+
+          if [ -f tools.json ]; then
+            node update_readme.js
+          fi
+
+      - name: Update GitHub Pages Site
+        if: steps.analyze.outputs.update_site == 'true'
+        run: |
+          echo "Updating GitHub Pages site..."
+
+          # Create site update script
+          cat > update_site.js << 'EOF'
+          const fs = require('fs');
+
+          if (!fs.existsSync('tools.json')) {
+            console.log('No tools.json found, skipping site update');
+            process.exit(0);
+          }
+
+          const tools = JSON.parse(fs.readFileSync('tools.json', 'utf8'));
+          let html = fs.readFileSync('docs/index.html', 'utf8');
+
+          // Generate tool HTML
+          function generateToolList(toolArray) {
+            return toolArray.map(tool =>
+              `                        <li><strong>${tool.name}:</strong> ${tool.description}</li>`
+            ).join('\n');
+          }
+
+          // Update Core Tools
+          const coreToolsHTML = generateToolList(tools.core);
+          html = html.replace(
+            /<h3>Core Tools<\/h3>[\s\S]*?<\/ul>/,
+            `<h3>Core Tools</h3>
+                    <ul>
+${coreToolsHTML}
+                    </ul>`
+          );
+
+          // Update Discovery Tools
+          const discoveryToolsHTML = generateToolList(tools.discovery);
+          html = html.replace(
+            /<h3>Discovery Tools[\s\S]*?<\/h3>[\s\S]*?<\/ul>/,
+            `<h3>Discovery Tools <span class="badge">Default ON</span></h3>
+                    <ul>
+${discoveryToolsHTML}
+                    </ul>`
+          );
+
+          // Update Metaskill Tools
+          const metaskillToolsHTML = generateToolList(tools.metaskill);
+          html = html.replace(
+            /<h3>Metaskill Tools[\s\S]*?<\/h3>[\s\S]*?<\/ul>/,
+            `<h3>Metaskill Tools <span class="badge">Default ON</span></h3>
+                    <ul>
+${metaskillToolsHTML}
+                    </ul>`
+          );
+
+          // Update Bot Tools
+          const botToolsHTML = generateToolList(tools.bot);
+          html = html.replace(
+            /<h3>Bot Tools[\s\S]*?<\/h3>[\s\S]*?<\/ul>/,
+            `<h3>Bot Tools <span class="badge">Beta</span></h3>
+                    <ul>
+${botToolsHTML}
+                    </ul>`
+          );
+
+          fs.writeFileSync('docs/index.html', html);
+          console.log('Site updated successfully');
+          EOF
+
+          if [ -f tools.json ]; then
+            node update_site.js
+          fi
+
+      - name: Create PR for Updates
+        if: steps.analyze.outputs.needs_update == 'true' && github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Configure git
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Create a new branch for documentation updates
+          BRANCH_NAME="docs-update-pr-${{ github.event.pull_request.number }}"
+          git checkout -b $BRANCH_NAME
+
+          # Check for changes
+          if [ -n "$(git status --porcelain)" ]; then
+            # Commit changes
+            git add -A
+            git commit -m "docs: Auto-update documentation for PR #${{ github.event.pull_request.number }}
+
+            - Updated tool definitions in README
+            - Updated GitHub Pages site
+            - Synchronized documentation with code changes
+
+            Auto-generated by documentation workflow"
+
+            # Push the branch
+            git push origin $BRANCH_NAME
+
+            # Create a PR
+            gh pr create \
+              --title "📚 Auto-update documentation for PR #${{ github.event.pull_request.number }}" \
+              --body "This PR automatically updates the documentation based on changes in PR #${{ github.event.pull_request.number }}.
+
+              ### Changes
+              - ✅ Updated tool definitions in README
+              - ✅ Updated GitHub Pages site
+              - ✅ Synchronized documentation with code changes
+
+              ### Related
+              - Original PR: #${{ github.event.pull_request.number }}
+
+              ---
+              *This PR was automatically generated by the documentation update workflow.*" \
+              --base main \
+              --head $BRANCH_NAME
+          else
+            echo "No documentation changes needed"
+          fi
+
+      - name: Update Main Branch Docs
+        if: steps.analyze.outputs.needs_update == 'true' && github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          # Configure git
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Check for changes
+          if [ -n "$(git status --porcelain)" ]; then
+            # Commit and push directly to main
+            git add -A
+            git commit -m "docs: Auto-update documentation
+
+            - Updated tool definitions in README
+            - Updated GitHub Pages site
+            - Synchronized documentation with latest code changes
+
+            Auto-generated by documentation workflow"
+
+            git push origin main
+          else
+            echo "No documentation changes needed"
+          fi

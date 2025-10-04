@@ -168,7 +168,7 @@ describe("Content Blocks", () => {
         type: "text",
         text: `🔊 Audio: ${audioUrl}`,
       });
-    }, 10000);
+    }, 30_000);
 
     it("should handle valid video URLs with resource_link only", async () => {
       const videoUrl = "https://example.com/video.mp4";

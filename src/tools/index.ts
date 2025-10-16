@@ -41,54 +41,8 @@ export type ToolGroup = {
   [key: string]: Tool;
 };
 
-// Import core tools
-import * as glifInfo from "./glif-info.js";
-// Bot tools - beta, disabled by default
-import * as listBots from "./list-bots.js";
-
-// Import discovery tools
-import * as listFeaturedGlifs from "./list-featured-glifs.js";
-import * as listSavedGlifTools from "./list-saved-glif-tools.js";
-import * as loadBot from "./load-bot.js";
-import * as myGlifUserInfo from "./my-glif-user-info.js";
-import * as myGlifs from "./my-glifs.js";
-import * as removeAllGlifTools from "./remove-all-glif-tools.js";
-import * as removeGlifTool from "./remove-glif-tool.js";
+import { getEnabledTools } from "./registry.js";
 import * as runGlif from "./run-glif.js";
-import * as saveBotSkillsAsTools from "./save-bot-skills-as-tools.js";
-// Import metaskill tools
-import * as saveGlifAsTool from "./save-glif-as-tool.js";
-import * as searchGlifs from "./search-glifs.js";
-import * as showBotInfo from "./show-bot-info.js";
-
-// Tool groupings
-const CORE_TOOLS: ToolGroup = {
-  [glifInfo.definition.name]: glifInfo,
-  [runGlif.definition.name]: runGlif,
-};
-
-// Will add these as we implement the tools
-const DISCOVERY_TOOLS: ToolGroup = {
-  [listFeaturedGlifs.definition.name]: listFeaturedGlifs,
-  [searchGlifs.definition.name]: searchGlifs,
-  [myGlifs.definition.name]: myGlifs,
-  [myGlifUserInfo.definition.name]: myGlifUserInfo,
-};
-
-const METASKILL_TOOLS: ToolGroup = {
-  [saveGlifAsTool.definition.name]: saveGlifAsTool,
-  [removeGlifTool.definition.name]: removeGlifTool,
-  [removeAllGlifTools.definition.name]: removeAllGlifTools,
-  [listSavedGlifTools.definition.name]: listSavedGlifTools,
-};
-
-// Bot tools - beta, disabled by default
-const BOT_TOOLS: ToolGroup = {
-  [listBots.definition.name]: listBots,
-  [saveBotSkillsAsTools.definition.name]: saveBotSkillsAsTools,
-  [loadBot.definition.name]: loadBot,
-  [showBotInfo.definition.name]: showBotInfo,
-};
 
 // Helper to create a tool definition from a saved glif
 function createToolFromSavedGlif(glif: SavedGlif): ToolDefinition {
@@ -135,25 +89,11 @@ function createToolFromGlifId(glifId: string) {
 export async function getTools(): Promise<{ tools: ToolDefinition[] }> {
   const tools: ToolDefinition[] = [];
 
-  // 1. Add CORE tools (always available)
-  tools.push(...Object.values(CORE_TOOLS).map((t) => t.definition));
+  // 1. Add all enabled tools from registry
+  const enabledTools = getEnabledTools();
+  tools.push(...Object.values(enabledTools).map((t) => t.definition));
 
-  // 2. Add DISCOVERY tools (unless disabled)
-  if (env.discovery.enabled()) {
-    tools.push(...Object.values(DISCOVERY_TOOLS).map((t) => t.definition));
-  }
-
-  // 3. Add METASKILL tools (unless disabled)
-  if (env.metaskill.enabled()) {
-    tools.push(...Object.values(METASKILL_TOOLS).map((t) => t.definition));
-  }
-
-  // 4. Add BOT tools (disabled by default)
-  if (env.bots.enabled()) {
-    tools.push(...Object.values(BOT_TOOLS).map((t) => t.definition));
-  }
-
-  // 5. Add SAVED_GLIFS tools (unless disabled)
+  // 2. Add SAVED_GLIFS tools (unless disabled)
   if (env.savedGlifs.enabled()) {
     const savedGlifs = await getSavedGlifs();
     if (savedGlifs) {
@@ -161,7 +101,7 @@ export async function getTools(): Promise<{ tools: ToolDefinition[] }> {
     }
   }
 
-  // 5. Add SERVER_CONFIG_GLIFS tools (always available)
+  // 3. Add SERVER_CONFIG_GLIFS tools (always available)
   tools.push(...GLIF_IDS.map(createToolFromGlifId));
 
   return { tools };
@@ -181,6 +121,7 @@ export function setupToolHandlers(server: Server) {
       name: request.params.name,
       args: request.params.arguments,
     });
+
     // Check if this is a saved glif tool
     if (env.savedGlifs.enabled()) {
       const savedGlifs = await getSavedGlifs();
@@ -229,34 +170,11 @@ export function setupToolHandlers(server: Server) {
       });
     }
 
-    // Handle core tools
-    const coreTool = CORE_TOOLS[request.params.name];
-    if (coreTool) {
-      return coreTool.handler(request);
-    }
-
-    // Handle discovery tools
-    if (env.discovery.enabled()) {
-      const discoveryTool = DISCOVERY_TOOLS[request.params.name];
-      if (discoveryTool) {
-        return discoveryTool.handler(request);
-      }
-    }
-
-    // Handle metaskill tools
-    if (env.metaskill.enabled()) {
-      const metaskillTool = METASKILL_TOOLS[request.params.name];
-      if (metaskillTool) {
-        return metaskillTool.handler(request);
-      }
-    }
-
-    // Handle bot tools
-    if (env.bots.enabled()) {
-      const botTool = BOT_TOOLS[request.params.name];
-      if (botTool) {
-        return botTool.handler(request);
-      }
+    // Handle all registered tools
+    const enabledTools = getEnabledTools();
+    const tool = enabledTools[request.params.name];
+    if (tool) {
+      return tool.handler(request);
     }
 
     throw new McpError(

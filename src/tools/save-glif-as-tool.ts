@@ -46,6 +46,11 @@ export const definition = {
     },
     required: ["id", "toolName"],
   },
+  annotations: {
+    title: "Save Glif as Tool",
+    readOnlyHint: false,
+    destructiveHint: false,
+  },
 };
 
 export async function handler(request: ToolRequest): Promise<ToolResponse> {

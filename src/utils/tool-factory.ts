@@ -1,3 +1,4 @@
+import type { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 import type { z } from "zod";
 import type { ToolDefinition, ToolResponse } from "../tools/index.js";
 import { parseToolArguments, type ToolRequest } from "./request-parsing.js";
@@ -12,6 +13,7 @@ export interface ToolConfig {
   schema: z.ZodType;
   properties: Record<string, unknown>;
   required?: string[];
+  annotations?: ToolAnnotations;
 }
 
 /**
@@ -43,6 +45,7 @@ export function createTool(config: ToolConfig, handlerFn: ToolHandlerFn): Tool {
       properties: config.properties,
       required: config.required || [],
     },
+    ...(config.annotations && { annotations: config.annotations }),
   };
 
   const handler = async (request: ToolRequest): Promise<ToolResponse> => {

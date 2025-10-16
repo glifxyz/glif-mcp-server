@@ -25,6 +25,10 @@ export const {
     schema,
     properties: {},
     required: [],
+    annotations: {
+      title: "List Featured Glifs",
+      readOnlyHint: true,
+    },
   },
   listFeaturedGlifsHandler
 );

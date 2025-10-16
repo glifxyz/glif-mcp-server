@@ -36,6 +36,11 @@ export const definition = {
     },
     required: ["id", "inputs"],
   },
+  annotations: {
+    title: "Run Glif",
+    readOnlyHint: false,
+    destructiveHint: false,
+  },
 };
 
 export async function handler(request: ToolRequest): Promise<ToolResponse> {

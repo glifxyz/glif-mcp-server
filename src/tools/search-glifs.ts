@@ -37,6 +37,10 @@ export const {
       },
     },
     required: ["query"],
+    annotations: {
+      title: "Search Glifs",
+      readOnlyHint: true,
+    },
   },
   searchGlifsHandler
 );

@@ -23,6 +23,10 @@ export const definition = {
     },
     required: ["id"],
   },
+  annotations: {
+    title: "Get Glif Info",
+    readOnlyHint: true,
+  },
 };
 
 export async function handler(request: ToolRequest): Promise<ToolResponse> {

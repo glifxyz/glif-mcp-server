@@ -5,6 +5,7 @@ import {
   ErrorCode,
   ListToolsRequestSchema,
   McpError,
+  type ToolAnnotations,
 } from "@modelcontextprotocol/sdk/types.js";
 import { z } from "zod";
 import { GLIF_IDS } from "../config.js";
@@ -20,6 +21,7 @@ export type ToolDefinition = {
     properties: Record<string, unknown>;
     required?: string[];
   };
+  annotations?: ToolAnnotations;
 };
 
 // Use the official MCP ContentBlock types for multimedia support

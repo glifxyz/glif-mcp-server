@@ -13,6 +13,11 @@ export const definition = {
     properties: {},
     required: [],
   },
+  annotations: {
+    title: "Remove All Glif Tools",
+    readOnlyHint: false,
+    destructiveHint: true,
+  },
 };
 
 export async function handler(): Promise<ToolResponse> {

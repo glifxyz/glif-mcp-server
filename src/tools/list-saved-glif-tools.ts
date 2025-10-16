@@ -13,6 +13,10 @@ export const definition = {
     properties: {},
     required: [],
   },
+  annotations: {
+    title: "List Saved Glif Tools",
+    readOnlyHint: true,
+  },
 };
 
 export async function handler(): Promise<ToolResponse> {

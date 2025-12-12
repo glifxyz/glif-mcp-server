@@ -2,24 +2,21 @@ import { env } from "../utils/env.js";
 // Import core tools
 import * as glifInfo from "./glif-info.js";
 import type { ToolGroup } from "./index.js";
-// Import bot tools
-import * as listBots from "./list-bots.js";
-
+// Import agent tools (formerly "bot" tools)
+import * as listAgents from "./list-agents.js";
 // Import discovery tools
 import * as listFeaturedGlifs from "./list-featured-glifs.js";
 import * as listSavedGlifTools from "./list-saved-glif-tools.js";
-import * as loadBot from "./load-bot.js";
+import * as loadAgent from "./load-agent.js";
 import * as myGlifUserInfo from "./my-glif-user-info.js";
 import * as myGlifs from "./my-glifs.js";
-
 // Import metaskill tools
 import * as removeAllGlifTools from "./remove-all-glif-tools.js";
 import * as removeGlifTool from "./remove-glif-tool.js";
 import * as runGlif from "./run-glif.js";
-import * as saveBotSkillsAsTools from "./save-bot-skills-as-tools.js";
+import * as saveAgentSkillsAsTools from "./save-agent-skills-as-tools.js";
 import * as saveGlifAsTool from "./save-glif-as-tool.js";
 import * as searchGlifs from "./search-glifs.js";
-import * as showBotInfo from "./show-bot-info.js";
 
 /**
  * Tool group definition with enable condition
@@ -64,13 +61,12 @@ export const TOOL_REGISTRY: ToolGroupConfig[] = [
     },
   },
   {
-    name: "bots",
-    enabled: () => env.bots.enabled(),
+    name: "agents",
+    enabled: () => env.agents.enabled(),
     tools: {
-      [listBots.definition.name]: listBots,
-      [saveBotSkillsAsTools.definition.name]: saveBotSkillsAsTools,
-      [loadBot.definition.name]: loadBot,
-      [showBotInfo.definition.name]: showBotInfo,
+      [listAgents.definition.name]: listAgents,
+      [loadAgent.definition.name]: loadAgent,
+      [saveAgentSkillsAsTools.definition.name]: saveAgentSkillsAsTools,
     },
   },
 ];

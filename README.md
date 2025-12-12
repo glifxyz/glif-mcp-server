@@ -2,17 +2,19 @@
 
 MCP server for running AI workflows from glif.app.
 
-This server provides tools for running glifs, managing bots, and accessing glif metadata through the Model Context Protocol (MCP).
+This server provides tools for running workflows (glifs), managing agents, and accessing workflow metadata through the Model Context Protocol (MCP).
 
-This server also allows for customizing all the tools available via add-tool, remove-tool etc meta-tools, including lot full glif agents as a set of tools (and personality). This is highly experimental.
+This server also allows for customizing all the tools available via save/remove tool meta-tools, including loading full agents as a set of tools (and personality). This is highly experimental.
 
 For more info check out https://glif.app or join our Discord server: https://discord.gg/glif
 
 ## Features
 
-- Run glifs with inputs
-- Get detailed information about glifs, runs, and users
-- Access glif metadata through URI-based resources
+- Run workflows (glifs) with inputs
+- Get detailed information about workflows, runs, and users
+- Access workflow metadata through URI-based resources
+- Save workflows as custom tools for quick access
+- Load agents with their skills as callable tools
 
 ## Setup
 
@@ -65,7 +67,7 @@ Then configure your MCP client (e.g. Claude Desktop) to load this server from di
    }
    ```
 
-You can also specify glifs IDs (comma-separated) which will be loaded automatically when the server starts. This is useful for testing or if you want to share a pre-made glif configuration with someone else.
+You can also specify workflow IDs (comma-separated) which will be loaded automatically when the server starts. This is useful for testing or if you want to share a pre-made workflow configuration with someone else.
 
 ```json
 {
@@ -76,7 +78,7 @@ You can also specify glifs IDs (comma-separated) which will be loaded automatica
       "env": {
         "GLIF_API_TOKEN": "your-token-here",
         "GLIF_IDS": "cm2v9aiga00008vfqdiximl2m,cm2v98jk6000r11afslqvooil,cm2v9rp66000bat9wr606qq6o",
-        "IGNORE_SAVED_GLIFS": true,
+        "IGNORE_SAVED_GLIFS": true
       }
     }
   }
@@ -99,7 +101,7 @@ npx -y @smithery/cli install @glifxyz/glif-mcp-server --client claude
 
 ## Resources
 
-- `glif://{id}` - Get glif metadata
+- `glif://{id}` - Get workflow metadata
 - `glifRun://{id}` - Get run details
 - `glifUser://{id}` - Get user profile
 
@@ -108,53 +110,52 @@ npx -y @smithery/cli install @glifxyz/glif-mcp-server --client claude
 Environment variables to control which tool groups are enabled:
 
 - `GLIF_API_TOKEN` - **Required.** Your API token from https://glif.app/settings/api-tokens
-- `GLIF_IDS` - Optional. Comma-separated glif IDs to load as tools automatically
+- `GLIF_IDS` - Optional. Comma-separated workflow IDs to load as tools automatically
 - `IGNORE_DISCOVERY_TOOLS` - Set to `true` to disable discovery tools (enabled by default)
 - `IGNORE_METASKILL_TOOLS` - Set to `true` to disable metaskill tools (enabled by default)
-- `IGNORE_SAVED_GLIFS` - Set to `true` to disable saved glif tools (enabled by default)
-- `BOT_TOOLS` - Set to `true` to enable bot tools (disabled by default)
+- `IGNORE_SAVED_GLIFS` - Set to `true` to disable saved workflow tools (enabled by default)
+- `AGENT_TOOLS` - Set to `true` to enable agent tools (disabled by default). Also accepts `BOT_TOOLS` for backward compatibility.
 
 ## Tools
 
 ### Core Tools (always enabled)
 
-- `run_glif` - Run a glif with the specified ID and inputs
-- `glif_info` - Get detailed information about a glif including input fields
+- `run_glif` - Run a workflow (glif) with the specified ID and inputs
+- `glif_info` - Get detailed information about a workflow including input fields
 
 ### Discovery Tools (enabled by default, disable with `IGNORE_DISCOVERY_TOOLS=true`)
 
-- `list_featured_glifs` - Get a curated list of featured glifs
-- `search_glifs` - Search for glifs by name or description
-- `my_glifs` - Get a list of your glifs
-- `my_glif_user_info` - Get detailed information about your user account, recent glifs, and recent runs
+- `list_featured_glifs` - Get a curated list of featured workflows
+- `search_glifs` - Search for workflows by name or description
+- `my_glifs` - Get a list of your workflows
+- `my_glif_user_info` - Get detailed information about your account, recent workflows, and recent runs
 
 ### Metaskill Tools (enabled by default, disable with `IGNORE_METASKILL_TOOLS=true`)
 
-- `save_glif_as_tool` - Save a glif as a custom tool
-- `remove_glif_tool` - Remove a saved glif tool
-- `remove_all_glif_tools` - Remove all saved glif tools and return to a pristine state
-- `list_saved_glif_tools` - List all saved glif tools
+- `save_glif_as_tool` - Save a workflow as a custom tool for quick access
+- `remove_glif_tool` - Remove a saved workflow tool
+- `remove_all_glif_tools` - Remove all saved workflow tools and return to a pristine state
+- `list_saved_glif_tools` - List all saved workflow tools
 
-### Bot Tools (disabled by default, enable with `BOT_TOOLS=true`)
+### Agent Tools (disabled by default, enable with `AGENT_TOOLS=true`)
 
-- `list_bots` - Get a list of featured bots and sim templates
-- `load_bot` - Get detailed information about a specific bot, including its skills
-- `save_bot_skills_as_tools` - Save all skills from a bot as individual tools
-- `show_bot_info` - Get detailed information about a specific bot
+- `list_agents` - Get a list of agents (also known as bots or sim templates)
+- `load_agent` - Load an agent and automatically save its skills as tools
+- `save_agent_skills_as_tools` - Save all skills from an agent as individual tools
 
-### Saved Glif Tools (enabled by default, disable with `IGNORE_SAVED_GLIFS=true`)
+### Saved Workflow Tools (enabled by default, disable with `IGNORE_SAVED_GLIFS=true`)
 
-Dynamic tools created from glifs you've saved using the metaskill tools. Each saved glif becomes its own tool with a custom name and description.
+Dynamic tools created from workflows you've saved using the metaskill tools. Each saved workflow becomes its own tool with a custom name and description.
 
-## How to turn glifs into custom tools
+## How to turn workflows into custom tools
 
-We have a general `run_glif` tool, but it (a) isn't very descriptive, and (b) requires doing a `glif_info` call first in order to learn how to call said glif. Plus, you need to know that glif exists.
+We have a general `run_glif` tool, but it (a) isn't very descriptive, and (b) requires doing a `glif_info` call first in order to learn how to call said workflow. Plus, you need to know that workflow exists.
 
-We're experimenting with several new meta-tools which turn specific glifs into new standalone tools:
+We're experimenting with several new meta-tools which turn specific workflows into new standalone tools:
 
 An example prompt session:
 
-- what are some cool new glifs?
+- what are some cool new workflows?
 - [toolcall: `list_featured_glifs`...]
 - ok i like 1970s sci-fi book cover generator, make that into a tool called "scifi_book_image"
 - [toolcall: `save_glif_as_tool glifId=... toolName=scifi_book_image`]
@@ -163,12 +164,6 @@ An example prompt session:
 You can list these special tools with `list_saved_glif_tools` and remove any you don't like with `remove_glif_tool`
 
 Note that Claude Desktop requires a restart to load new tool definitions. Cline & Cursor seem to reload automatically on changes and requery for available tools
-
-Info about authenticated user's glifs:
-
-- `my_glifs` - current user's published glifs (no drats)
-- `my_liked_glifs` - current user's liked glifs
-- `my_runs` - current user's public runs
 
 ## MCP registries
 
@@ -220,7 +215,7 @@ npm run inspector
 
 The Inspector will provide a URL to access debugging tools in your browser.
 
-You can also look at the glif-mcp logs inside the Claude logs directy if you're using Claude Desktop.
+You can also look at the glif-mcp logs inside the Claude logs directory if you're using Claude Desktop.
 
 ### Releasing a new version
 

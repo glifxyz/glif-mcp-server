@@ -117,7 +117,7 @@ describe("Integration Tests for Saved Glifs", () => {
       },
     });
 
-    expect(saveResult.content[0].text).toContain("Successfully saved glif");
+    expect(saveResult.content[0].text).toContain("Successfully saved workflow");
     expect(savedGlifsModule.saveGlif).toHaveBeenCalledWith({
       ...savedGlif,
       createdAt: expect.any(String),

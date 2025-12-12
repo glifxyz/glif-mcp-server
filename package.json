@@ -1,6 +1,6 @@
 {
   "name": "@glifxyz/glif-mcp-server",
-  "version": "0.9.9",
+  "version": "0.9.10",
   "description": "Run AI magic workflows from glif.app",
   "license": "MIT",
   "author": "glifxyz",

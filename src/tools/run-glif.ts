@@ -18,26 +18,27 @@ export const schema = z.object({
 
 export const definition = {
   name: "run_glif",
-  description: "Run a glif with the specified ID and inputs",
+  description:
+    "Run a workflow (glif) with the specified ID and inputs. Glifs are AI workflows that can generate images, text, audio, and more.",
   inputSchema: {
     type: "object",
     properties: {
       id: {
         type: "string",
-        description: "The ID of the glif to run",
+        description: "The ID of the workflow (glif) to run",
       },
       inputs: {
         type: "array",
         items: {
           type: "string",
         },
-        description: "Array of input values for the glif",
+        description: "Array of input values for the workflow",
       },
     },
     required: ["id", "inputs"],
   },
   annotations: {
-    title: "Run Glif",
+    title: "Run Workflow",
     readOnlyHint: false,
     destructiveHint: false,
   },

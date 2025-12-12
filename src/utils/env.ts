@@ -37,9 +37,9 @@ export const env = {
     enabled: () => !isEnvDisabled("IGNORE_SAVED_GLIFS"),
   },
 
-  // Bot tools (experimental features)
-  bots: {
-    enabled: () => isEnvEnabled("BOT_TOOLS"),
+  // Agent tools (formerly "bot" tools) - enable with AGENT_TOOLS=true or BOT_TOOLS=true for backward compat
+  agents: {
+    enabled: () => isEnvEnabled("AGENT_TOOLS") || isEnvEnabled("BOT_TOOLS"),
   },
 
   // Debug logging

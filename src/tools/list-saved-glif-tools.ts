@@ -7,14 +7,15 @@ export const schema = z.object({});
 
 export const definition = {
   name: "list_saved_glif_tools",
-  description: "List all saved glif tools",
+  description:
+    "List all saved workflow tools. Shows workflows that have been saved as custom tools for quick access.",
   inputSchema: {
     type: "object",
     properties: {},
     required: [],
   },
   annotations: {
-    title: "List Saved Glif Tools",
+    title: "List Saved Tools",
     readOnlyHint: true,
   },
 };
@@ -28,7 +29,7 @@ export async function handler(): Promise<ToolResponse> {
       content: [
         {
           type: "text",
-          text: "No saved glif tools found.",
+          text: "No saved workflow tools found.",
         },
       ],
     };
@@ -53,7 +54,7 @@ export async function handler(): Promise<ToolResponse> {
       content: [
         {
           type: "text",
-          text: `Saved glif tools:\n\n${formattedGlifs}`,
+          text: `Saved workflow tools:\n\n${formattedGlifs}`,
         },
       ],
     };

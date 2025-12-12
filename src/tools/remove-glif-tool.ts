@@ -12,19 +12,20 @@ export const schema = z.object({
 
 export const definition = {
   name: "remove_glif_tool",
-  description: "Remove a saved glif tool",
+  description:
+    "Remove a saved workflow tool by its tool name. Use list_saved_glif_tools to see available tools.",
   inputSchema: {
     type: "object",
     properties: {
       toolName: {
         type: "string",
-        description: "The tool name of the saved glif to remove",
+        description: "The tool name of the saved workflow to remove",
       },
     },
     required: ["toolName"],
   },
   annotations: {
-    title: "Remove Glif Tool",
+    title: "Remove Saved Tool",
     readOnlyHint: false,
     destructiveHint: true,
   },

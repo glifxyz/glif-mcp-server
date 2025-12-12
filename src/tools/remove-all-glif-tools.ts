@@ -7,14 +7,15 @@ export const schema = z.object({});
 
 export const definition = {
   name: "remove_all_glif_tools",
-  description: "Remove all saved glif tools and return to a pristine state",
+  description:
+    "Remove all saved workflow tools and return to a pristine state. This clears all custom tool mappings.",
   inputSchema: {
     type: "object",
     properties: {},
     required: [],
   },
   annotations: {
-    title: "Remove All Glif Tools",
+    title: "Remove All Saved Tools",
     readOnlyHint: false,
     destructiveHint: true,
   },
@@ -27,7 +28,7 @@ export async function handler(): Promise<ToolResponse> {
       content: [
         {
           type: "text",
-          text: `Successfully removed all ${count} saved glif tools.`,
+          text: `Successfully removed all ${count} saved workflow tools.`,
         },
       ],
     };

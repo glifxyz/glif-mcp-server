@@ -14,14 +14,15 @@ export const schema = z.object({
 });
 
 export const definition = {
-  name: "save_bot_skills_as_tools",
-  description: "Save all skills from a bot as individual tools",
+  name: "save_agent_skills_as_tools",
+  description:
+    "Save all skills (workflows) from an agent as individual tools. Optionally add a prefix to tool names.",
   inputSchema: {
     type: "object",
     properties: {
       id: {
         type: "string",
-        description: "The ID of the bot whose skills to save",
+        description: "The ID of the agent whose skills to save",
       },
       prefix: {
         type: "string",
@@ -30,19 +31,24 @@ export const definition = {
     },
     required: ["id"],
   },
+  annotations: {
+    title: "Save Agent Skills as Tools",
+    readOnlyHint: false,
+    destructiveHint: false,
+  },
 };
 
 export async function handler(request: ToolRequest): Promise<ToolResponse> {
   try {
     const args = parseToolArguments(request, schema);
-    const bot = await loadBot(args.id);
+    const agent = await loadBot(args.id);
 
-    if (!bot.spellsForBot || bot.spellsForBot.length === 0) {
+    if (!agent.spellsForBot || agent.spellsForBot.length === 0) {
       return {
         content: [
           {
             type: "text",
-            text: `Bot "${bot.name}" has no skills to save.`,
+            text: `Agent "${agent.name}" has no skills to save.`,
           },
         ],
       };
@@ -52,7 +58,7 @@ export async function handler(request: ToolRequest): Promise<ToolResponse> {
     const savedSkills = [];
 
     // Save each skill as a tool
-    for (const skill of bot.spellsForBot) {
+    for (const skill of agent.spellsForBot) {
       const skillName = skill.spell?.name || "Unknown Skill";
       const spellId = skill.spell?.id || `unknown-${Date.now()}`;
 
@@ -65,7 +71,7 @@ export async function handler(request: ToolRequest): Promise<ToolResponse> {
         .replace(/_+$/, ""); // Remove trailing underscores
 
       const description =
-        skill.customDescription || `Skill from ${bot.name} bot`;
+        skill.customDescription || `Skill from ${agent.name} agent`;
 
       const savedGlif = {
         id: spellId,
@@ -90,17 +96,17 @@ export async function handler(request: ToolRequest): Promise<ToolResponse> {
       content: [
         {
           type: "text",
-          text: `Successfully saved ${savedSkills.length} skills from bot "${bot.name}" as tools:\n\n${formattedSkills}\n\nYou can now use these tools directly.`,
+          text: `Successfully saved ${savedSkills.length} skills from agent "${agent.name}" as tools:\n\n${formattedSkills}\n\nYou can now use these tools directly.`,
         },
       ],
     };
   } catch (error) {
-    logger.error("Error saving bot skills:", error);
+    logger.error("Error saving agent skills:", error);
     return {
       content: [
         {
           type: "text",
-          text: `Error saving bot skills: ${
+          text: `Error saving agent skills: ${
             error instanceof Error ? error.message : String(error)
           }`,
         },

@@ -85,7 +85,7 @@ describe("Tools with Saved Glifs", () => {
   beforeEach(() => {
     vi.resetAllMocks();
     process.env.IGNORE_DISCOVERY_TOOLS = "true";
-    process.env.BOT_TOOLS = "true"; // Enable bot tools for tests
+    process.env.AGENT_TOOLS = "true"; // Enable agent tools for tests
     sampleGlif1 = createSavedGlif("glif-123", 1);
     sampleGlif2 = createSavedGlif("glif-456", 2);
 
@@ -104,7 +104,7 @@ describe("Tools with Saved Glifs", () => {
 
   afterEach(() => {
     delete process.env.IGNORE_DISCOVERY_TOOLS;
-    delete process.env.BOT_TOOLS;
+    delete process.env.AGENT_TOOLS;
     vi.clearAllMocks();
   });
 
@@ -116,7 +116,8 @@ describe("Tools with Saved Glifs", () => {
       ]);
 
       const result = await listToolsHandler({});
-      const expectedToolCount = 12; // 3 core + 7 metaskill + 2 saved glifs
+      // 2 core + 4 metaskill + 3 agent + 2 saved glifs = 11
+      const expectedToolCount = 11;
       expect(result.tools).toHaveLength(expectedToolCount);
 
       const savedGlifTools = result.tools.filter(
@@ -138,7 +139,8 @@ describe("Tools with Saved Glifs", () => {
       vi.mocked(savedGlifsModule.getSavedGlifs).mockResolvedValueOnce([]);
 
       const result = await listToolsHandler({});
-      const expectedToolCount = 10; // 3 core + 7 metaskill tools
+      // 2 core + 4 metaskill + 3 agent = 9
+      const expectedToolCount = 9;
       expect(result.tools).toHaveLength(expectedToolCount);
     });
   });
@@ -165,7 +167,7 @@ describe("Tools with Saved Glifs", () => {
         createdAt: expect.any(String),
       });
       expect(defaultResult.content[0].text).toContain(
-        "Successfully saved glif"
+        "Successfully saved workflow"
       );
 
       const customResult = await callToolHandler({
@@ -187,7 +189,9 @@ describe("Tools with Saved Glifs", () => {
         description: "Custom description",
         createdAt: expect.any(String),
       });
-      expect(customResult.content[0].text).toContain("Successfully saved glif");
+      expect(customResult.content[0].text).toContain(
+        "Successfully saved workflow"
+      );
     });
 
     it("should handle remove_glif_tool operations", async () => {
@@ -237,7 +241,7 @@ describe("Tools with Saved Glifs", () => {
         content: [
           {
             type: "text",
-            text: `Saved glif tools:\n\n${formattedGlifs}`,
+            text: `Saved workflow tools:\n\n${formattedGlifs}`,
           },
         ],
       };
@@ -252,7 +256,7 @@ describe("Tools with Saved Glifs", () => {
         },
       });
 
-      expect(result.content[0].text).toMatch(/^Saved glif tools:/);
+      expect(result.content[0].text).toMatch(/^Saved workflow tools:/);
       expect(result.content[0].text).toContain(sampleGlif1.name);
       expect(result.content[0].text).toContain(sampleGlif2.name);
 
@@ -262,7 +266,7 @@ describe("Tools with Saved Glifs", () => {
         content: [
           {
             type: "text",
-            text: "No saved glif tools found.",
+            text: "No saved workflow tools found.",
           },
         ],
       };
@@ -275,7 +279,7 @@ describe("Tools with Saved Glifs", () => {
         },
       });
 
-      expect(empty.content[0].text).toBe("No saved glif tools found.");
+      expect(empty.content[0].text).toBe("No saved workflow tools found.");
     });
 
     it("should execute saved glif tools", async () => {

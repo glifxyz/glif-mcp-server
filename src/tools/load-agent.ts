@@ -13,29 +13,35 @@ export const schema = z.object({
 });
 
 export const definition = {
-  name: "load_bot",
-  description: "Get detailed information about a specific bot",
+  name: "load_agent",
+  description:
+    "Load an agent (also known as a bot) and automatically save its skills as tools. Returns the agent's personality and details.",
   inputSchema: {
     type: "object",
     properties: {
       id: {
         type: "string",
-        description: "The ID of the bot to load",
+        description: "The ID of the agent to load",
       },
     },
     required: ["id"],
+  },
+  annotations: {
+    title: "Load Agent",
+    readOnlyHint: false,
+    destructiveHint: false,
   },
 };
 
 export async function handler(request: ToolRequest): Promise<ToolResponse> {
   try {
     const args = parseToolArguments(request, schema);
-    const bot = await loadBot(args.id);
+    const agent = await loadBot(args.id);
 
-    // Save all the bot's skills as tools automatically
+    // Save all the agent's skills as tools automatically
     const savedSkills = [];
-    if (bot.spellsForBot && bot.spellsForBot.length > 0) {
-      for (const skill of bot.spellsForBot) {
+    if (agent.spellsForBot && agent.spellsForBot.length > 0) {
+      for (const skill of agent.spellsForBot) {
         const skillName = skill.spell?.name || "Unknown Skill";
         const spellId = skill.spell?.id || `unknown-${Date.now()}`;
 
@@ -48,7 +54,7 @@ export async function handler(request: ToolRequest): Promise<ToolResponse> {
           .replace(/_+$/, "");
 
         const description =
-          skill.customDescription || `Skill from ${bot.name} bot`;
+          skill.customDescription || `Skill from ${agent.name} agent`;
 
         const savedGlif = {
           id: spellId,
@@ -66,9 +72,9 @@ export async function handler(request: ToolRequest): Promise<ToolResponse> {
       }
     }
 
-    // Format the bot skills
-    const skillsInfo = bot.spellsForBot?.length
-      ? bot.spellsForBot
+    // Format the agent skills
+    const skillsInfo = agent.spellsForBot?.length
+      ? agent.spellsForBot
           .map((skill) => {
             const spellName = skill.spell?.name || "Unknown Skill";
             const spellId = skill.spell?.id || "unknown";
@@ -82,14 +88,14 @@ ${skill.usageInstructions ? `Usage: ${skill.usageInstructions}` : ""}`;
           .join("\n\n")
       : "No skills available";
 
-    // Create the instruction for the LLM to adopt the bot's personality
-    const personalityInstruction = bot.personality
-      ? `\n\nHere is the bot info:\n\nName: ${bot.name}\nBio: ${
-          bot.bio || "No bio"
+    // Create the instruction for the LLM to adopt the agent's personality
+    const personalityInstruction = agent.personality
+      ? `\n\nHere is the agent info:\n\nName: ${agent.name}\nBio: ${
+          agent.bio || "No bio"
         }\n\nPersonality:\n${
-          bot.personality
-        }\n\nNow use this bot's personality as your new personality from now on, and I've loaded all of the bot's skills as new tools for you to use.`
-      : "\n\nI've loaded all of the bot's skills as new tools for you to use.";
+          agent.personality
+        }\n\nNow use this agent's personality as your new personality from now on, and I've loaded all of the agent's skills as new tools for you to use.`
+      : "\n\nI've loaded all of the agent's skills as new tools for you to use.";
 
     // Format the saved skills info
     const savedSkillsInfo =
@@ -100,25 +106,25 @@ ${skill.usageInstructions ? `Usage: ${skill.usageInstructions}` : ""}`;
         : "";
 
     const details = [
-      `Name: ${bot.name} (@${bot.username})`,
-      `ID: ${bot.id}`,
-      `Bio: ${bot.bio || "No bio"}`,
-      `Created by: ${bot.user?.name || "Unknown"} (@${
-        bot.user?.username || "unknown"
+      `Name: ${agent.name} (@${agent.username})`,
+      `ID: ${agent.id}`,
+      `Bio: ${agent.bio || "No bio"}`,
+      `Created by: ${agent.user?.name || "Unknown"} (@${
+        agent.user?.username || "unknown"
       })`,
       `Created: ${
-        bot.createdAt ? new Date(bot.createdAt).toLocaleString() : "Unknown"
+        agent.createdAt ? new Date(agent.createdAt).toLocaleString() : "Unknown"
       }`,
       `Updated: ${
-        bot.updatedAt ? new Date(bot.updatedAt).toLocaleString() : "Unknown"
+        agent.updatedAt ? new Date(agent.updatedAt).toLocaleString() : "Unknown"
       }`,
-      `Message Count: ${bot.messageCount || 0}`,
+      `Message Count: ${agent.messageCount || 0}`,
       "",
       "Skills:",
       skillsInfo,
       "",
       "Personality:",
-      bot.personality || "No personality defined",
+      agent.personality || "No personality defined",
       personalityInstruction,
       savedSkillsInfo,
     ];
@@ -132,12 +138,12 @@ ${skill.usageInstructions ? `Usage: ${skill.usageInstructions}` : ""}`;
       ],
     };
   } catch (error) {
-    logger.error("Error loading bot:", error);
+    logger.error("Error loading agent:", error);
     return {
       content: [
         {
           type: "text",
-          text: `Error loading bot: ${
+          text: `Error loading agent: ${
             error instanceof Error ? error.message : String(error)
           }`,
         },

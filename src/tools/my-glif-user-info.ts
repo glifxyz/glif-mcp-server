@@ -7,14 +7,14 @@ export const schema = z.object({});
 export const definition = {
   name: "my_glif_user_info",
   description:
-    "Get detailed information about your user account, recent glifs, and recent runs",
+    "Get detailed information about your Glif account, including profile info, recent workflows, and recent runs.",
   inputSchema: {
     type: "object",
     properties: {},
     required: [],
   },
   annotations: {
-    title: "My Glif User Info",
+    title: "My Account Info",
     readOnlyHint: true,
   },
 };
@@ -38,7 +38,7 @@ export async function handler(): Promise<ToolResponse> {
     `Staff: ${user.staff ? "Yes" : "No"}`,
     `Subscriber: ${user.isSubscriber ? "Yes" : "No"}`,
     "",
-    "Your Recent Glifs:",
+    "Your Recent Workflows:",
     ...glifs
       .slice(0, 5)
       .map(

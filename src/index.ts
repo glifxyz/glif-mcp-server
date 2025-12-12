@@ -1,24 +1,33 @@
 #!/usr/bin/env node
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { setupPromptHandlers } from "./prompts.js";
 import { setupResourceHandlers } from "./resources.js";
-import { registerAllTools } from "./tools/index.js";
+import { setupToolHandlers } from "./tools/index.js";
+
+const SERVER_VERSION = "0.9.10";
 
 async function main() {
-  const server = new McpServer({
-    name: "glif",
-    version: "1.0.0",
-  });
+  const server = new Server(
+    {
+      name: "glif",
+      version: SERVER_VERSION,
+    },
+    {
+      capabilities: {
+        tools: { listChanged: true },
+        resources: {},
+        prompts: {},
+      },
+    }
+  );
 
-  // Register all tools using the new high-level API
-  await registerAllTools(server);
+  // Setup all handlers using low-level API (supports dynamic tool registration)
+  setupToolHandlers(server);
+  setupResourceHandlers(server);
+  setupPromptHandlers(server);
 
-  // Setup resources and prompts (these still use the low-level server)
-  setupResourceHandlers(server.server);
-  setupPromptHandlers(server.server);
-
-  server.server.onerror = (error) => console.error("[MCP Error]", error);
+  server.onerror = (error) => console.error("[MCP Error]", error);
 
   process.on("SIGINT", async () => {
     await server.close();

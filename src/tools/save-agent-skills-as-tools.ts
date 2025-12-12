@@ -63,12 +63,17 @@ export async function handler(request: ToolRequest): Promise<ToolResponse> {
       const spellId = skill.spell?.id || `unknown-${Date.now()}`;
 
       // Sanitize the tool name to match the pattern ^[a-zA-Z0-9_-]{1,64}$
-      const toolName = `${prefix}${skillName
+      let toolName = `${prefix}${skillName
         .replace(/\s+/g, "_")
         .replace(/[^a-zA-Z0-9_-]/g, "")
         .toLowerCase()}`
         .substring(0, 64)
         .replace(/_+$/, ""); // Remove trailing underscores
+
+      // Fallback if sanitization results in empty string
+      if (!toolName) {
+        toolName = `${prefix}skill_${spellId.substring(0, 20)}`;
+      }
 
       const description =
         skill.customDescription || `Skill from ${agent.name} agent`;

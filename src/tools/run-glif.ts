@@ -9,6 +9,7 @@ import {
   parseToolArguments,
   type ToolRequest,
 } from "../utils/request-parsing.js";
+import { logger } from "../utils/utils.js";
 import type { ToolResponse } from "./index.js";
 
 export const schema = z.object({
@@ -46,21 +47,21 @@ export const definition = {
 
 export async function handler(request: ToolRequest): Promise<ToolResponse> {
   const args = parseToolArguments(request, schema);
-  console.error("[DEBUG] run-glif handler V2.0 (MCP multimedia) called with:", {
+  logger.debug("run-glif handler called", {
     id: args.id,
     inputsLength: args.inputs.length,
   });
 
   const result = await runGlif(args.id, args.inputs);
-  console.error("[DEBUG] runGlif result:", {
+  logger.debug("runGlif result", {
     output: `${result.output?.slice(0, 100)}...`,
     outputFull: result.outputFull,
   });
 
   // Create MCP-compliant content blocks with multimedia support
   const content = await createContentBlocks(result.output, result.outputFull);
-  console.error(
-    "[DEBUG] createContentBlocks result:",
+  logger.debug(
+    "createContentBlocks result",
     truncateBase64InContentBlocks(content)
   );
 
@@ -69,13 +70,13 @@ export async function handler(request: ToolRequest): Promise<ToolResponse> {
     result.output,
     result.outputFull
   );
-  console.error("[DEBUG] structuredContent:", structuredContent);
+  logger.debug("structuredContent", structuredContent);
 
   const response = {
     content,
     ...(structuredContent && { structuredContent }),
   };
-  console.error("[DEBUG] final response:", {
+  logger.debug("final response", {
     ...response,
     content: truncateBase64InContentBlocks(response.content),
   });

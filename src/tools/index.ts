@@ -1,5 +1,4 @@
 import type { Server } from "@modelcontextprotocol/sdk/server/index.js";
-import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import {
   CallToolRequestSchema,
   type CallToolResult,
@@ -12,6 +11,7 @@ import { z } from "zod";
 import { GLIF_IDS } from "../config.js";
 import { getSavedGlifs, type SavedGlif } from "../saved-glifs.js";
 import { env } from "../utils/env.js";
+import { logger } from "../utils/utils.js";
 
 // Types for tool structure
 export type ToolDefinition = {
@@ -109,146 +109,26 @@ export async function getTools(): Promise<{ tools: ToolDefinition[] }> {
 }
 
 /**
- * Register all tools with the McpServer using the high-level API
- * This function is called from index.ts during server initialization
- */
-export async function registerAllTools(server: McpServer): Promise<void> {
-  console.error(
-    "[DEBUG] Setting up tool handlers V3.0 (McpServer high-level API)"
-  );
-
-  // Get all enabled static tools from registry
-  const enabledTools = getEnabledTools();
-
-  // Register each static tool with McpServer
-  for (const [name, tool] of Object.entries(enabledTools)) {
-    server.tool(
-      name,
-      tool.definition.description,
-      tool.definition.inputSchema as any,
-      async (args: Record<string, unknown>) => {
-        const request = {
-          method: "tools/call" as const,
-          params: {
-            name,
-            arguments: args,
-          },
-        };
-        return tool.handler(request);
-      }
-    );
-  }
-
-  // Register dynamic tools for saved glifs
-  if (env.savedGlifs.enabled()) {
-    const savedGlifs = await getSavedGlifs();
-    if (savedGlifs) {
-      for (const glif of savedGlifs) {
-        registerSavedGlifTool(server, glif);
-      }
-    }
-  }
-
-  // Register tools for GLIF_IDS from config
-  for (const glifId of GLIF_IDS) {
-    registerConfigGlifTool(server, glifId);
-  }
-}
-
-/**
- * Register a saved glif as a tool
- */
-function registerSavedGlifTool(server: McpServer, glif: SavedGlif): void {
-  const inputSchema = {
-    type: "object" as const,
-    properties: {
-      inputs: {
-        type: "array",
-        items: { type: "string" },
-        description: "Array of input values for the workflow",
-      },
-    },
-    required: ["inputs"],
-  };
-
-  server.tool(
-    glif.toolName,
-    `${glif.name}: ${glif.description}`,
-    inputSchema as any,
-    async (args: Record<string, unknown>) => {
-      const inputs = args.inputs as string[];
-      const request = {
-        method: "tools/call" as const,
-        params: {
-          name: "run_glif",
-          arguments: {
-            id: glif.id,
-            inputs,
-          },
-        },
-      };
-      return runGlif.handler(request);
-    }
-  );
-}
-
-/**
- * Register a config glif (from GLIF_IDS env var) as a tool
- */
-function registerConfigGlifTool(server: McpServer, glifId: string): void {
-  const inputSchema = {
-    type: "object" as const,
-    properties: {
-      inputs: {
-        type: "array",
-        items: { type: "string" },
-        description: "Array of input values for the workflow",
-      },
-    },
-    required: ["inputs"],
-  };
-
-  server.tool(
-    `glif_${glifId}`,
-    `Run workflow ${glifId}`,
-    inputSchema as any,
-    async (args: Record<string, unknown>) => {
-      const inputs = args.inputs as string[];
-      const request = {
-        method: "tools/call" as const,
-        params: {
-          name: "run_glif",
-          arguments: {
-            id: glifId,
-            inputs,
-          },
-        },
-      };
-      return runGlif.handler(request);
-    }
-  );
-}
-
-/**
- * Legacy setup function for backward compatibility with tests
- * Uses the low-level Server API
+ * Setup tool handlers using low-level Server API
+ * This approach supports dynamic tool registration at runtime
+ * (saved glifs are re-read on each tool call)
  */
 export function setupToolHandlers(server: Server) {
-  console.error(
-    "[DEBUG] Setting up tool handlers V2.0 (MCP multimedia support)"
-  );
+  logger.debug("Setting up tool handlers (low-level API)");
 
   // Register tool definitions including saved glifs
+  // getTools() is called on each listTools request, so new saved glifs appear immediately
   server.setRequestHandler(ListToolsRequestSchema, async () => getTools());
 
   // Handle tool calls
   server.setRequestHandler(CallToolRequestSchema, async (request) => {
-    console.error("[DEBUG] Tool call received:", {
+    logger.debug("Tool call received", {
       name: request.params.name,
       args: request.params.arguments,
     });
 
     // Check if this is a saved glif tool
+    // Re-reading savedGlifs on each call ensures newly saved tools work immediately
     if (env.savedGlifs.enabled()) {
       const savedGlifs = await getSavedGlifs();
       const savedGlif = savedGlifs?.find(

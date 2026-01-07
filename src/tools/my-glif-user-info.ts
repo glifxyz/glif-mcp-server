@@ -5,7 +5,7 @@ import type { ToolResponse } from "./index.js";
 export const schema = z.object({});
 
 export const definition = {
-  name: "my_glif_user_info",
+  name: "my_user_info",
   description:
     "Get detailed information about your Glif account, including profile info, recent workflows, and recent runs.",
   inputSchema: {

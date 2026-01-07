@@ -20,7 +20,7 @@ export const {
   schema: exportedSchema,
 } = createTool(
   {
-    name: "list_featured_glifs",
+    name: "list_featured_workflows",
     description:
       "Get a curated list of featured workflows (glifs) - AI-powered tools for generating images, text, and more.",
     schema,

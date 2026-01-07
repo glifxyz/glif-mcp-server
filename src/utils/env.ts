@@ -27,12 +27,7 @@ export const env = {
     enabled: () => !isEnvDisabled("IGNORE_DISCOVERY_TOOLS"),
   },
 
-  // Metaskill tools (save/remove glif tools)
-  metaskill: {
-    enabled: () => !isEnvDisabled("IGNORE_METASKILL_TOOLS"),
-  },
-
-  // Saved glifs functionality
+  // Saved workflows (used internally by agent skills)
   savedGlifs: {
     enabled: () => !isEnvDisabled("IGNORE_SAVED_GLIFS"),
   },

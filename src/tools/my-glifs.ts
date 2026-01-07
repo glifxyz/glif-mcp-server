@@ -5,7 +5,7 @@ import type { ToolResponse } from "./index.js";
 export const schema = z.object({});
 
 export const definition = {
-  name: "my_glifs",
+  name: "my_workflows",
   description:
     "Get a list of your published workflows (glifs). Shows your AI workflows with run counts and creation dates.",
   inputSchema: {

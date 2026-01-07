@@ -8,7 +8,6 @@ describe("Environment Configuration", () => {
     process.env = { ...originalEnv };
     // Clear all relevant env vars
     delete process.env.IGNORE_DISCOVERY_TOOLS;
-    delete process.env.IGNORE_METASKILL_TOOLS;
     delete process.env.IGNORE_SAVED_GLIFS;
     delete process.env.AGENT_TOOLS;
     delete process.env.BOT_TOOLS;
@@ -30,18 +29,7 @@ describe("Environment Configuration", () => {
     });
   });
 
-  describe("metaskill tools", () => {
-    it("should be enabled by default", () => {
-      expect(env.metaskill.enabled()).toBe(true);
-    });
-
-    it("should be disabled when IGNORE_METASKILL_TOOLS=true", () => {
-      process.env.IGNORE_METASKILL_TOOLS = "true";
-      expect(env.metaskill.enabled()).toBe(false);
-    });
-  });
-
-  describe("saved glifs", () => {
+  describe("saved workflows", () => {
     it("should be enabled by default", () => {
       expect(env.savedGlifs.enabled()).toBe(true);
     });

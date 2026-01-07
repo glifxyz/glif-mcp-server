@@ -11,7 +11,7 @@ export const schema = z.object({
 });
 
 export const definition = {
-  name: "glif_info",
+  name: "workflow_info",
   description:
     "Get detailed information about a workflow (glif) including its input fields, recent runs, and creator info.",
   inputSchema: {

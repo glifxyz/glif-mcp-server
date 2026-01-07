@@ -27,7 +27,7 @@ export const {
   schema: exportedSchema,
 } = createTool(
   {
-    name: "search_glifs",
+    name: "search_workflows",
     description:
       "Search for workflows (glifs) by name, description, or keywords. Find AI tools for image generation, text processing, and more.",
     schema,

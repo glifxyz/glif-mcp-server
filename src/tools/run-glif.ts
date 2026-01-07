@@ -18,7 +18,7 @@ export const schema = z.object({
 });
 
 export const definition = {
-  name: "run_glif",
+  name: "run_workflow",
   description:
     "Run a workflow (glif) with the specified ID and inputs. Glifs are AI workflows that can generate images, text, audio, and more.",
   inputSchema: {

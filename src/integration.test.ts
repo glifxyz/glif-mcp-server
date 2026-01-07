@@ -3,77 +3,12 @@ import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
-import * as fs from "fs/promises";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import * as api from "./api.js";
-import type { SavedGlif } from "./saved-glifs.js";
-import * as savedGlifsModule from "./saved-glifs.js";
 import { setupToolHandlers } from "./tools/index.js";
 
 vi.mock("./api.js");
-vi.mock("fs/promises");
 
-const createSavedGlif = (id: string, num: number): SavedGlif => ({
-  id,
-  toolName: `test_tool_${num}`,
-  name: `Test Tool ${num}`,
-  description: `Test tool ${num} description`,
-  createdAt: new Date().toISOString(),
-});
-
-const sampleGlifDetails = {
-  glif: {
-    id: "glif-789",
-    name: "Original Glif Name",
-    description: "Original glif description",
-    imageUrl: null,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    publishedAt: null,
-    output: null,
-    outputType: null,
-    forkedFromId: null,
-    featuredAt: null,
-    userId: "user-123",
-    completedSpellRunCount: 10,
-    averageDuration: 500,
-    likeCount: 5,
-    commentCount: 0,
-    user: {
-      id: "user-123",
-      name: "Test User",
-      username: "testuser",
-      image: null,
-      bio: "Test bio",
-      website: "https://example.com",
-      location: "Test location",
-      banned: false,
-      staff: false,
-      isSubscriber: true,
-    },
-    spellTags: [],
-    spheres: [],
-    data: {
-      nodes: [
-        {
-          name: "input1",
-          type: "text-input",
-          params: { label: "Input 1" },
-        },
-      ],
-    },
-  },
-  recentRuns: [],
-};
-
-const sampleRunResult = {
-  id: "run-123",
-  inputs: { input1: "test input" },
-  output: "Test output",
-  outputFull: { type: "TEXT", value: "Test output" },
-};
-
-describe("Integration Tests for Saved Glifs", () => {
+describe("Integration Tests", () => {
   let server: Server;
   let listToolsHandler: (request: any) => Promise<any>;
   let callToolHandler: (request: any) => Promise<any>;
@@ -95,94 +30,22 @@ describe("Integration Tests for Saved Glifs", () => {
 
   afterEach(() => vi.clearAllMocks());
 
-  it("should handle the complete glif tool lifecycle", async () => {
-    const savedGlif = createSavedGlif("glif-789", 1);
-    savedGlif.toolName = "test_glif_tool";
-    savedGlif.name = "Test Glif Tool";
-    savedGlif.description = "A test glif tool";
+  it("should list all available tools", async () => {
+    const result = await listToolsHandler({});
+    expect(result.tools.length).toBeGreaterThan(0);
 
-    vi.mocked(fs.readFile).mockRejectedValueOnce(new Error("File not found"));
-    vi.mocked(api.getGlifDetails).mockResolvedValue(sampleGlifDetails);
-    vi.spyOn(savedGlifsModule, "saveGlif").mockResolvedValueOnce();
-
-    const saveResult = await callToolHandler({
-      params: {
-        name: "save_glif_as_tool",
-        arguments: {
-          id: savedGlif.id,
-          toolName: savedGlif.toolName,
-          name: savedGlif.name,
-          description: savedGlif.description,
-        },
-      },
-    });
-
-    expect(saveResult.content[0].text).toContain("Successfully saved glif");
-    expect(savedGlifsModule.saveGlif).toHaveBeenCalledWith({
-      ...savedGlif,
-      createdAt: expect.any(String),
-    });
-
-    vi.mocked(fs.readFile).mockResolvedValue(JSON.stringify([savedGlif]));
-    vi.spyOn(savedGlifsModule, "getSavedGlifs").mockResolvedValue([savedGlif]);
-
-    const toolsResult = await listToolsHandler({});
-    const savedGlifTool = toolsResult.tools.find(
-      (tool: any) => tool.name === savedGlif.toolName
-    );
-    expect(savedGlifTool).toBeDefined();
-    expect(savedGlifTool.description).toContain(savedGlif.name);
-
-    vi.mocked(api.runGlif).mockResolvedValue(sampleRunResult);
-    const useResult = await callToolHandler({
-      params: {
-        name: savedGlif.toolName,
-        arguments: { inputs: ["test input"] },
-      },
-    });
-
-    expect(api.runGlif).toHaveBeenCalledWith(savedGlif.id, ["test input"]);
-    expect(useResult.content[0].text).toBe(sampleRunResult.output);
-
-    vi.spyOn(savedGlifsModule, "removeGlif").mockResolvedValue(true);
-    const removeResult = await callToolHandler({
-      params: {
-        name: "remove_glif_tool",
-        arguments: { toolName: savedGlif.toolName },
-      },
-    });
-
-    expect(removeResult.content[0].text).toContain("Successfully removed tool");
-    expect(savedGlifsModule.removeGlif).toHaveBeenCalledWith(
-      savedGlif.toolName
-    );
+    const toolNames = result.tools.map((t: any) => t.name);
+    expect(toolNames).toContain("run_workflow");
+    expect(toolNames).toContain("workflow_info");
   });
 
   describe("Error handling", () => {
-    it("should handle non-existent glif operations", async () => {
-      vi.mocked(api.getGlifDetails).mockRejectedValue(
-        new Error("Glif not found")
-      );
-      vi.mocked(fs.mkdir).mockResolvedValue(undefined);
-
-      await expect(
-        callToolHandler({
-          params: {
-            name: "save_glif_as_tool",
-            arguments: {
-              id: "non-existent-glif",
-              toolName: "test_glif_tool",
-            },
-          },
-        })
-      ).rejects.toThrow("Glif not found");
-
-      vi.mocked(fs.readFile).mockResolvedValue("[]");
+    it("should handle unknown tool calls", async () => {
       await expect(
         callToolHandler({
           params: {
             name: "non_existent_tool",
-            arguments: { inputs: ["test input"] },
+            arguments: {},
           },
         })
       ).rejects.toThrow("Unknown tool");

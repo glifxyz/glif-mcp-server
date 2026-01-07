@@ -5,24 +5,27 @@ import { setupPromptHandlers } from "./prompts.js";
 import { setupResourceHandlers } from "./resources.js";
 import { setupToolHandlers } from "./tools/index.js";
 
+const SERVER_VERSION = "0.9.10";
+
 async function main() {
   const server = new Server(
     {
       name: "glif",
-      version: "0.9.9",
+      version: SERVER_VERSION,
     },
     {
       capabilities: {
-        tools: {},
+        tools: { listChanged: true },
         resources: {},
         prompts: {},
       },
     }
   );
 
+  // Setup all handlers using low-level API (supports dynamic tool registration)
+  setupToolHandlers(server);
   setupResourceHandlers(server);
   setupPromptHandlers(server);
-  setupToolHandlers(server);
 
   server.onerror = (error) => console.error("[MCP Error]", error);
 

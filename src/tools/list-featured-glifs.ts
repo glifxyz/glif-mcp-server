@@ -10,7 +10,7 @@ async function listFeaturedGlifsHandler(): Promise<ToolResponse> {
   const glifs = await searchGlifs({ featured: true });
   const formattedGlifs = formatFeaturedGlifs(glifs);
 
-  return createTextResponse(`Featured glifs:\n\n${formattedGlifs}`);
+  return createTextResponse(`Featured workflows:\n\n${formattedGlifs}`);
 }
 
 // Export the tool using the factory pattern
@@ -20,11 +20,16 @@ export const {
   schema: exportedSchema,
 } = createTool(
   {
-    name: "list_featured_glifs",
-    description: "Get a curated list of featured glifs",
+    name: "list_featured_workflows",
+    description:
+      "Get a curated list of featured workflows (glifs) - AI-powered tools for generating images, text, and more.",
     schema,
     properties: {},
     required: [],
+    annotations: {
+      title: "List Featured Workflows",
+      readOnlyHint: true,
+    },
   },
   listFeaturedGlifsHandler
 );

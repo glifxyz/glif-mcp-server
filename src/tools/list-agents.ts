@@ -14,28 +14,32 @@ export const schema = z.object({
 });
 
 export const definition = {
-  name: "list_bots",
+  name: "list_agents",
   description:
-    "Get a list of bots and sim templates with optional filtering and sorting. Supports sort={new,popular,featured} (defaults to popular), username filtering, and text search.",
+    "Get a list of agents with optional filtering and sorting. Supports sort={new,popular,featured} (defaults to featured), username filtering, and text search.",
   inputSchema: {
     type: "object",
     properties: {
       sort: {
         type: "string",
         enum: ["new", "popular", "featured"],
-        description: "Optional sort order for bots (defaults to featured)",
+        description: "Optional sort order for agents (defaults to featured)",
       },
       username: {
         type: "string",
-        description: "Optional filter for bots by creator username",
+        description: "Optional filter for agents by creator username",
       },
       searchQuery: {
         type: "string",
         description:
-          "Optional search query to filter bots by name or description",
+          "Optional search query to filter agents by name or description",
       },
     },
     required: [],
+  },
+  annotations: {
+    title: "List Agents",
+    readOnlyHint: true,
   },
 };
 
@@ -53,22 +57,21 @@ export async function handler(request: ToolRequest): Promise<ToolResponse> {
     if (args.username) params.creator = args.username;
     if (args.searchQuery) params.searchQuery = args.searchQuery;
 
-    const bots = await listBots(params);
+    const agents = await listBots(params);
 
-    // Format the bot list
-    const formattedBots = bots
-      .map((bot) => {
-        const skills =
-          bot.spellsForBot && bot.spellsForBot.length > 0
-            ? `\nSkills: ${bot.spellsForBot
-                .map((s) => s.spell?.name || "Unknown Skill")
+    const formattedAgents = agents
+      .map((agent) => {
+        const workflows =
+          agent.spellsForBot && agent.spellsForBot.length > 0
+            ? `\nWorkflows: ${agent.spellsForBot
+                .map((s) => s.spell?.name || "Unknown")
                 .join(", ")}`
             : "";
 
-        return `${bot.name} (@${bot.username}) - ID: ${bot.id}
-Bio: ${bot.bio || "No bio"}
-Created by: ${bot.user?.name || "Unknown"} (@${bot.user?.username || "unknown"})
-Messages: ${bot.messageCount || 0}${skills}\n`;
+        return `${agent.name} (@${agent.username}) - ID: ${agent.id}
+Bio: ${agent.bio || "No bio"}
+Created by: ${agent.user?.name || "Unknown"} (@${agent.user?.username || "unknown"})
+Messages: ${agent.messageCount || 0}${workflows}\n`;
       })
       .join("\n");
 
@@ -76,17 +79,17 @@ Messages: ${bot.messageCount || 0}${skills}\n`;
       content: [
         {
           type: "text",
-          text: `Available bots:\n\n${formattedBots}`,
+          text: `Available agents:\n\n${formattedAgents}`,
         },
       ],
     };
   } catch (error) {
-    logger.error("Error listing bots:", error);
+    logger.error("Error listing agents:", error);
     return {
       content: [
         {
           type: "text",
-          text: `Error listing bots: ${
+          text: `Error listing agents: ${
             error instanceof Error ? error.message : String(error)
           }`,
         },

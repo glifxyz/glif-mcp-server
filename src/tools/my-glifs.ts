@@ -5,12 +5,17 @@ import type { ToolResponse } from "./index.js";
 export const schema = z.object({});
 
 export const definition = {
-  name: "my_glifs",
-  description: "Get a list of your glifs",
+  name: "my_workflows",
+  description:
+    "Get a list of your published workflows (glifs). Shows your AI workflows with run counts and creation dates.",
   inputSchema: {
     type: "object",
     properties: {},
     required: [],
+  },
+  annotations: {
+    title: "My Workflows",
+    readOnlyHint: true,
   },
 };
 
@@ -29,7 +34,7 @@ export async function handler(): Promise<ToolResponse> {
     content: [
       {
         type: "text",
-        text: `Your glifs:\n\n${formattedGlifs}`,
+        text: `Your workflows:\n\n${formattedGlifs}`,
       },
     ],
   };

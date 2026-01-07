@@ -27,8 +27,9 @@ export const {
   schema: exportedSchema,
 } = createTool(
   {
-    name: "search_glifs",
-    description: "Search for glifs by query string",
+    name: "search_workflows",
+    description:
+      "Search for workflows (glifs) by name, description, or keywords. Find AI tools for image generation, text processing, and more.",
     schema,
     properties: {
       query: {
@@ -37,6 +38,10 @@ export const {
       },
     },
     required: ["query"],
+    annotations: {
+      title: "Search Workflows",
+      readOnlyHint: true,
+    },
   },
   searchGlifsHandler
 );

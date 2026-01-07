@@ -32,8 +32,7 @@ export const api = wretch()
   .headers({
     Authorization: `Bearer ${API_TOKEN}`,
     "Content-Type": "application/json",
-  })
-  .errorType("json");
+  });
 
 export const simpleApi = api.url("https://simple-api.glif.app");
 export const glifApi = api.url("https://glif.app/api");

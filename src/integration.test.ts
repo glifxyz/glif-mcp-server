@@ -3,30 +3,10 @@ import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
-import * as fs from "fs/promises";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import * as api from "./api.js";
-import type { SavedGlif } from "./saved-glifs.js";
-import * as savedGlifsModule from "./saved-glifs.js";
 import { setupToolHandlers } from "./tools/index.js";
 
 vi.mock("./api.js");
-vi.mock("fs/promises");
-
-const createSavedGlif = (id: string, num: number): SavedGlif => ({
-  id,
-  toolName: `test_tool_${num}`,
-  name: `Test Tool ${num}`,
-  description: `Test tool ${num} description`,
-  createdAt: new Date().toISOString(),
-});
-
-const sampleRunResult = {
-  id: "run-123",
-  inputs: { input1: "test input" },
-  output: "Test output",
-  outputFull: { type: "TEXT", value: "Test output" },
-};
 
 describe("Integration Tests", () => {
   let server: Server;
@@ -50,43 +30,22 @@ describe("Integration Tests", () => {
 
   afterEach(() => vi.clearAllMocks());
 
-  it("should execute saved workflow tools via agent skill loading", async () => {
-    const savedGlif = createSavedGlif("glif-789", 1);
-    savedGlif.toolName = "agent_skill_tool";
-    savedGlif.name = "Agent Skill";
-    savedGlif.description = "A skill loaded from an agent";
+  it("should list all available tools", async () => {
+    const result = await listToolsHandler({});
+    expect(result.tools.length).toBeGreaterThan(0);
 
-    vi.mocked(fs.readFile).mockResolvedValue(JSON.stringify([savedGlif]));
-    vi.spyOn(savedGlifsModule, "getSavedGlifs").mockResolvedValue([savedGlif]);
-
-    const toolsResult = await listToolsHandler({});
-    const savedTool = toolsResult.tools.find(
-      (tool: any) => tool.name === savedGlif.toolName
-    );
-    expect(savedTool).toBeDefined();
-    expect(savedTool.description).toContain(savedGlif.name);
-
-    vi.mocked(api.runGlif).mockResolvedValue(sampleRunResult);
-    const useResult = await callToolHandler({
-      params: {
-        name: savedGlif.toolName,
-        arguments: { inputs: ["test input"] },
-      },
-    });
-
-    expect(api.runGlif).toHaveBeenCalledWith(savedGlif.id, ["test input"]);
-    expect(useResult.content[0].text).toBe(sampleRunResult.output);
+    const toolNames = result.tools.map((t: any) => t.name);
+    expect(toolNames).toContain("run_workflow");
+    expect(toolNames).toContain("workflow_info");
   });
 
   describe("Error handling", () => {
     it("should handle unknown tool calls", async () => {
-      vi.mocked(fs.readFile).mockResolvedValue("[]");
-
       await expect(
         callToolHandler({
           params: {
             name: "non_existent_tool",
-            arguments: { inputs: ["test input"] },
+            arguments: {},
           },
         })
       ).rejects.toThrow("Unknown tool");

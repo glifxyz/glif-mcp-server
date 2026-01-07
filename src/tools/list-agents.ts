@@ -16,7 +16,7 @@ export const schema = z.object({
 export const definition = {
   name: "list_agents",
   description:
-    "Get a list of agents (also known as bots or sim templates) with optional filtering and sorting. Supports sort={new,popular,featured} (defaults to featured), username filtering, and text search.",
+    "Get a list of agents with optional filtering and sorting. Supports sort={new,popular,featured} (defaults to featured), username filtering, and text search.",
   inputSchema: {
     type: "object",
     properties: {
@@ -61,17 +61,17 @@ export async function handler(request: ToolRequest): Promise<ToolResponse> {
 
     const formattedAgents = agents
       .map((agent) => {
-        const skills =
+        const workflows =
           agent.spellsForBot && agent.spellsForBot.length > 0
-            ? `\nSkills: ${agent.spellsForBot
-                .map((s) => s.spell?.name || "Unknown Skill")
+            ? `\nWorkflows: ${agent.spellsForBot
+                .map((s) => s.spell?.name || "Unknown")
                 .join(", ")}`
             : "";
 
         return `${agent.name} (@${agent.username}) - ID: ${agent.id}
 Bio: ${agent.bio || "No bio"}
 Created by: ${agent.user?.name || "Unknown"} (@${agent.user?.username || "unknown"})
-Messages: ${agent.messageCount || 0}${skills}\n`;
+Messages: ${agent.messageCount || 0}${workflows}\n`;
       })
       .join("\n");
 

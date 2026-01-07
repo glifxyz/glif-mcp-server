@@ -5,7 +5,7 @@ import { setupPromptHandlers } from "./prompts.js";
 import { setupResourceHandlers } from "./resources.js";
 import { setupToolHandlers } from "./tools/index.js";
 
-const SERVER_VERSION = "0.9.10";
+const SERVER_VERSION = "0.9.11";
 
 async function main() {
   const server = new Server(

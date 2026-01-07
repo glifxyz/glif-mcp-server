@@ -21,7 +21,7 @@
     "format": "biome format --write .",
     "lint": "npm run typecheck && biome check .",
     "lint:fix": "npm run typecheck && biome check --write .",
-    "test": "GLIF_API_TOKEN=xxx IGNORE_DISCOVERY_TOOLS=true vitest run",
+    "test": "GLIF_API_TOKEN=xxx vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "inspector": "npx @modelcontextprotocol/inspector -e GLIF_API_TOKEN=xxx node build/index.js",

@@ -20,7 +20,7 @@ export const schema = z.object({
 export const definition = {
   name: "run_workflow",
   description:
-    "Run a workflow (glif) with the specified ID and inputs. Glifs are AI workflows that can generate images, text, audio, and more.",
+    "Run a workflow (glif) with the specified ID and inputs. Workflows can generate images, text, audio, and more. Inputs can include text, URLs, or base64-encoded media.",
   inputSchema: {
     type: "object",
     properties: {
@@ -33,7 +33,8 @@ export const definition = {
         items: {
           type: "string",
         },
-        description: "Array of input values for the workflow",
+        description:
+          "Array of input values. Can be text, media URLs, or base64-encoded media (data:image/png;base64,... or data:image/jpeg;base64,...)",
       },
     },
     required: ["id", "inputs"],

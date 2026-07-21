@@ -1,136 +1,31 @@
 # glif-mcp-server
 
-MCP server for running AI workflows from glif.app.
+> [!IMPORTANT]
+> **This locally-run MCP server is deprecated.** Glif now has a hosted MCP server — no install, no API token config, just OAuth. Get started at **[glif.app/mcp](https://glif.app/mcp)**.
+>
+> The old local server code is parked on the [`legacy-local-server`](https://github.com/glifxyz/glif-mcp-server/tree/legacy-local-server) branch.
 
-For more info check out https://glif.app or join our Discord server: https://discord.gg/glif
+![Glif MCP](https://glifusercontent.com/i:r/c_limit,w_3840/f_auto/q_auto/biqv7x3jy8tbovm4ow6a)
 
-## Features
+## The hosted Glif MCP server
 
-- Run workflows with inputs
-- Get detailed information about workflows, runs, and users
-- Search and discover workflows
-- Browse and load agents
+Glif's MCP server gives any MCP client (Claude, ChatGPT, Cursor, etc.) access to Glif: AI image, video, and audio generation, media workflows, and your Glif projects.
 
-## Setup
+- **Endpoint:** `https://glif.app/api/mcp`
+- **Auth:** OAuth — sign in with your Glif account, no API tokens to manage
+- **Transport:** Streamable HTTP (JSON-RPC 2.0)
 
-### Running via npx (recommended)
+Tools include `compose_project` (create/continue media-generation projects), `get_job_status`, `list_projects`, `get_project`, `view_media`, `upload_file`, `list_user_skills`, `get_user_skill`, and `whoami`.
 
-If you have nodejs installed, you can run our [@glifxyz/glif-mcp-server](https://www.npmjs.com/package/@glifxyz/glif-mcp-server) package via npx:
+### Connect from Claude
 
-1. Get your API token from https://glif.app/settings/api-tokens
-2. Add the server in your Claude Desktop config file. On macOS this is: `~/Library/Application Support/Claude/claude_desktop_config.json`
+1. Go to **Settings → Connectors → Add custom connector**
+2. Paste `https://glif.app/api/mcp`
+3. Approve the Glif OAuth flow when prompted
 
-   ```json
-   {
-     "mcpServers": {
-       "glif": {
-         "command": "npx",
-         "args": ["-y", "@glifxyz/glif-mcp-server@latest"],
-         "env": {
-           "GLIF_API_TOKEN": "your-token-here"
-         }
-       }
-     }
-   }
-   ```
+Full docs, client setup guides, and a plain HTTP API: **https://glif.app/mcp**
 
-### Running from a local checkout
-
-```sh
-git clone https://github.com/glifxyz/glif-mcp-server
-cd glif-mcp-server
-npm install
-npm run build
-```
-
-Then configure your MCP client:
-
-   ```json
-   {
-     "mcpServers": {
-       "glif": {
-         "command": "node",
-         "args": ["/path/to/glif-mcp/build/index.js"],
-         "env": {
-           "GLIF_API_TOKEN": "your-token-here"
-         }
-       }
-     }
-   }
-   ```
-
-You can also specify workflow IDs (comma-separated) which will be loaded automatically:
-
-```json
-{
-  "mcpServers": {
-    "glif": {
-      "command": "node",
-      "args": ["/path/to/glif-mcp/build/index.js"],
-      "env": {
-        "GLIF_API_TOKEN": "your-token-here",
-        "GLIF_IDS": "cm2v9aiga00008vfqdiximl2m,cm2v98jk6000r11afslqvooil"
-      }
-    }
-  }
-}
-```
-
-## Configuration
-
-Environment variables:
-
-- `GLIF_API_TOKEN` - **Required.** Your API token from https://glif.app/settings/api-tokens
-- `GLIF_IDS` - Optional. Comma-separated workflow IDs to load as tools automatically
-- `IGNORE_DISCOVERY_TOOLS` - Set to `true` to disable discovery tools
-- `AGENT_TOOLS` - Set to `true` to enable agent tools
-
-## Tools
-
-### Core Tools
-
-- `run_workflow` - Run a workflow with the specified ID and inputs
-- `workflow_info` - Get detailed information about a workflow
-
-### Discovery Tools (enabled by default)
-
-- `list_featured_workflows` - Get a curated list of featured workflows
-- `search_workflows` - Search for workflows by name or description
-- `my_workflows` - Get a list of your workflows
-- `my_user_info` - Get detailed information about your account
-
-### Agent Tools (disabled by default, enable with `AGENT_TOOLS=true`)
-
-- `list_agents` - Get a list of agents with optional filtering
-- `load_agent` - Load an agent and get its details including personality and workflows
-
-## Resources
-
-- `glif://{id}` - Get workflow metadata
-- `glifRun://{id}` - Get run details
-- `glifUser://{id}` - Get user profile
-
-## Development
-
-```bash
-npm install
-npm run build
-npm run dev     # auto-rebuild
-npm run test    # run tests
-```
-
-### Debugging
-
-```bash
-npm run inspector
-```
-
-### Releasing
-
-1. Edit `package.json` and `src/index.ts` and bump the version
-2. Run `npm install` to update lockfile
-3. Commit and push to main
-4. Run `npm run release` (requires `gh` CLI)
+For more info check out https://glif.app or join our Discord: https://discord.gg/glif
 
 ## License
 

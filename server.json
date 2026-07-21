@@ -1,0 +1,13 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "app.glif/glif",
+  "title": "Glif",
+  "description": "Generate images, video, and audio with Glif's media-generation agent",
+  "version": "1.0.0",
+  "websiteUrl": "https://glif.app/mcp",
+  "icons": [
+    { "src": "https://glif.app/glif-icon-512.png", "mimeType": "image/png", "sizes": ["512x512"] },
+    { "src": "https://glif.app/favicon.svg", "mimeType": "image/svg+xml", "sizes": ["any"] }
+  ],
+  "remotes": [{ "type": "streamable-http", "url": "https://glif.app/api/mcp" }]
+}

@@ -1,0 +1,30 @@
+name: Publish to MCP Registry
+
+# Publishes server.json to registry.modelcontextprotocol.io.
+# Auth: HTTP domain verification — the Ed25519 public key is served at
+# https://glif.app/.well-known/mcp-registry-auth; the matching 64-char hex
+# private key lives in the MCP_REGISTRY_PRIVATE_KEY repo secret.
+# Registry versions are immutable: bump `version` in server.json, then tag
+# the commit `v<version>` and push the tag.
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch: {}
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install mcp-publisher
+        run: |
+          curl -L "https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_$(uname -s | tr '[:upper:]' '[:lower:]')_$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/').tar.gz" | tar xz mcp-publisher
+      - name: Validate server.json
+        run: ./mcp-publisher validate
+      - name: Login (HTTP domain auth for glif.app)
+        run: ./mcp-publisher login http --domain glif.app --private-key "${{ secrets.MCP_REGISTRY_PRIVATE_KEY }}"
+      - name: Publish
+        run: ./mcp-publisher publish

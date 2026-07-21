@@ -1,7 +1,7 @@
 # glif-mcp-server
 
 > [!IMPORTANT]
-> **This locally-run MCP server is deprecated.** Glif now has a hosted MCP server — no install, no API token config, just OAuth. Get started at **[glif.app/mcp](https://glif.app/mcp)**.
+> **This locally-run MCP server is deprecated.** Glif now has a hosted MCP server — get started at **[glif.app/mcp](https://glif.app/mcp)**.
 >
 > The old local server code is parked on the [`legacy-local-server`](https://github.com/glifxyz/glif-mcp-server/tree/legacy-local-server) branch.
 
@@ -9,11 +9,7 @@
 
 ## The hosted Glif MCP server
 
-Glif's MCP server gives any MCP client (Claude, ChatGPT, Cursor, etc.) access to Glif: AI image, video, and audio generation, media workflows, and your Glif projects.
-
-- **Endpoint:** `https://glif.app/api/mcp`
-- **Auth:** OAuth — sign in with your Glif account, no API tokens to manage
-- **Transport:** Streamable HTTP (JSON-RPC 2.0)
+Glif's MCP server gives any MCP client (Claude, ChatGPT, Cursor, etc.) access to Glif: AI image, video, and audio generation, media workflows, and your Glif projects. Just add the endpoint — `https://glif.app/api/mcp` — and sign in with your Glif account.
 
 Tools include `compose_project` (create/continue media-generation projects), `get_job_status`, `list_projects`, `get_project`, `view_media`, `upload_file`, `list_user_skills`, `get_user_skill`, and `whoami`.
 

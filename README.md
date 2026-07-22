@@ -67,26 +67,17 @@ codex mcp login glif
 
 Your client opens a browser OAuth sign-in on first connect — approve it to link your Glif account. More clients (Replit, Hermes, OpenClaw, LM Studio, …) with copy-paste snippets: https://glif.app/mcp
 
-## Tools
-
-| Tool                                  | What it does                                                                                                                       |
-| ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| `compose_project`                     | Create or continue a Glif project from natural language — the server-side agent picks models and chains multi-step media workflows |
-| `get_project`                         | Read project state, active job, recent messages, and generated media                                                               |
-| `view_media`                          | Re-render already-generated media in the client's viewer                                                                           |
-| `list_projects`                       | List your recent Glif projects                                                                                                     |
-| `list_user_skills` / `get_user_skill` | Browse and fetch your personal Glif skills                                                                                         |
-| `upload_file`                         | Upload image/video/audio/documents to use as inputs                                                                                |
-| `whoami`                              | Your identity, plan, and credit balance                                                                                            |
-
-Long-running generations run async via MCP tasks, so your agent isn't blocked while a video renders.
-
 ## Links
 
 - Website: https://glif.app
 - MCP install page: https://glif.app/mcp
 - Discord: https://discord.gg/glif
 - X: https://x.com/heyglif
+
+## Registries
+
+- Anthropic MCP Registry
+- [![Glama](https://raw.githubusercontent.com/glama-ai/glama/main/assets/glama-badge.svg)](https://glama.ai/mcp/servers/glifxyz-glif-mcp-server)
 
 ## License
 

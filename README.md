@@ -77,7 +77,6 @@ Your client opens a browser OAuth sign-in on first connect — approve it to lin
 ## Registries
 
 - Anthropic MCP Registry
-- [![Glama](https://raw.githubusercontent.com/glama-ai/glama/main/assets/glama-badge.svg)](https://glama.ai/mcp/servers/glifxyz-glif-mcp-server)
 
 ## License
 

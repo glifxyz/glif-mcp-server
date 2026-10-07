@@ -1,6 +1,7 @@
 ---
 name: image-video-audio
-description: Turn a reference image, video or audio file into new media with Glif, such as animating an image, making a short video, or adding matching music or voice. Use when the user supplies or picks a file to build on. Generation needs an explicit request.
+description: |
+  Turn a reference image, video or audio file into new media with Glif. Use when the user supplies or picks a file to build on: "animate this photo", "turn this product photo into a video ad", "make this photo dance", "bullet time", "one continuous shot around this", "lipsync my photo to this track", "make a music video for my song", "drive this character with my video", "swap me for this character", "stage this empty room", "show this room renovated", "use this video's structure for my product". Generation needs an explicit request. NOT for: editing the image itself (use edit-images), new audio or video without a reference (use audio-and-video), app screencasts (use app-demo-videos).
 compatibility: Requires the Glif MCP server at https://glif.app/api/mcp.
 ---
 
@@ -11,10 +12,15 @@ Use this for reference-led media work. Skip it for conceptual questions or edits
    - A new file: see step 4.
    - Never assume ownership from a URL, and never reveal whether another account's project exists.
 2. Draft a brief:
-   - Image to video: subject motion, camera move, length and framing.
+   - Image to video: subject motion, camera move, length and framing. "One continuous shot, no cuts" helps for orbits and bullet time.
+   - Product photo to ad: keep the product identical; only the camera, light and setting move.
+   - Song or voice to video: which parts are sung or spoken, the look, and where lipsync is needed.
+   - Driving video: which character takes over the motion, and what stays from the original (camera, timing, sound).
+   - Room photo: the style to stage or renovate in, and whether to add a walkthrough video.
+   - Reference video for structure: copy its pacing, shot order and hook only. Never copy its people, footage, logos or brand.
    - Matching audio: mood, timing, and whether it needs speech or music.
-   - Audio or video reference: what should carry over into the new output.
    Ask about missing creative choices only when they matter.
+   Use a real person's face, body or voice only with their consent. Ask whose face to use; never pick one yourself.
 3. Picking media prepares context. It does not approve spending. If the user has not asked to generate, show the draft and wait. Glif creates new files; it never overwrites the source.
 4. Upload a new reference only after the user agrees to send it to Glif. Use `upload_file`:
    - A public `http(s)` link: pass it as `url`.

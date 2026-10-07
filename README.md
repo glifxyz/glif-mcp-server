@@ -123,7 +123,7 @@ Generation spends credits from the signed-in Glif account. Reading and browsing 
 
 ## Develop
 
-[`docs/distribution.md`](docs/distribution.md) lists every manifest in this repo and where we list Glif. CI checks all manifests on each PR. To check locally:
+CI checks every manifest on each PR. To check locally:
 
 ```sh
 claude plugin validate --strict .

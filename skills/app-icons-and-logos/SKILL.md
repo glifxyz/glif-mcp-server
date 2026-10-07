@@ -67,7 +67,7 @@ Offer these after the logo is approved. Each is a separate request.
 
 - **Logo animation:** a 2 to 4 second reveal or burst, MP4 with a transparent or brand-color background, for splash screens and video intros.
 - **Restyle:** the same mark as glossy 3D, Y2K chrome or another treatment, on a transparent background.
-- **Brand kit:** palette with hex values, font pairing, usage rules and a one-page sheet. Glif can build it from the new logo, or reverse-engineer an existing site from its URL. Save the values as CSS variables or Tailwind theme tokens too.
+- **Brand kit:** palette with hex values, font pairing, usage rules and a one-page sheet. Glif can build it from the new logo, or from the user's existing site by its URL. Save the values as CSS variables or Tailwind theme tokens too.
 - **Mascot:** a character sheet with front, side and back views plus expressions, so the mascot looks the same everywhere.
 
 ## 6. Custom icon sets

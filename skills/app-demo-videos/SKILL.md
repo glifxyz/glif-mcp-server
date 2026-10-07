@@ -25,7 +25,7 @@ Agree on a short plan before recording:
 - **Sound:** voiceover script, voice (Glif can play samples to choose from, or clone a voice from a sample with the owner's consent), music mood (ducked under the voice), and optional click sounds synced to the cursor.
 - **Captions:** word-by-word highlight, simple lower thirds, or motion-graphic overlays with numbers and charts. Ask Glif for a still frame with a few font options first if the look matters.
 
-Show the plan and wait for a yes. Video is the most expensive thing Glif makes.
+Show the plan and wait for a yes. Video uses more credits than images.
 
 ## 2. Record the app
 

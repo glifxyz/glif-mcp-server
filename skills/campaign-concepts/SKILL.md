@@ -1,7 +1,7 @@
 ---
 name: campaign-concepts
 description: |
-  Plan a campaign or coordinated media set, such as product photos, ads, a short video and a matching jingle, then create it with Glif in one saved project when the user asks to generate. Use when: "I need an ad for my perfume brand", "ad concepts", "angles to test", "UGC ads without hiring creators", "turn these reviews into ads", "product photos for my shop", "Amazon or Shopify listing images", "lifestyle shots of this product", "social media calendar", "a week of posts", "launch campaign", "poster series", "mood board", "storyboard this ad", "a daily video series". NOT for: launch graphics or demo videos of an app you are building (use app-promo-materials or app-demo-videos), one-off edits (use edit-images).
+  Plan a campaign or coordinated media set, such as product photos, ads, a short video and a matching jingle, then create it with Glif in one saved project when the user asks to generate. Use when: "I need an ad for my perfume brand", "ad concepts", "angles to test", "UGC-style ads", "turn these reviews into ads", "product photos for my shop", "Amazon or Shopify listing images", "lifestyle shots of this product", "social media calendar", "a week of posts", "launch campaign", "poster series", "mood board", "storyboard this ad", "a daily video series". NOT for: launch graphics or demo videos of an app you are building (use app-promo-materials or app-demo-videos), one-off edits (use edit-images).
 compatibility: Requires the Glif MCP server at https://glif.app/api/mcp.
 ---
 

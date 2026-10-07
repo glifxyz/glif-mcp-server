@@ -34,7 +34,7 @@ Edit photos of real people only with their permission. Don't change someone's id
 
 ## 3. Run once
 
-An edit request is approval to spend credits. Most edits are cheap. Call `compose_project` once with the brief and attachments, share the `projectUrl`, then call `get_job_status` with the `jobId` as `job_id`. Never retry a failed edit on your own.
+An edit request is approval to spend credits. Call `compose_project` once with the brief and attachments, share the `projectUrl`, then call `get_job_status` with the `jobId` as `job_id`. Never retry a failed edit on your own.
 
 ## 4. Save next to the original
 

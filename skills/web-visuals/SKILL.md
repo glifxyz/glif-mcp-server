@@ -13,7 +13,7 @@ Read the page or component. List each visual slot:
 
 - **Hero:** full-bleed or split, and which side the headline sits on.
 - **Section backgrounds:** soft gradients, paper grain, material close-ups.
-- **Textures and patterns:** must tile seamlessly. These are cheap.
+- **Textures and patterns:** must tile seamlessly.
 - **Illustrations:** feature cards, empty states, 404, onboarding. Ask for SVG when the style is flat.
 - **Cutouts:** product or people photos on a transparent background, to sit on page colors.
 - **Infographics and stat cards:** keep the numbers and labels in HTML; let Glif make the art around them.
@@ -35,7 +35,7 @@ Generation spends the user's Glif credits.
 
 - If the user asked for these visuals, go ahead.
 - If adding visuals was your idea, show the slot list in one line each and wait for a yes.
-- Video costs much more. Offer it; never make it unasked.
+- Video uses more credits than images. Offer it; never make it unasked.
 - When the look is still open, ask for 2 or 3 directions for the hero first, then make the rest in the chosen style.
 
 Send **one** `compose_project` call for the whole page. For each asset, give:

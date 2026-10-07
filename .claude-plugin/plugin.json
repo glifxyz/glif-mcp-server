@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "glif",
+  "displayName": "Glif",
+  "version": "1.0.0",
+  "description": "Create images, video, and audio in saved Glif projects. Connects the hosted Glif MCP server and adds skills for campaigns, reference media, and continuing projects.",
+  "author": {
+    "name": "Spellcasters, Inc.",
+    "email": "contact@glif.xyz",
+    "url": "https://glif.app"
+  },
+  "homepage": "https://glif.app/mcp",
+  "repository": "https://github.com/glifxyz/glif-mcp-server",
+  "license": "MIT",
+  "keywords": ["glif", "mcp", "image-generation", "video-generation", "audio", "creative"],
+  "icon": "./assets/glif-icon-512.png",
+  "documentationUrl": "https://glif.app/mcp",
+  "supportUrl": "https://glif.app/contact",
+  "privacyPolicyUrl": "https://glif.app/privacy",
+  "termsOfServiceUrl": "https://glif.app/legal"
+}

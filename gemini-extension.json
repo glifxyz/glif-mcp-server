@@ -1,0 +1,10 @@
+{
+  "name": "glif",
+  "version": "1.0.0",
+  "description": "Create images, video, and audio in saved Glif projects.",
+  "mcpServers": {
+    "glif": {
+      "httpUrl": "https://glif.app/api/mcp"
+    }
+  }
+}

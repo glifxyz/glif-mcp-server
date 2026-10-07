@@ -1,0 +1,38 @@
+name: Validate
+
+# Checks every manifest in this repo on each push and PR:
+# Claude plugin + marketplace, Agent Plugins (ChatGPT/Codex/Cursor/VS Code),
+# Agent Skills, and the MCP Registry server.json.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - uses: astral-sh/setup-uv@v10.2.0
+      - name: Plugin versions match
+        run: test "$(jq -r .version .claude-plugin/plugin.json plugin.json gemini-extension.json | sort -u | wc -l)" -eq 1
+      - name: Claude plugin and marketplace
+        run: |
+          npx -y @anthropic-ai/claude-code plugin validate --strict .
+          npx -y @anthropic-ai/claude-code plugin validate --strict .claude-plugin/plugin.json
+          npx -y @anthropic-ai/claude-code plugin validate --strict skills
+      - name: Agent Plugins manifests
+        run: |
+          uvx check-jsonschema --schemafile https://agent-plugins.org/schemas/1.0.0/plugin.schema.json plugin.json
+          uvx check-jsonschema --schemafile https://agent-plugins.org/schemas/1.0.0/mcp.schema.json mcp.json
+      - name: Agent Skills
+        run: for skill in skills/*/; do uvx --from skills-ref agentskills validate "$skill"; done
+      # Offline schema check; publish.yml runs the registry's own validator on release.
+      - name: MCP Registry server.json
+        run: uvx check-jsonschema --schemafile "$(jq -r '."$schema"' server.json)" server.json

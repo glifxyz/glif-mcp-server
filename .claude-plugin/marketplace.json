@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
+  "name": "glif",
+  "owner": {
+    "name": "Spellcasters, Inc.",
+    "email": "contact@glif.xyz"
+  },
+  "metadata": {
+    "description": "Official Glif plugins for Claude Code."
+  },
+  "plugins": [
+    {
+      "name": "glif",
+      "source": "./",
+      "description": "Create images, video, and audio in saved Glif projects.",
+      "category": "design",
+      "homepage": "https://glif.app/mcp"
+    }
+  ]
+}

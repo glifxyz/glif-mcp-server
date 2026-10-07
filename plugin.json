@@ -1,0 +1,43 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "glif",
+  "version": "1.0.0",
+  "description": "Create images, video, and audio in saved Glif projects.",
+  "author": {
+    "name": "Spellcasters, Inc.",
+    "email": "contact@glif.xyz",
+    "url": "https://glif.app"
+  },
+  "homepage": "https://glif.app/mcp",
+  "repository": "https://github.com/glifxyz/glif-mcp-server",
+  "license": "MIT",
+  "keywords": ["glif", "creative", "image", "video", "audio"],
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "Glif",
+        "shortDescription": "Create images, video & audio",
+        "longDescription": "Turn a creative idea into images, video, and audio with Glif. Describe a product launch, a short film, or a visual world. Glif chooses models and carries out the steps in one saved project. Bring reference media, explore visual directions, and continue earlier projects. Connect your existing Glif account. Generation uses credits already available in that account; browsing saved projects does not start generation.",
+        "developerName": "Spellcasters, Inc.",
+        "category": "Design",
+        "capabilities": [
+          "Create images, video, and audio",
+          "Continue saved creative projects",
+          "Browse owned project media"
+        ],
+        "websiteURL": "https://glif.app/mcp",
+        "supportURL": "https://glif.app/contact",
+        "privacyPolicyURL": "https://glif.app/privacy",
+        "termsOfServiceURL": "https://glif.app/legal",
+        "defaultPrompt": [
+          "Plan a Moon Motel campaign with an image, a short video, and a radio jingle. Let me review the brief before generating.",
+          "Help me turn a product photo into a short ad. Ask me to choose the reference before generating.",
+          "Show my recent Glif projects so I can choose one to continue. Do not generate yet."
+        ],
+        "composerIcon": "./assets/glif-icon-512.png",
+        "logo": "./assets/glif-icon-512.png"
+      },
+      "onboardingSkill": "./skills/get-started/SKILL.md"
+    }
+  }
+}

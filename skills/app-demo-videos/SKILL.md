@@ -1,7 +1,7 @@
 ---
 name: app-demo-videos
 description: |
-  Record a screencast of an app you are building and turn it into a polished demo, explainer or promo video with Glif, using video templates for device mockups, captions, voiceover and music. Use when: "make a demo video", "record a screencast", "I need a launch video for my startup", "hype trailer for my app", "product walkthrough", "feature tour", "explainer video", "turn my Loom into a polished demo", "show my app on a MacBook", "scroll through my dashboard and zoom in", "15-second TikTok ad for our best feature", "changelog video", "App Store preview video", "GIF for the README", "thumbnail for the launch video". NOT for: still graphics (use app-promo-materials), videos unrelated to the app (use audio-and-video), animating a single image (use image-video-audio).
+  Record a screencast of an app you are building and turn it into a polished demo, explainer or promo video with Glif, using video templates for device mockups, captions, voiceover and music. Use when: "make a demo video", "record a screencast", "I need a launch video for my startup", "hype trailer for my app", "product walkthrough", "feature tour", "explainer video", "turn my Loom into a polished demo", "show my app on a MacBook", "scroll through my dashboard and zoom in", "15-second TikTok ad for our best feature", "changelog video", "App Store preview video", "GIF for the README", "thumbnail for the launch video". NOT for: still graphics (use app-promo-materials), videos unrelated to the app (use audio-and-video), animating a single image (use audio-and-video).
 compatibility: Requires the Glif MCP server at https://glif.app/api/mcp. Recording needs Node.js and Playwright.
 ---
 

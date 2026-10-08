@@ -1,7 +1,7 @@
 ---
 name: edit-images
 description: |
-  Edit an existing image with Glif: remove the background, erase or replace objects, expand the canvas, restore or upscale, retouch, restyle or change one detail. Saves the result next to the original without overwriting it. Use when: "remove the background", "make this a transparent PNG", "cut out the product", "erase X from this photo", "replace the sky", "expand this image to landscape", "make it 16:9 without cropping", "upscale this", "restore this old photo", "retouch this portrait", "restyle this as pixel art", "edit this image", "keep everything else identical". NOT for: new images from scratch (use web-visuals), animating an image (use image-video-audio), logos (use app-icons-and-logos).
+  Edit an existing image with Glif: remove the background, erase or replace objects, expand the canvas, restore or upscale, retouch, restyle or change one detail. Saves the result next to the original without overwriting it. Use when: "remove the background", "make this a transparent PNG", "cut out the product", "erase X from this photo", "replace the sky", "expand this image to landscape", "make it 16:9 without cropping", "upscale this", "restore this old photo", "retouch this portrait", "restyle this as pixel art", "edit this image", "keep everything else identical". NOT for: new images from scratch (use make-images), animating an image (use audio-and-video), logos (use app-icons-and-logos).
 compatibility: Requires the Glif MCP server at https://glif.app/api/mcp.
 ---
 

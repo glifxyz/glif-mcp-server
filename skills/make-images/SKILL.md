@@ -16,7 +16,7 @@ Say what each image shows, not which model to use. Include:
 - **Size:** aspect ratio and pixel size, such as 16:9 at 1920×1080 or 1:1 at 1024×1024.
 - **Count:** how many images, and what varies between them.
 - **Text in the image:** the exact words in quotes, kept short. Say "no text" otherwise.
-- **References:** upload a logo, sketch or style sample with `upload_file`. With shell access, pass `filename` (and `kind` if unclear), then run the returned `command` with the real path. Pass the returned `fileUrl` in `attachments`. Say what to keep from it: "Use the attached mark exactly, don't redraw it."
+- **References:** upload a logo, sketch or style sample with `upload_file`, only after the user agrees to send that file to Glif. With shell access, pass `filename` (and `kind` if unclear), then run the returned `command` with the real path. Pass the returned `fileUrl` in `attachments`. Say what to keep from it: "Use the attached mark exactly, don't redraw it."
 
 A series goes in one brief. Number the items and give each a short name and what makes it different, so Glif can title the outputs to match.
 
@@ -30,11 +30,11 @@ Call `compose_project` once with the whole brief. Share the `projectUrl`. Follow
 
 ## 3. Save and check
 
-Download every result. In a codebase, use a folder that isn't shipped, such as `assets/` or `images/`, with a subfolder per series. Elsewhere, use the folder the user named or the current directory.
+Download every result. In a codebase, use a folder the build does not ship, with a subfolder per series. Check the ignore and build config first, and never use `public/` or `static/`. Elsewhere, use the folder the user named or the current directory.
 
 ```sh
-curl -fsSL "<media url>" -o assets/posters/01-noir.png
-file assets/posters/01-noir.png
+curl -fsSL "<media url>" -o drafts/posters/01-noir.png
+file drafts/posters/01-noir.png
 ```
 
 - Name files after the series item: `01-noir.png`, `02-pastel.png`.

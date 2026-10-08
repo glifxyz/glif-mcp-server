@@ -65,6 +65,8 @@ A request for these graphics is approval to spend credits. If the user only aske
    - layout: device frame or floating screen, headline position, background
    - shared style: brand colors (hex), fonts or mood
 
+For a video or audio item in the set, such as a UGC clip or a jingle, write its brief in the same call the way the audio-and-video skill does: shots with camera and action, the exact script in quotes, or music mood, tempo and length. Download those results with the same `curl` step and check them with `ffprobe`.
+
 Describe creative goals; Glif picks the models. Leave `intelligence` unset unless the user asks for `lite`, `smart` or `genius`. Ask Glif to report each output's size.
 
 Useful follow-ups in the same project:

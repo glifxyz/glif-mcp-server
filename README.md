@@ -104,13 +104,12 @@ More clients (Replit, Hermes, OpenClaw, LM Studio and others) have copy-paste sn
 | [`get-started`](skills/get-started/SKILL.md) | Check the connected account and credits, and learn how projects work. Never generates. |
 | [`web-visuals`](skills/web-visuals/SKILL.md) | Make hero images, textures, illustrations, OG images and background video for a site you're building, and wire them in. |
 | [`app-icons-and-logos`](skills/app-icons-and-logos/SKILL.md) | Design a logo or app icon, then export the favicon set, PWA, iOS and Android sizes. |
-| [`app-promo-materials`](skills/app-promo-materials/SKILL.md) | Turn real app screens into App Store screenshots, store graphics and launch posts. |
+| [`app-promo-materials`](skills/app-promo-materials/SKILL.md) | Turn real app screens into App Store screenshots and launch posts, or plan and make an ad campaign or product photo set. |
 | [`app-demo-videos`](skills/app-demo-videos/SKILL.md) | Record the app with Playwright, then frame it in a video template with captions, voiceover and music. |
-| [`audio-and-video`](skills/audio-and-video/SKILL.md) | Make music, voiceover, sound effects and video clips, or edit existing media, and save them into the project. |
+| [`audio-and-video`](skills/audio-and-video/SKILL.md) | Make music, voiceover, sound effects and video clips from a brief or a reference file, or edit existing media. |
+| [`make-images`](skills/make-images/SKILL.md) | Make new images from a brief, such as concept art or a series in different styles, and save them to a folder. |
 | [`edit-images`](skills/edit-images/SKILL.md) | Remove backgrounds, erase objects, expand, upscale, retouch or restyle an existing image, saved next to the original. |
 | [`game-assets`](skills/game-assets/SKILL.md) | Make character sheets, sprite sheets, seamless and PBR textures, 3D models and icons for a game. |
-| [`campaign-concepts`](skills/campaign-concepts/SKILL.md) | Plan a set of matching images, video and audio, then make it in one project. |
-| [`image-video-audio`](skills/image-video-audio/SKILL.md) | Turn a reference file into new media, such as animating an image. |
 | [`continue-project`](skills/continue-project/SKILL.md) | Reopen saved work and add variations or follow-ups to it. |
 
 Skills spend credits only when you ask for media. If a visual was the agent's own idea, it asks first.

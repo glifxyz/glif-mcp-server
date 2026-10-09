@@ -1,4 +1,5 @@
 .claude/settings.local.json
+.claude/skills/
 .DS_Store
 .env
 .mcpregistry_*
@@ -6,4 +7,5 @@ build/
 config/
 key.pem
 node_modules/
+skills-lock.json
 *.log

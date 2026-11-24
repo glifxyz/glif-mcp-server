@@ -1,7 +1,7 @@
 ---
-name: audio-and-video
+name: video-and-audio
 description: |
-  Make or edit audio and video with Glif, from a text brief or from a reference image, video or audio file. Use when: "make music", "add fitting music to my video", "jingle", "voiceover", "narrate this", "text to speech", "sound effect", "UI sounds", "ambient loop", "make a video", "video clip", "UGC video", "talking avatar", "lipsync", "dub this into Spanish", "GIF", "add captions", "trim or combine these clips", "split the vocals", "remove background noise", "animate this photo", "turn this product photo into a video ad", "make this photo dance", "bullet time", "one continuous shot around this", "make a music video for my song", "drive this character with my video", "show this room renovated", "use this video's structure for my product". NOT for: editing a still image (use edit-images), demo videos of an app (use app-demo-videos), new still images (use make-images).
+  Make or edit video and audio with Glif, from a text brief or from a reference image, video or audio file. Use when: "make a video", "video clip", "short-form video", "explainer video", "talking avatar", "lipsync", "dub this into Spanish", "GIF", "add captions", "trim or combine these clips", "animate this photo", "make this photo dance", "bullet time", "one continuous shot around this", "make a music video for my song", "drive this character with my video", "show this room renovated", "use this video's structure", "make music", "add fitting music to my video", "jingle", "voiceover", "narrate this", "text to speech", "sound effect", "UI sounds", "ambient loop", "split the vocals", "remove background noise". NOT for: still images (use images), or ads, product videos and app demo videos (use ads-and-promo).
 compatibility: Requires the Glif MCP server at https://glif.app/api/mcp.
 ---
 
@@ -40,13 +40,13 @@ Get the reference to Glif:
 - A local file with shell access: call `upload_file` with only `filename` (plus `kind` if unclear), then run the returned `command` with the real path.
 - A small local file (under 1 MiB) without shell access: pass `base64` and `filename`.
 
-Upload a file only after the user agrees to send it to Glif. If you cannot reach the bytes, ask for a supported attachment. Pass the returned `fileUrl` in `attachments`. Never assume ownership from a URL, and never reveal whether another account's project exists.
+Upload a file only after the user agrees to send it to Glif. If you cannot reach the bytes, ask for a supported attachment. A `url`, `file` or `base64` upload returns an `assetId`: pass it in `asset_ids`. A `filename` upload returns a `fileUrl` once its `command` runs: pass it in `attachments`. Never assume ownership from a URL, and never reveal whether another account's project exists.
 
 ## 3. Check cost, then run once
 
 Generation spends the user's Glif credits; video costs the most. A direct request ("make a jingle", "animate this photo") is approval. If the media was your own idea, or the user only picked a file, describe the plan in a line and wait for a yes. Put related pieces, like a set of UI sounds or a series of shots, in one `compose_project` call.
 
-Share the `projectUrl`. Follow the run with `get_job_status`, passing the `jobId` as `job_id`. Video can take minutes, so keep working meanwhile. A pending status or timeout is not a reason to start another run, and never retry a failure on your own. Glif creates new files; it never overwrites the source.
+Share the `projectUrl`. Follow the run with `get_job_status`, passing the `jobId` as `job_id` and each returned `progressCursor` as `progress_cursor`. If the call comes back as a background task, skip `get_job_status`: keep working and the host delivers the result. Video can take minutes, so keep working meanwhile. A pending status or timeout is not a reason to start another run, and never retry a failure on your own. Glif creates new files; it never overwrites the source.
 
 ## 4. Bring files into the project
 

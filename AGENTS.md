@@ -37,3 +37,4 @@ for skill in skills/*/; do uvx --from skills-ref agentskills validate "$skill"; 
 - `.claude-plugin/` is the Claude plugin and marketplace. Root `plugin.json` and `mcp.json` are the Agent Plugins format. `gemini-extension.json` is Gemini CLI. `server.json` is the MCP Registry.
 - Bump `version` in `.claude-plugin/plugin.json`, `plugin.json` and `gemini-extension.json` together. CI fails if they differ.
 - Publish `server.json` by bumping its `version` and tagging `v<version>`.
+- `skills/` is published from Glif's own source and replaced on each update. Don't edit it here; changes would be overwritten. Report skill problems as issues instead.

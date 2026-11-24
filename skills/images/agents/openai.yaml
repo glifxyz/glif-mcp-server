@@ -1,3 +1,6 @@
+interface:
+  display_name: "Images"
+  short_description: "Make, edit, logos and site art"
 dependencies:
   tools:
     - type: "mcp"

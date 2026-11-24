@@ -1,3 +1,6 @@
+interface:
+  display_name: "Continue a project"
+  short_description: "Add to a saved Glif project"
 dependencies:
   tools:
     - type: "mcp"

@@ -2,8 +2,8 @@
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "glif",
   "displayName": "Glif",
-  "version": "1.1.0",
-  "description": "Create images, video, and audio with Glif. Connects the hosted Glif MCP server and adds skills for web visuals, new and edited images, app icons and logos, promo graphics and campaigns, app demo videos, game assets, audio and video, and continuing saved projects.",
+  "version": "1.2.0",
+  "description": "Create images, video, and audio with Glif. Connects the hosted Glif MCP server and adds skills for images, video and audio, ads and promo, getting started and continuing saved projects.",
   "author": {
     "name": "Spellcasters, Inc.",
     "email": "contact@glif.xyz",
